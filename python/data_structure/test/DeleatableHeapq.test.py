@@ -1,10 +1,6 @@
 # verification-helper: PROBLEM https://judge.yosupo.jp/problem/double_ended_priority_queue
 
-from pathlib import Path
-import sys
-sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
-
-from data_structure.DeletableHeapq import DeletableHeapq
+from python.data_structure.DeletableHeapq import DeletableHeapq
 import sys
 readline = sys.stdin.readline
 
