@@ -3,7 +3,7 @@ Binary indexed tree (Fenwick tree)
 （外部的に）0-indexed, 関数は半開区間
 0からの区間加算、1点更新
 """
-class BIT:
+class FenwickTree:
     def __init__(self, n, init=None):
         self.size = n
         self.longest_interval = 1<<(n.bit_length()-1)
