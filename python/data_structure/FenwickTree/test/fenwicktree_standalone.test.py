@@ -7,7 +7,7 @@ readline = sys.stdin.readline
 if __name__ == "__main__":
     for n in range(1,10):
         for init in [None,range(n)]:
-            bit = BIT(n,init)
+            bit = FenwickTree(n,init)
             if init == None: init = [0]*n
             else: init = list(init)
             
