@@ -4,7 +4,24 @@ from python.data_structure.2D.FenwickTreeDualGeneral2D import FenwickTreeDualGen
 
 if __name__ == "__main__":
     from itertools import product
-    # test Gemera;FenwickTree2d
+
+    # test FenwickTreeDual2D
+    for m,n in product(range(1,10),range(1,10)):
+        for init in [None]:
+        bit = FenwickTreeDual2D(n,m)
+        if init == None: init = [[0]*m for _ in range(n)]
+        # prefix_add query        
+        for i,j in product(range(n+1),range(m+1)):
+            bit.prefix_add(i,j,d:=i+j)
+            for ii in range(i):
+                for jj in range(j):
+                    init[ii][jj] += d
+            # check get query
+            for r1,r2 in product(range(n),range(m)):
+                assert init[r1][r2] == bit.get(r1,r2)
+
+    
+    # test FenwickTreeDualGeneral2D
     MOD = 998244353
     mul = lambda x,y:x*y%MOD
     for m,n in product(range(1,10),range(1,10)):
