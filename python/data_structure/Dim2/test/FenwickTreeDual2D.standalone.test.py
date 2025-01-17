@@ -1,7 +1,7 @@
 # competitive-verifier: STANDALONE
 
-from python.data_structure.2D.FenwickTreeDual2D import FenwickTreeDual2D
-from python.data_structure.2D.FenwickTreeDualGeneral2D import FenwickTreeDualGeneral2D
+from python.data_structure.Dim2.FenwickTreeDual2D import FenwickTreeDual2D
+from python.data_structure.Dim2.FenwickTreeDualGeneral2D import FenwickTreeDualGeneral2D
 
 
 if __name__ == "__main__":
