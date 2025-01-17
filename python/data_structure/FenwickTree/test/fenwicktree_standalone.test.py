@@ -1,9 +1,8 @@
 # competitive-verifier: STANDALONE
 
-#from python.data_structure.FenwickTree.FenwickTree import FenwickTree
-from ..FenwickTree import FenwickTree
 import sys
-readline = sys.stdin.readline
+sys.path.append('../')
+from ..FenwickTree import FenwickTree
 
 if __name__ == "__main__":
     for n in range(1,10):
