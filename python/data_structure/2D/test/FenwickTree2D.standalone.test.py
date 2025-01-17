@@ -1,8 +1,8 @@
 # competitive-verifier: STANDALONE
 
-from ..FenwickTree2D import FenwickTree2D
 import sys
-readline = sys.stdin.readline
+sys.path.append('../')
+from ..FenwickTree2D import FenwickTree2D
 
 if __name__ == "__main__":
     from itertools import product
