@@ -40,7 +40,7 @@ class Accumulate2dim:
             + self.get_sum_from_origin_large(h2,w2))
 
 ##############################################################
-# https://atcoder.jp/contests/abc331/submissions/61529270
+# https://atcoder.jp/contests/abc331/submissions/61750409
 ##############################################################
 
 import sys
