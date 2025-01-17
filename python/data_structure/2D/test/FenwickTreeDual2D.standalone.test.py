@@ -1,3 +1,5 @@
+# competitive-verifier: STANDALONE
+
 from python.data_structure.2D.FenwickTreeDual2D import FenwickTreeDual2D
 from python.data_structure.2D.FenwickTreeDualGeneral2D import FenwickTreeDualGeneral2D
 
