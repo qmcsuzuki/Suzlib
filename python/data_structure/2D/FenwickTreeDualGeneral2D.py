@@ -27,3 +27,20 @@ class FenwickTreeDualGeneral2D:
                 jj += jj & -jj
             i += i & -i
         return s
+
+"""
+suffix_add のみを扱えるバージョン
+"""
+class FenwickTreeDualGeneral2DSuffix:
+    def __init__(self, h: int, w: int, op, e_M):
+        self.h = h
+        self.w = w
+        self.BIT = FenwickTreeDualGeneral2D(h,w,op,e_M)
+
+    def suffix_add(self, r1, r2, x):
+        """ 半閉区間 [r1,\infty) * [r2,\infty) 上に x を加算"""
+        self.BIT.prefix_add(self.h - r1, self.w - r2, x)
+
+    def get(self, i, j) -> int:
+        """ get a[i][j] """
+        return self.BIT.get(self.h - 1 - i, self.w - 1 - j)
