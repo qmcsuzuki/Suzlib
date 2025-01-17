@@ -9,9 +9,7 @@ class Accumulate2dim:
         self.acc = acc = [[0]*(w+1) for _ in range((h+1))]
         for i in range(1,h+1):
             for j in range(1,w+1):
-                acc[i][j] = a[i-1][j-1] + acc[i][j-1]
-            for j in range(1,w+1):
-                acc[i][j] += acc[i-1][j]
+                acc[i][j] = a[i-1][j-1] + acc[i][j-1] - acc[i-1][j-1] + acc[i-1][j]
 
     def get_sum_from_origin(self,h,w):
         #半開長方形 [0,h2)*[0,w2) の和
