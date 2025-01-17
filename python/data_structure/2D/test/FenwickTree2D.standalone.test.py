@@ -7,7 +7,7 @@ if __name__ == "__main__":
     # test FenwickTree2d
     for m,n in product(range(1,10),range(1,10)):
         for init in [None, [[i*j+1 for j in range(m)] for i in range(n)]]:
-            bit = FenwickTree2d(n,m,init)
+            bit = FenwickTree2D(n,m,init)
             if init == None: init = [[0]*m for _ in range(n)]
             
             for i,j in product(range(n),range(m)):
