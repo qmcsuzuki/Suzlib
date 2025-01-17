@@ -1,6 +1,7 @@
 # competitive-verifier: STANDALONE
 
-from python.data_structure.FenwickTree.FenwickTree import FenwickTree
+#from python.data_structure.FenwickTree.FenwickTree import FenwickTree
+from ..FenwickTree import FenwickTree
 import sys
 readline = sys.stdin.readline
 
