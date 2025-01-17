@@ -1,6 +1,6 @@
 # competitive-verifier: STANDALONE
 
-from python.data_structure.2D.FenwickTree2D import FenwickTree2D
+from python.data_structure.Dim2.FenwickTree2D import FenwickTree2D
 
 if __name__ == "__main__":
     from itertools import product
