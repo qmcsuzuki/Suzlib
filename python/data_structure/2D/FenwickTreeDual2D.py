@@ -1,4 +1,4 @@
-class FenwickTreeDual2d:
+class FenwickTreeDual2D:
     def __init__(self, h: int, w: int):
         self.h = h
         self.w = w
