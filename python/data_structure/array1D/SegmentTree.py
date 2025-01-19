@@ -95,3 +95,4 @@ class SegmentTree:
 
         return 0
 
+# https://atcoder.jp/contests/practice2/submissions/61843395
