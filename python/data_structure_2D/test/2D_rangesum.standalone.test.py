@@ -7,7 +7,7 @@ if __name__ == "__main__":
     from itertools import product
     # test FenwickTree2d
     for n,m in product(range(1,10),range(1,10)):
-        init = [[i*j+1 for j in range(m)] for i in range(n)]]
+        init = [[i*j+1 for j in range(m)] for i in range(n)]
         bit0 = FenwickTree2D(n,m,init)
         bit1 = FenwickTree2D(n,m)
         for i,j in product(range(n),range(m)):
