@@ -16,8 +16,8 @@ class FenwickTree:
                 i_above = i + ((i+1) & -(i+1))
                 if i_above < n: self.data[i_above] += self.data[i]
 
-    # @brief 半閉区間 [0,r) 上の和 a[0] + ... + a[r-1] を返す
     def prefix_sum(self, r):
+        """ 半閉区間 [0,r) 上の和 a[0] + ... + a[r-1] を返す """
         s = 0
         while r > 0:
             s += self.data[r-1]
