@@ -18,7 +18,7 @@ if __name__ == "__main__":
             bit0.add(i,j,d:=i-j)
             bit1.add(i,j,d+i*j+1)
             seg0.update(i,j,seg0.get(i,j)+d)
-            seg1.update(i,j,d)            
+            seg1.update(i,j,d+i*j+1)
             init[i][j] += d
         acc = Accumulate2dim(init)
         
