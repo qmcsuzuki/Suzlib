@@ -22,7 +22,7 @@ class SegmentTree:
             k >>= 1
 
     # 区間[L,R)をopでまとめる
-    def query(self,L,R):
+    def prod(self,L,R):
         L += self.N0; R += self.N0
         sl = sr = self.e_M
         while L < R:
@@ -34,6 +34,9 @@ class SegmentTree:
                 L += 1
             L >>= 1; R >>= 1
         return self.op_M(sl,sr)
+
+    def all_prod(self):
+        return self.data[1]
 
     def __getitem__(self, k): #k番目の値を取得。
         return self.data[k+self.N0]
