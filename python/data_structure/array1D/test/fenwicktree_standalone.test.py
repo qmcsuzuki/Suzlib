@@ -1,6 +1,6 @@
 # competitive-verifier: STANDALONE
 
-from python.data_structure.FenwickTree.FenwickTree import FenwickTree
+from python.data_structure.array1D.FenwickTree import FenwickTree
 # import sys
 # sys.path.append('../')
 # from ..FenwickTree import FenwickTree
