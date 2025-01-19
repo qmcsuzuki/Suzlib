@@ -1,6 +1,6 @@
 # competitive-verifier: PROBLEM https://judge.yosupo.jp/problem/point_add_range_sum
 
-from python.data_structure.FenwickTree.FenwickTree import FenwickTree
+from python.data_structure.array1D.FenwickTree import FenwickTree
 import sys
 readline = sys.stdin.readline
 
