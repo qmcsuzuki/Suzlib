@@ -46,46 +46,5 @@ class Accumulate2dim:
             + self.prefix_sum_large(h2,w2))
 
 ##############################################################
-# https://atcoder.jp/contests/abc331/submissions/61751172
+# https://atcoder.jp/contests/abc331/submissions/61878084
 ##############################################################
-
-import sys
-readline = sys.stdin.readline
-
-#n = int(readline())
-#*a, = map(int,readline().split())
-
-n,Q = map(int,readline().split())
-board = [[1 if i=="B" else 0 for i in readline().strip()] for _ in range(n)]
-
-seg = Accumulate2dim(board)
-
-def f(x,y):
-    if x < 0 or y < 0: return 0
-    x += 1
-    y += 1
-
-    xq,xr = divmod(x,n)
-    yq,yr = divmod(y,n)
-    ans = seg.range_sum(0,n,0,n)*xq*yq
-    ans += seg.range_sum(0,xr,0,n)*yq
-    ans += seg.range_sum(0,n,0,yr)*xq
-    ans += seg.range_sum(0,xr,0,yr)
-    
-    res = seg.prefix_sum(n,n)*xq*yq
-    res += seg.prefix_sum(xr,n)*yq
-    res += seg.prefix_sum(n,yr)*xq
-    res += seg.prefix_sum(xr,yr)
-    
-    assert ans == res
-    return ans
-
-
-for _ in range(Q):
-    a,b,c,d = map(int,readline().split())
-    ans1 = seg.range_sum_large(a,c+1,b,d+1)
-    ans2 = f(c,d) - f(a-1,d) - f(c,b-1) + f(a-1,b-1)
-    assert ans1 == ans2
-    print(ans1)
-
-
