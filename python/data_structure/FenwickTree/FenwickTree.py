@@ -7,7 +7,7 @@ class FenwickTree:
     def __init__(self, n, init=None):
         self.size = n
         self.longest_interval = 1<<(n.bit_length()-1)
-        if init == None:
+        if init is not None:
             self.data = [0]*n
         else:
             self.data = list(init)
