@@ -6,13 +6,14 @@ from python.data_structure_2D.SegmentTree2D import SegmentTree2D
 
 if __name__ == "__main__":
     from itertools import product
+    from operator import add
     # test FenwickTree2d
     for n,m in product(range(1,10),range(1,10)):
         init = [[i*j+1 for j in range(m)] for i in range(n)]
         bit0 = FenwickTree2D(n,m,init)
         bit1 = FenwickTree2D(n,m)
-        seg0 = SegmentTree2D(n,m,init)
-        seg1 = SegmentTree2D(n,m)
+        seg0 = SegmentTree2D(n,m,add,0,init)
+        seg1 = SegmentTree2D(n,m,add,0)
         for i,j in product(range(n),range(m)):
             bit0.add(i,j,d:=i-j)
             bit1.add(i,j,d+i*j+1)
