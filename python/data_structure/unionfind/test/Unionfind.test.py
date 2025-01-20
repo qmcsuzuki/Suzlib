@@ -6,7 +6,7 @@ readline = sys.stdin.readline
 
 def main():    
     N,Q = map(int,readline().split())    
-    uf = UnionFind(N)
+    uf = Unionfind(N)
     
     for _ in range(Q):
         t,u,v = map(int,readline().split())
