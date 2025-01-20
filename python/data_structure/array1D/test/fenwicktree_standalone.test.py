@@ -1,9 +1,9 @@
 # competitive-verifier: STANDALONE
 
-from python.data_structure.array1D.FenwickTree import FenwickTree
-# import sys
-# sys.path.append('../')
-# from ..FenwickTree import FenwickTree
+#from python.data_structure.array1D.FenwickTree import FenwickTree
+import sys
+sys.path.append('../')
+from FenwickTree import FenwickTree
 
 if __name__ == "__main__":
     for n in range(1,10):
