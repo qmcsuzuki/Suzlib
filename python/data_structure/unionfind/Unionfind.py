@@ -1,4 +1,4 @@
-class Unionfind:
+class UnionFind:
     def __init__(self, n):
         self.parent = list(range(n)) #親ノード
         self.size = [1]*n #グループの要素数
