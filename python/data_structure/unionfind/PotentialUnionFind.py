@@ -45,25 +45,26 @@ class PotentialUnionFind:
 # https://atcoder.jp/contests/typical90/submissions/23631078
 ######################################################
 
-import sys
-readline = sys.stdin.readline
-
-n = int(readline())
-Q = int(readline())
-
-UF = PotentialUnionFind(2*n)
-
-for _ in range(Q):
-    t,x,y,v = list(map(int,readline().split()))
-    x -= 1
-    y -= 1
-    if t == 0:
-        UF.merge(x+n,y,v)
-        UF.merge(x,y+n,-v)
-    else:
-        if UF.issame(x,y):
-            print(v+UF.diff(x,y))
-        elif UF.issame(x,y+n):
-            print(-(v+UF.diff(x,y+n)))
+if __name__ == "main":
+    import sys
+    readline = sys.stdin.readline
+    
+    n = int(readline())
+    Q = int(readline())
+    
+    UF = PotentialUnionFind(2*n)
+    
+    for _ in range(Q):
+        t,x,y,v = list(map(int,readline().split()))
+        x -= 1
+        y -= 1
+        if t == 0:
+            UF.merge(x+n,y,v)
+            UF.merge(x,y+n,-v)
         else:
-            print("Ambiguous")
+            if UF.issame(x,y):
+                print(v+UF.diff(x,y))
+            elif UF.issame(x,y+n):
+                print(-(v+UF.diff(x,y+n)))
+            else:
+                print("Ambiguous")
