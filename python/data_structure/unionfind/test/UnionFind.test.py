@@ -1,12 +1,12 @@
 # verification-helper: PROBLEM https://judge.yosupo.jp/problem/unionfind
 
-from python.data_structure.unionfind.Unionfind import Unionfind
+from python.data_structure.unionfind.UnionFind import UnionFind
 import sys
 readline = sys.stdin.readline
 
 def main():    
     N,Q = map(int,readline().split())    
-    uf = Unionfind(N)
+    uf = UnionFind(N)
     
     for _ in range(Q):
         t,u,v = map(int,readline().split())
