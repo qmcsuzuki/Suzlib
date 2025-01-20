@@ -1,8 +1,8 @@
 class SegmentTree:
     # seg = SegmentTree(N,op,e,init=None)
-    def __init__(self, N, operator_M, e_M, init=None):
-        self.op_M = operator_M
-        self.e_M = e_M
+    def __init__(self, N, op, e, init=None):
+        self.op_M = op
+        self.e_M = e
         self.N = N
         self.N0 = 1<<(N-1).bit_length()
         self.data = [self.e_M]*(2*self.N0)
