@@ -24,7 +24,8 @@ class UnionFind:
         return self.size[self.root(x)]
         
     def groups(self):
-        gp = [[] for _ in range((n := len(self.parent)))]
+        n = len(self.parent)
+        gp = [[] for _ in range(n)]
         for v in range(n):
             gp[self.root(v)].append(v)
         return [lst for lst in gp if lst]
