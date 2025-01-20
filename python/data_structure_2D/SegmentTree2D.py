@@ -5,8 +5,8 @@ class SegmentTree2D:
         self.e = e
         self.N = N
         self.M = M
-        self.N0 = 1<<(N-1).bit_length()
-        self.M0 = 1<<(M-1).bit_length()
+        self.N0 = 2*N#1<<(N-1).bit_length()
+        self.M0 = 2*M#1<<(M-1).bit_length()
         self.data = [[self.e]*(2*self.M0) for _ in range(2*self.N0)]
         if init is not None:
             assert N == len(init) and M == len(init[0])
