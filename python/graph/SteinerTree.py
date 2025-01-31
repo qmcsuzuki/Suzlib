@@ -17,7 +17,7 @@ class SteinerTree:
         """
         dp[S][v] = min cost to connect S and v
         """
-        self.dp = dp = [[INF]*(self.n) for _ in range(1<<k)]
+        self.dp = dp = [[INF]*n for _ in range(1<<k)]
         for i,v in enumerate(nodes):
             dp[1<<i][v] = 0
 
