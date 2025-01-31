@@ -1,11 +1,11 @@
 # competitive-verifier: PROBLEM https://judge.yosupo.jp/problem/point_add_range_sum
 
-# from python.data_structure.array1D.FenwickTree import FenwickTree
+from python.data_structure.array1D.FenwickTree import FenwickTree
 import sys
 readline = sys.stdin.readline
-from pathlib import Path
-sys.path.append(str(Path(__file__).resolve().parent.parent))
-from FenwickTree import FenwickTree
+# from pathlib import Path
+# sys.path.append(str(Path(__file__).resolve().parent.parent))
+# from FenwickTree import FenwickTree
 
 def main():
     n,Q = map(int,readline().split())
