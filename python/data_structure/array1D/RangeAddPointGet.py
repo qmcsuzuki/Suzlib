@@ -12,3 +12,11 @@ class RangeAddPointGet(FenwickTree):
     
     def point_get(self,i):
         return self.prefix_sum(i+1)
+
+    def all_get(self):
+        data = self.data[:-1]
+        for i in range(1,len(data)):
+            ii = i - ((i+1) & -(i+1))
+            if ii >= 0:
+                data[i] += data[ii]
+        return data
