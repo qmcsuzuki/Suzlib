@@ -41,6 +41,9 @@ class SegmentTree:
     def __getitem__(self, k): #k番目の値を取得。
         return self.data[k+self.N0]
     
+    def all_elements(self):
+        return self.data[self.N0:self.N0+self.N]
+
     """
     f(x_l*...*x_{r-1}) が True になる最大の r 
     つまり TTTTFFFF となるとき、F となる最小の添え字
