@@ -1,3 +1,11 @@
+"""
+modint を成分に持つ行列の基底クラス
+
+class Mat(ModMatrixBase):
+    MOD = 998244353
+
+のように、クラス変数 MOD を指定して使う
+"""
 class ModMatrixBase:
     def __init__(self, n: int, m: int, init=None, do_copy=True) -> None:
         self.n = n
