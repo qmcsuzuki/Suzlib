@@ -16,4 +16,16 @@ class SparseTable:
         i = (R-L).bit_length()-1 #2**i <= R-L < 2**(i+1)
         return self.op(self.table[i][L], self.table[i][R-(1<<i)])
 
+###############################################
+
+# argmin or argmax を扱うもの
+class SparseTableArgminmax(SparseTable):
+    M = 1<<20
+    def __init__(self, a, min_or_max):
+        aa = [v*self.M+i for i,v in enumerate(a)]
+        super().__init__(aa, min_or_max)
+    
+    # 値、添え字のペアを返す
+    def prod(self, L,R):
+        return divmod(super().prod(L,R), self.M)
 
