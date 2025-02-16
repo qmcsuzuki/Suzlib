@@ -1,4 +1,4 @@
-# TITLE スパーステーブル
+# verification-helper: TITLE スパーステーブル
 
 class SparseTable:
     def __init__(self, a, op):
