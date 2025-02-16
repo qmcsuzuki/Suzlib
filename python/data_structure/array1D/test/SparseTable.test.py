@@ -1,4 +1,5 @@
 # competitive-verifier: PROBLEM https://judge.yosupo.jp/problem/staticrmq
+# https://judge.yosupo.jp/submission/268030
 
 from python.data_structure.array1D.SparseTable import SparseTable
 import sys
