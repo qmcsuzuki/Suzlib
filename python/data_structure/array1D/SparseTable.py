@@ -3,10 +3,9 @@
 class SparseTable:
     def __init__(self, a, op):
         self.op = op
-        self.table = [a[:]]
+        self.table = [T := a[:]]
         n = len(a)
         r = 1 #区間の幅の半分
-        T = self.table[-1]
         while 2*r <= n:
             self.table.append(T := [op(T[i],T[i+r]) for i in range(len(T)-r)])
             r *= 2
