@@ -1,7 +1,7 @@
 # competitive-verifier: PROBLEM https://judge.yosupo.jp/problem/staticrmq
 # https://judge.yosupo.jp/submission/268038
 
-from python.data_structure.array1D.SparseTable import DisjointSparseTable
+from python.data_structure.array1D.DisjointSparseTable import DisjointSparseTable
 import sys
 readline = sys.stdin.readline
 
