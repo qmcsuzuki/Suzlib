@@ -1,17 +1,8 @@
 # competitive-verifier: STANDALONE
 
-from python.data_structure.array1D.SparseTable import SparseTable
+from python.data_structure.array1D.SparseTable import SparseTableArgminmax
 from python.data_structure.array1D.DisjointSparseTable import DisjointSparseTable
 
-class SparseTableArgminmax(SparseTable):
-    M = 1<<20
-    def __init__(self, a, min_or_max):
-        aa = [v*self.M+i for i,v in enumerate(a)]
-        super().__init__(aa, min_or_max)
-    
-    # 値、添え字のペアを返す
-    def prod(self, L,R):
-        return divmod(super().prod(L,R), self.M)
 
 from random import shuffle
 
@@ -41,5 +32,6 @@ def test_disjoint_sparse_table(n):
             assert r == "".join(s[i:j])
 
 for n in range(1,35):
-    test_disjoint_sparse_table(n)
-    test_sparse_table(n)
+    for T in range(10):
+        test_disjoint_sparse_table(n)
+        test_sparse_table(n)
