@@ -17,8 +17,11 @@ class UnionFindMonoid(UnionFind):
         return x
 
 """
-マージテクの op
+例: マージテク
+
 def op(x,y):
     x += y
     return x
+
+init = [[] for _ in range(NUMBER_OF_VARIABLES)]
 """
