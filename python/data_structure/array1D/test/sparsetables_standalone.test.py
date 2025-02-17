@@ -1,6 +1,6 @@
 # competitive-verifier: STANDALONE
 
-from python.data_structure.array1D.SparseTable import SparseTableArgminmax
+from python.data_structure.array1D.SparseTable import SparseTable, SparseTableArgminmax
 from python.data_structure.array1D.DisjointSparseTable import DisjointSparseTable
 
 
