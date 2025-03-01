@@ -6,7 +6,7 @@ class PersistentUnionFind:
     merge(x, y): clock を 1 進め、x と y を merge しようとする
     
     """
-    MMM = 1<<30 #整数のペアを整数にエンコードするための数
+    MMM = 1<<30 #INF のほかに、整数のペアを整数にエンコードするためにも使う
     def __init__(self, n):
         self.parent_or_size = [-1]*n #非負: 親ノード, 負: サイズ
         self.merge_time = [self.MMM]*n # マージされた時刻
