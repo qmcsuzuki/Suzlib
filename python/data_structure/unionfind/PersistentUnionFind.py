@@ -40,9 +40,21 @@ class PersistentUnionFind:
         idx = bisect_left(history,(t+1)*self.MMM)
         return history[idx-1]%self.MMM
     
-    def get_merge_time(self,x,y): # x,y が連結になる最小時刻を求める（連結にならないなら self.MMM を返す）
-        return self.binary_search(-1, self.MMM, lambda t: self.issame(x,y,t))
-    
+    def get_merge_time(self,x,y):
+        """
+        x,y が連結になる最小時刻を求める（連結にならないなら self.MMM を返す）
+        """
+        t = -1
+        while x != y:
+            if self.merge_time[x] < self.merge_time[y]:
+                t = self.merge_time[x]
+                x = self.parent_or_size[x]
+            else:
+                t = self.merge_time[y]
+                y = self.parent_or_size[y]
+            if t == self.MMM: return self.MMM
+        return t
+
     def binary_search(self, ng, ok, check):
         while ok-ng > 1:
             mid = (ok+ng)//2
@@ -52,5 +64,5 @@ class PersistentUnionFind:
                 ng = mid
         return ok
 
-
-# https://atcoder.jp/contests/code-thanks-festival-2017/submissions/63235248
+# https://atcoder.jp/contests/code-thanks-festival-2017/submissions/63313476
+# https://atcoder.jp/contests/agc002/submissions/63313569
