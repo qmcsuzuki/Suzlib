@@ -1,3 +1,4 @@
+# マージテク only の UF
 class UnionFind:
     def __init__(self, n):
         self.parent_or_size = [-1]*n #非負: 親ノード, 負: サイズ
