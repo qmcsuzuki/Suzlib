@@ -18,7 +18,7 @@ def main():
                 if (d-x)%MOD:
                     print(0)
                     continue
-            UF.merge(v,u,x)
+            UF.merge(u,v,x)
             print(1)
         else:
             u,v = lst
