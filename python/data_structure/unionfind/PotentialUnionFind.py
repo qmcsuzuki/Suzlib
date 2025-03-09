@@ -35,8 +35,8 @@ class PotentialUnionFind:
     def issame(self, x, y): #same(x,y): xとyが同じ組ならTrue
         return self.root(x) == self.root(y)
         
-    def diff(self,x,y): #diff(x,y): xを基準としたyのポテンシャルを返す 
-        return self.weight(y) - self.weight(x)
+    def diff(self,x,y): #diff(x,y): weight(x)-weight(y) を返す 
+        return self.weight(x) - self.weight(y)
 
     def size(self,x): #size(x): xのいるグループの要素数を返す
         return self.gsize[self.root(x)]
