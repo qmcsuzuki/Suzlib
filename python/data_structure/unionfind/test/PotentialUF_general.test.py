@@ -11,7 +11,7 @@ def main():
     def mul(x,y):
         a,b,c,d = x
         p,q,r,s = y
-        return ((a*p+b*r)%MOD,(c*p+d*r)%MOD,(a*q+b*s)%MOD,(c*q+d*s)%MOD)
+        return ((a*p+b*r)%MOD,(a*q+b*s)%MOD,(c*p+d*r)%MOD,(c*q+d*s)%MOD)
     
     def inv(x):
         return (x[3],(-x[1])%MOD,(-x[2])%MOD,x[0])
@@ -27,7 +27,7 @@ def main():
                 if d!=x:
                     print(0)
                     continue
-            UF.merge(v,u,x)
+            UF.merge(u,v,x)
             print(1)
         else:
             u,v = lst
