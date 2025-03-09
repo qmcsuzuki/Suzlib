@@ -11,7 +11,7 @@ class PotentialUnionFindGeneral:
             x = self.parent[x]
         return x 
 
-    def weight(self, x): # p(x) * p(root)^{-1}
+    def weight(self, x): # x のポテンシャル値 = ... *d[par[x]]*d[x] を返す
         c = self.e_M
         while self.parent[x] >= 0:
             c = self.mul(self.diff_p[x], c)
@@ -21,14 +21,14 @@ class PotentialUnionFindGeneral:
     def merge(self, x, y, dxy): #ポテンシャル差 p(x)=p(y)*dxy でxとyの組をまとめる
         dxy = self.mul(self.weight(x), self.inv(self.mul(self.weight(y), dxy))) #dxyを置き換え
         x,y = self.root(x), self.root(y)
-        if x == y: return False
+        if x == y: return -1
         if self.parent[x] > self.parent[y]: #rxの要素数が大きいように
             x,y = y,x
             dxy = self.inv(dxy)
         self.parent[x] += self.parent[y] #xの要素数を更新
         self.parent[y] = x #ryをrxにつなぐ
         self.diff_p[y] = dxy #ryの相対ポテンシャルを更新
-        return True
+        return x
  
     def issame(self, x, y): #same(x,y): xとyが同じ組ならTrue
         return self.root(x) == self.root(y)
