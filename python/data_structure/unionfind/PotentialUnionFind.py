@@ -21,15 +21,15 @@ class PotentialUnionFind:
             x = self.parent[x]
         return c
  
-    def merge(self, x, y, dxy): #ポテンシャル差p(y)-p(x)=dxyでxとyの組をまとめる
-        dxy += self.weight(x) - self.weight(y) #dxyをで置き換え
+    def merge(self, x, y, dxy): #ポテンシャル差p(x)-p(y)=dxyでxとyの組をまとめる
+        dxy += self.weight(y) - self.weight(x) #dxyをで置き換え
         x,y = self.root(x), self.root(y)
         if x == y: return False
         if self.gsize[x] < self.gsize[y]: #rxの要素数が大きいように
             x,y,dxy = y,x,-dxy
         self.gsize[x] += self.gsize[y] #xの要素数を更新
         self.parent[y] = x #ryをrxにつなぐ
-        self.diff_p[y] = dxy #ryの相対ポテンシャルを更新
+        self.diff_p[y] = -dxy #ryの相対ポテンシャルを更新
         return True
  
     def issame(self, x, y): #same(x,y): xとyが同じ組ならTrue
