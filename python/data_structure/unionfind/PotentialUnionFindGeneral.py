@@ -1,7 +1,7 @@
 class PotentialUnionFindGeneral:
     def __init__(self, n, add, inv, e_M):
         self.parent = [-1]*n #親ノード or size
-        self.potential = [0]*n #親ノードを基準としたポテンシャル
+        self.potential = [e_M]*n #親ノードを基準としたポテンシャル
         self.add = add #足し算
         self.inv = inv #逆元
         self.e_M = e_M #単位元
@@ -19,13 +19,12 @@ class PotentialUnionFindGeneral:
         return c
 
     def merge(self, x, y, dxy): #ポテンシャル差p(x)-p(y)=dxyでxとyの組をまとめる
-        dxy = self.add(self.add(self.weight(x),dxy), inv(self.weight(y))) #dxyを置き換え
+        dxy = self.add(self.add(self.weight(x),dxy), self.inv(self.weight(y))) #dxyを置き換え
         x,y = self.root(x), self.root(y)
         if x == y: return False
         if self.parent[x] > self.parent[y]: #rxの要素数が大きいように
             x,y = y,x
-        else:
-            dxy = inv(dxy)
+            dxy = self.inv(dxy)
         self.parent[x] += self.parent[y] #xの要素数を更新
         self.parent[y] = x #ryをrxにつなぐ
         self.potential[y] = dxy #ryの相対ポテンシャルを更新
@@ -35,7 +34,7 @@ class PotentialUnionFindGeneral:
         return self.root(x) == self.root(y)
         
     def diff(self,x,y): #diff(x,y): wt(x)-wt(y) を返す 
-        return add(self.weight(x), inv(self.weight(y)))
+        return self.add(self.weight(x), self.inv(self.weight(y)))
 
     def size(self,x): #size(x): xのいるグループの要素数を返す
         return -self.parent[self.root(x)]
