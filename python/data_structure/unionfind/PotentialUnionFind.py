@@ -1,10 +1,9 @@
 class PotentialUnionFind:
-    __slots__ = ["parent", "gsize", "diff_p"]
     def __init__(self, n):
         self.parent = list(range(n)) #親ノード
         self.gsize = [1]*n #グループの要素数
-        self.diff_p = [0]*n #親ノードを基準としたポテンシャル
- 
+        self.diff_p = [0]*n #p(x)-p(parent[x]) = diff_p(x) （親ノード（根でない）を基準としたポテンシャル・根ノードではない
+    
     def root(self, x): #root(x): xの根ノードを返す．
         while self.parent[x] != x:
             self.diff_p[x] += self.diff_p[self.parent[x]]
@@ -12,7 +11,7 @@ class PotentialUnionFind:
             x = self.parent[x]
         return x 
  
-    def weight(self, x): #root(x): xの根ノードを返す．
+    def weight(self, x): # x のポテンシャル値を返す
         c = 0
         while self.parent[x] != x:
             self.diff_p[x] += self.diff_p[self.parent[x]]
@@ -22,12 +21,11 @@ class PotentialUnionFind:
         return c
  
     def merge(self, x, y, dxy): #ポテンシャル差p(x)-p(y)=dxyでxとyの組をまとめる
-        dxy += self.weight(x) - self.weight(y) #dxyをで置き換え
+        dxy = self.weight(x) - self.weight(y) - dxy # p(rx)-p(ry)
         x,y = self.root(x), self.root(y)
         if x == y: return False
         if self.gsize[x] < self.gsize[y]: #rxの要素数が大きいように
             x,y = y,x
-        else:
             dxy = -dxy
         self.gsize[x] += self.gsize[y] #xの要素数を更新
         self.parent[y] = x #ryをrxにつなぐ
