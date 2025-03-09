@@ -26,7 +26,9 @@ class PotentialUnionFind:
         x,y = self.root(x), self.root(y)
         if x == y: return False
         if self.gsize[x] < self.gsize[y]: #rxの要素数が大きいように
-            x,y,dxy = y,x,-dxy
+            x,y = y,x
+        else:
+            dxy = -dxy
         self.gsize[x] += self.gsize[y] #xの要素数を更新
         self.parent[y] = x #ryをrxにつなぐ
         self.diff_p[y] = dxy #ryの相対ポテンシャルを更新
