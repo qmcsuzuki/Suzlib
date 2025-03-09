@@ -14,7 +14,7 @@ def main():
         if t == 0:
             u,v,x = lst
             if UF.issame(u,v):
-                d = UF.diff(v,u)
+                d = UF.diff(u,v)
                 if (d-x)%MOD:
                     print(0)
                     continue
@@ -23,7 +23,7 @@ def main():
         else:
             u,v = lst
             if UF.issame(u,v):
-                d = UF.diff(v,u)
+                d = UF.diff(u,v)
                 print(d%MOD)
             else:
                 print(-1)
