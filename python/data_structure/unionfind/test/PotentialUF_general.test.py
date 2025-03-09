@@ -8,14 +8,23 @@ def main():
     n,Q = map(int,readline().split())
     MOD = 998244353
     
-    UF = PotentialUnionFindGeneral(n)
+    def mul(x,y):
+        a,b,c,d = x
+        p,q,r,s = y
+        return ((a*p+b*r)%MOD,(c*p+d*r)%MOD,(a*q+b*s)%MOD,(c*q+d*s)%MOD)
+    
+    def inv(x):
+        return (x[3],(-x[1])%MOD,(-x[2])%MOD,x[0])
+    
+    UF = PotentialUnionFindGeneral(n,mul,inv,(1,0,0,1))
     for _ in range(Q):
         t,*lst = list(map(int,readline().split()))
         if t == 0:
-            u,v,x = lst
+            u,v,*x = lst
+            x = tuple(x)
             if UF.issame(u,v):
                 d = UF.diff(u,v)
-                if (d-x)%MOD:
+                if d!=x:
                     print(0)
                     continue
             UF.merge(v,u,x)
@@ -24,7 +33,7 @@ def main():
             u,v = lst
             if UF.issame(u,v):
                 d = UF.diff(u,v)
-                print(d%MOD)
+                print(*d)
             else:
                 print(-1)
     
