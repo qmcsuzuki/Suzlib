@@ -1,7 +1,10 @@
+# competitive-verifier: TITLE 根付き木のハッシュ
+
+
 """
-根付き木の各部分木ハッシュを求める
+根付き木の各部分木の完全ハッシュ関数を求める（同型が判定できる）
 """
-def rooted_tree_classification(g,root,par=None,dfs_order=None):
+def rooted_tree_hash(g,root,par=None,dfs_order=None):
     n = len(g)
     if par is None or dfs_order is None:
         st = [root]
