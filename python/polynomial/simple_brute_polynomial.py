@@ -15,3 +15,4 @@ def polymul(f,g,maxdegree=None):
             res[i+j] = (res[i+j] + v*g[j])%MOD
     return res
   
+# https://atcoder.jp/contests/abc399/submissions/64365608
