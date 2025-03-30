@@ -41,7 +41,7 @@ class ModMatrixBase:
 
     def __neg__(self):
         B = self.matrix
-        res = [[-B[i][j] % self.MOD for j in range(self.m)] for i in range(self.n)]
+        res = [[(self.MOD-Bi[j] if Bi[j] != 0 else 0) for j in range(self.m)] for Bi in self.matrix]
         return self.__class__(self.n, self.m, res, False)
 
     def __sub__(self, other):
