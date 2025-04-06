@@ -8,9 +8,6 @@ class TopKSum:
     def __init__(self, K, initial = []):
         self.K = K
         initial.sort(reverse=1)
-
-        self.v_topK = sum(initial[:K])
-        self.v_other = sum(initial[K:])
         self.q_topK = DeletableHeapqInt(initial[:K])
         self.q_other = DeletableHeapqInt([-x for x in initial[K:]])
     
