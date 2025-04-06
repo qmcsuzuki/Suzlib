@@ -51,3 +51,5 @@ class TopKSum:
         if len(self.q_topK):
             x = self.q_topK.heappop()
             self.q_other.heappush(-x)
+
+# https://atcoder.jp/contests/arc196/submissions/64599110
