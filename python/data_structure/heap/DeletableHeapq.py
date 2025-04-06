@@ -15,7 +15,7 @@ class DeletableHeapq:
         return len(self.q) - len(self.q_del)        
     
     def __str__(self):
-        return f"queue:{self.q}, del:{self.q_del}"
+        return f"queue:{self.q}" + "\n" + f"del:{self.q_del}"
 
     def propagate(self):
         while self.q_del and self.q[0] == self.q_del[0]:
