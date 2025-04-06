@@ -35,3 +35,25 @@ class DeletableHeapq:
 
     def heappush(self,x):
         heappush(self.q,x)
+
+"""
+要素が整数の場合、和も一緒に管理する特殊化
+"""
+class DeletableHeapqInt(DeletableHeapq):
+    def __init__(self, initial = []):
+        super().__init__(initial)
+        self.sum = sum(initial)
+
+    def heappop(self):
+        self.propagate()
+        x = heapq.heappop(self.q)
+        self.sum -= x
+        return x
+
+    def remove(self,x):
+        heapq.heappush(self.q_del,x)
+        self.sum -= x
+
+    def heappush(self,x):
+        heapq.heappush(self.q,x)
+        self.sum += x
