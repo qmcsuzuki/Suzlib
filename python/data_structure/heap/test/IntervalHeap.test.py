@@ -1,6 +1,6 @@
 # verification-helper: PROBLEM https://judge.yosupo.jp/problem/double_ended_priority_queue
 
-from python.data_structure.IntervalHeap import IntervalHeap
+from python.data_structure.heap.IntervalHeap import IntervalHeap
 import sys
 readline = sys.stdin.readline
 
