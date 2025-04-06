@@ -1,6 +1,6 @@
 # verification-helper: PROBLEM https://judge.yosupo.jp/problem/double_ended_priority_queue
 
-from python.data_structure.DeletableHeapq import DeletableHeapq
+from python.data_structure.heap.DeletableHeapq import DeletableHeapq
 import sys
 readline = sys.stdin.readline
 
