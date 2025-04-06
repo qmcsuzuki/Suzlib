@@ -4,7 +4,7 @@ from DeletableHeapq import DeletableHeapqInt
 """
 top K の和を求める
 """
-class SumOfTopK:
+class TopKSum:
     def __init__(self, K, initial = []):
         self.K = K
         initial.sort(reverse=1)
