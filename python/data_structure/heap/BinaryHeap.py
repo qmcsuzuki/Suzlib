@@ -1,5 +1,5 @@
 """
-min heap
+general min heap, we can set "key" function
 """
 class BinaryHeap:
     def __init__(self, init=None, key=lambda x:x):
