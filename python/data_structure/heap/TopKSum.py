@@ -1,6 +1,6 @@
 # verification-helper: TITLE 上位 K 個の和を求める
 
-from DeletableHeapq import DeletableHeapqInt
+from python.data_structure.heap.DeletableHeapq import DeletableHeapqInt
 """
 top K の和を求める
 """
