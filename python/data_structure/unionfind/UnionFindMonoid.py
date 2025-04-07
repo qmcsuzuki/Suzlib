@@ -1,3 +1,4 @@
+from python.data_structure.unionfind.UnionFind import UnionFind
 class UnionFindMonoid(UnionFind):
     def __init__(self, n, op, init):
         super().__init__(n)
