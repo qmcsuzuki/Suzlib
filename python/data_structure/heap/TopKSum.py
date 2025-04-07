@@ -2,7 +2,13 @@
 
 from python.data_structure.heap.DeletableHeapq import DeletableHeapqInt
 """
-top K の和を求める
+## 主なメソッド
+- `get_topK()`：上位 K 個の要素の和を返す
+- `get_other()`：上位 K 個以外の要素の和を返す
+- `add(v)`：新しい要素 `v` を追加する
+- `remove(v)`：要素 `v` を削除する
+- `add_K()`：K の値を 1 増やす
+- `minus_K()`：K の値を 1 減らす
 """
 class TopKSum:
     def __init__(self, K, initial = []):
