@@ -28,7 +28,7 @@ class TopKSum:
     
     def add(self,v):
         self.q_topK.heappush(v)
-        while len(self.q_topK) > self.K:
+        if len(self.q_topK) > self.K:
             x = self.q_topK.heappop()
             self.q_other.heappush(-x)
 
@@ -54,7 +54,7 @@ class TopKSum:
     def minus_K(self):
         self.K -= 1
         assert self.K >= 0
-        if len(self.q_topK):
+        if len(self.q_topK) > self.K:
             x = self.q_topK.heappop()
             self.q_other.heappush(-x)
 
