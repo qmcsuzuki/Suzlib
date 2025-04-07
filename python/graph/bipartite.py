@@ -1,5 +1,6 @@
 # verification-helper: TITLE 二部グラフ判定
 
+from python.data_structure.unionfind.UnionFind import UnionFind
 class bipartite(UnionFind):
     def __init__(self, n):
         super().__init__(2*n)
