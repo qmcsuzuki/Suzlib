@@ -5,6 +5,7 @@
 """
 
 def run_length_encoding(S):
+    if not S: return []
     prev = S[0]
     cnt = 0
     lst = []
