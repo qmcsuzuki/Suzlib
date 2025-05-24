@@ -2,7 +2,7 @@
 exit()
 
 
-# verification-helper: PROBLEM https://judge.yosupo.jp/problem/pow_of_matrix
+# 注: 遅すぎるので一旦このテストを削除したい PROBLEM https://judge.yosupo.jp/problem/pow_of_matrix
 
 from python.matrix.ModMatrix import ModMatrixBase
 import sys
