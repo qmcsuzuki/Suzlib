@@ -7,7 +7,6 @@ class StaticSegmentAdd:
         
     def add_segment(self,a,b,p,q):
         """ 半開区間 [p,q) に等差数列 a(x-p) + b を加える"""
-        assert q <= self.n
         if p >= q: return
         self.data[p] += b
         self.data[p+1] += a-b
