@@ -17,3 +17,5 @@ class XorBasis:
     
     def get_sorted_basis(self): # 降順ソートした基底を得る（貪欲法などに使用）
         return sorted(self.basis, reverse=1)
+
+# https://atcoder.jp/contests/kupc2012/submissions/66800244
