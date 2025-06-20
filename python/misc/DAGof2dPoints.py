@@ -1,5 +1,5 @@
-# https://atcoder.jp/contests/arc165/submissions/66900861
-# https://atcoder.jp/contests/arc200/submissions/66900888
+# https://atcoder.jp/contests/arc165/submissions/66901191
+# https://atcoder.jp/contests/arc200/submissions/66901173
 """
 2 次元平面上の点について、(x[i] <= x[j] かつ y[i] <= y[j] なら辺 ij を張る)というDAG を考える
 この関数は、補助頂点を使って O(N log N) 本の辺からなる DAG を作る
