@@ -7,7 +7,7 @@
 """
 def DAGof2dPoints(points, x_reverse, y_reverse):
     def solveDC(l,r):
-        # return list of index , sorted by key=lambda i:Y[i], reverse = y_reverse
+        # return sorted list of Y_coord*M + index
         nonlocal g
         if l+1 == r:
             return [Y[X[l]&((1<<20)-1)]]
