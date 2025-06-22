@@ -1,5 +1,6 @@
 from python.data_structure.unionfind.UnionFind import UnionFind
 class UnionFindMonoid(UnionFind):
+    # UF = UnionFindMonoid(n,op,init)
     def __init__(self, n, op, init):
         super().__init__(n)
         self.op = op
