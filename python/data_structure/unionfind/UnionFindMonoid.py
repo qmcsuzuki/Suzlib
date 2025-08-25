@@ -18,6 +18,16 @@ class UnionFindMonoid(UnionFind):
         self.data[x] = self.op(self.data[x], self.data[y])
         return x
 
+    def add_value(self, x, val): # 頂点 x の連結成分の管理する値に val を足す
+        x = self.leader(x)
+        self.data[x] = self.op(self.data[x], val)
+    
+    def set_value(self, x, val): # 頂点 x の連結成分の管理する値を val に変更
+        self.data[self.leader(x)] = val
+
+    def get_value(self, x): # 頂点 x を含む連結成分の管理する値を取得
+        return self.data[self.leader(x)]
+
 """
 例: マージテク
 
