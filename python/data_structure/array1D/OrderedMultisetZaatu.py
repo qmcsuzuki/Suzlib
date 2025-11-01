@@ -1,3 +1,9 @@
+"""
+クエリ先読み
+内部で座標圧縮
+提出例: https://atcoder.jp/contests/abc430/submissions/70631379
+"""
+
 from bisect import bisect_left, bisect_right
 class OrderedMultisetWithZaatu:
     def __init__(self, values):
