@@ -1,4 +1,4 @@
-# PROBLEM https://judge.yosupo.jp/problem/pow_of_matrix
+# verification-helper: PROBLEM https://judge.yosupo.jp/problem/pow_of_matrix
 
 from python.matrix.ModMatrix import ModMatrixBase
 import sys
