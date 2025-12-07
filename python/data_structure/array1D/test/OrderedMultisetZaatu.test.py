@@ -1,7 +1,7 @@
 # competitive-verifier: PROBLEM https://judge.yosupo.jp/problem/predecessor_problem
 
 from python.data_structure.array1D.FenwickTree import FenwickTree
-from python.data_structure.array1D.OrderedMultisetWithZaat import OrderedMultisetWithZaat
+from python.data_structure.array1D.OrderedMultisetWithZaatu import OrderedMultisetWithZaatu
 import sys
 readline = sys.stdin.readline
 
