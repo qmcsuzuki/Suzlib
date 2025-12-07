@@ -31,7 +31,7 @@ class OrderedMultisetWithZaatu:
         self.add(v,-1)
 
     def kth_index(self,k): # k 番目 (1-indexed) に小さい元の sortedvalues における index
-        return self.bit.bisect_left(k)
+        return self.bit.bisect_left(k+1)
 
     def kth_value(self,k):
         # k 番目に小さい元の値を求める。k が大きすぎると、範囲外エラーとなるので注意
