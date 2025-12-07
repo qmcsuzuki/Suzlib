@@ -9,6 +9,7 @@
 - https://atcoder.jp/contests/abc430/submissions/70631379
 - https://judge.yosupo.jp/submission/335160
 """
+from python.data_structure.array1D.FenwickTree import FenwickTree
 
 from bisect import bisect_left, bisect_right
 class OrderedMultisetWithZaatu:
