@@ -1,0 +1,2 @@
+[languages.python]
+execute = "pypy3 {path}"
