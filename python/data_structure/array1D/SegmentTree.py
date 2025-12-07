@@ -26,12 +26,10 @@ class SegmentTree:
         sl = sr = self.e_M
         while L < R:
             if R & 1:
-                R -= 1
-                sr = self.op_M(self.data[R],sr)
+                sr = self.op_M(self.data[R-1],sr)
             if L & 1:
                 sl = self.op_M(sl,self.data[L])
-                L += 1
-            L >>= 1; R >>= 1
+            L = (L+1)>>1; R >>= 1
         return self.op_M(sl,sr)
 
     def all_prod(self):
