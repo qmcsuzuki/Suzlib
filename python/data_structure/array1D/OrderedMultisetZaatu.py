@@ -1,6 +1,8 @@
 """
-クエリ先読み
-内部で座標圧縮
+座標圧縮+ BIT の ordered set もどき
+番兵は自分で挿入すること
+引数: 
+- values: 集合に入りうる値をクエリ先読み
 提出例: https://atcoder.jp/contests/abc430/submissions/70631379
 """
 
@@ -21,13 +23,14 @@ class OrderedMultisetWithZaatu:
     def delete(self,v): # 値を削除
         self.add(v,-1)
 
-    def kth_index(self,k): # k 番目 (1-indexed) に小さい元の index を求める
+    def kth_index(self,k): # k 番目 (1-indexed) に小さい元の sortedvalues における index
         return self.bit.bisect_left(k)
 
-    def kth_value(self,k): # k 番目に小さい元の値を求める
+    def kth_value(self,k):
+        # k 番目に小さい元の値を求める。k が大きすぎると、範囲外エラーとなるので注意
         return self.sortedvalues[self.kth_index(k)]
 
-    def prev_key(self,v): #一個前の元のkeyを求める
+    def prev_index(self,v): #一個前の元の sortedvalues における index
         idx = bisect_left(self.sortedvalues,v)
         s = self.bit.prefix_sum(idx)
         assert s != 0
@@ -35,9 +38,9 @@ class OrderedMultisetWithZaatu:
         return idx
 
     def prev_value(self,v):
-        return self.sortedvalues[self.prev_key(v)]
+        return self.sortedvalues[self.prev_index(v)]
 
-    def next_key(self,v): #次の元のkeyを求める
+    def next_index(self,v): #次の元の sortedvalues における index
         idx = bisect_right(self.sortedvalues,v)
         s = self.bit.prefix_sum(idx)
         idx = self.bit.bisect_left(s+1)
@@ -45,4 +48,4 @@ class OrderedMultisetWithZaatu:
         return idx
 
     def next_value(self,v):
-        return self.sortedvalues[self.next_key(v)]
+        return self.sortedvalues[self.next_index(v)]
