@@ -127,7 +127,12 @@ jobs:
           fi
         env:
           SRCDIR: .artifacts/Bundled-${{ runner.os }}
-  
+
+      - name: Set up PyPy
+        uses: actions/setup-python@v5
+        with:
+          python-version: "pypy3.10"  
+          
       - name: Set up competitive-verifier
         uses: competitive-verifier/actions/setup@v2
         with:
