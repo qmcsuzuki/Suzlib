@@ -1,3 +1,5 @@
+from python.data_structure.array1D.FenwickTree import FenwickTree
+
 from bisect import bisect_left, bisect_right
 class OrderedMultiset:
     def __init__(self, N, banhei): # 0 以上 N 以下
