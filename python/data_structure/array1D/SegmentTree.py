@@ -16,10 +16,9 @@ class SegmentTree:
     def update(self,k,x):
         k += self.N0
         self.data[k] = x
-        k >>= 1
-        while k:
-            self.data[k] = self.op_M(self.data[2*k], self.data[2*k+1])
+        while k > 1:
             k >>= 1
+            self.data[k] = self.op_M(self.data[2*k], self.data[2*k+1])
 
     # 区間[L,R)をopでまとめる
     def prod(self,L,R):
