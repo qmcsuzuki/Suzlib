@@ -1,3 +1,6 @@
+# verification-helper: TITLE 静的長方形加算（最後に各点の値を求める）
+
+
 class StaticRectangleAdd:
     """
     H*W の長方形加算
