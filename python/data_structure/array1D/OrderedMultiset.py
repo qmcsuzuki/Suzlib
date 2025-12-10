@@ -1,6 +1,9 @@
+# verification-helper: TITLE 順序付き多重集合（ordered multiset）
+
 from python.data_structure.array1D.FenwickTree import FenwickTree
 
 from bisect import bisect_left, bisect_right
+
 class OrderedMultiset:
     def __init__(self, N, banhei): # 0 以上 N 以下
         # 番兵 -1 を FenwickTree の 0 として扱う、つまり外部の値 v では bit 内部の v+1 を操作することに注意
