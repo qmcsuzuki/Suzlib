@@ -1,4 +1,4 @@
-# verification-helper: TITLE 等差数列加算、最後に各点の値を求める
+# verification-helper: TITLE 静的等差数列加算（最後に各点の値を求める）
 
 class StaticSegmentAdd:
     def __init__(self, n):
