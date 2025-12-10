@@ -14,7 +14,7 @@ if __name__ == "__main__":
         *LL, = *RR, = *PP, = [-1]*(n)
         def calc(i,l,r,p):
             LL[i],RR[i],PP[i] = l-1,r,p
-        Cartesian_tree_DFSsearch(A)
+        Cartesian_tree_DFSsearch(A, calc)
         
         assert LL == L and RR == R and PP == P # check both give correct answer
         
