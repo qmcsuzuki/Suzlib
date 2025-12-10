@@ -35,10 +35,9 @@ def Cartesian_tree_DFSsearch(A):
 """
 def Cartesian_tree_full(A):
     n = len(A)
-    L = [-1]*n 
+    L = [-1]*n # vertex i cover open interval (L[i], R[i])
     R = [n]*n 
     P = [-1]*n # parent of Cartesian tree
-    n = len(A)
     for i,Ai in enumerate(A):
         cur = i-1
         pre = -1
