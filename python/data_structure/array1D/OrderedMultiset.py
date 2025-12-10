@@ -1,4 +1,4 @@
-# verification-helper: TITLE 順序付き多重集合（ordered multiset）
+# verification-helper: TITLE 順序付き多重集合（値域が小さい）（ordered multiset）
 
 from python.data_structure.array1D.FenwickTree import FenwickTree
 
