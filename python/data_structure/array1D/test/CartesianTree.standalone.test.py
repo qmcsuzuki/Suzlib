@@ -2,6 +2,7 @@
 
 from python.data_structure.array1D.CartesianTree import Cartesian_tree_DFSsearch, Cartesian_tree_full
 
+from random import randrange
 if __name__ == "__main__":
     for _ in range(1000):
         n = randrange(1,100)
