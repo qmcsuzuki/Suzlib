@@ -16,7 +16,7 @@ def Cartesian_tree_DFSsearch(A, calc):
     for i,ai in enumerate(A):
         cur = i-1
         while cur != -1 and A[cur] > ai:
-            l = L[cur]+1
+            l = L[cur] + 1
             r = i
             p = l-1 if (r == n or (l != 0 and A[l-1] > A[r])) else r
             """
