@@ -4,11 +4,10 @@ Cartesian tree を構築。最小値で列を分割する（同じ値は左を�
 
 - Cartesian_tree_DFSsearch(A,calc):
     - calc(i,l,r,p) を DFS 順に行う
-    - calc はグローバルにおいておく（必要なら内部にベタ打ち）
 - Cartesian_tree_full(A): Cartesian tree の情報を返す
 """
 
-def Cartesian_tree_DFSsearch(A):
+def Cartesian_tree_DFSsearch(A, calc):
     if not A: return # avoid empty list
     n = len(A)
     A.append(min(A)-1) # 番兵
