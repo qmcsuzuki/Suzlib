@@ -1,3 +1,6 @@
+# verification-helper: TITLE 順序付き多重集合 with 座標圧縮（ordered multiset with zaatu）
+
+
 """
 座標圧縮+ BIT の ordered multiset もどき
 番兵は、勝手に集合に挿入される
