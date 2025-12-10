@@ -52,12 +52,11 @@ def Cartesian_tree_full(A):
 
 # 親だけを返すシンプルな Cartesian tree
 def Cartesian_tree_simple(A):
-    n = len(A)
-    par = [-1]*n
-    for i,ai in enumerate(a):
+    par = [-1]*len(A)
+    for i,Ai in enumerate(A):
         cur = i-1
         pre = -1
-        while cur != -1 and A[cur] > ai:
+        while cur != -1 and A[cur] > Ai:
             cur, pre = par[cur], cur
         par[i] = cur
         if pre != -1:
