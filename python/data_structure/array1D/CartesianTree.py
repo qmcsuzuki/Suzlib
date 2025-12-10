@@ -1,10 +1,11 @@
 """
 Cartesian tree を構築。最小値で列を分割する（同じ値は左を優先的に使う）
-以下の二つの関数がある
+以下の三つの関数がある
 
 - Cartesian_tree_DFSsearch(A,calc):
     - calc(i,l,r,p) を DFS 順に行う
 - Cartesian_tree_full(A): Cartesian tree の情報を返す
+- Cartesian_tree_simple(A): シンプルに親だけを返す
 """
 
 def Cartesian_tree_DFSsearch(A, calc):
@@ -47,3 +48,18 @@ def Cartesian_tree_full(A):
         if pre != -1:
             P[pre] = i
     return L,R,P
+
+
+# 親だけを返すシンプルな Cartesian tree
+def Cartesian_tree_simple(A):
+    n = len(A)
+    par = [-1]*n
+    for i,ai in enumerate(a):
+        cur = i-1
+        pre = -1
+        while cur != -1 and A[cur] > ai:
+            cur, pre = par[cur], cur
+        par[i] = cur
+        if pre != -1:
+            par[pre] = i
+    return par
