@@ -9,6 +9,7 @@ Cartesian tree を構築。最小値で列を分割する（同じ値は左を�
 """
 
 def Cartesian_tree_DFSsearch(A):
+    if not A: return # avoid empty list
     n = len(A)
     A.append(min(A)-1) # 番兵
     L = [-1]*(n+1)
