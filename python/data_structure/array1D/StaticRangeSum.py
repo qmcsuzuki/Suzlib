@@ -1,3 +1,6 @@
+# verification-helper: TITLE 静的区間和（累積和）
+
+
 class StaticRangeSum:
     def __init__(self, init):
         acc = self.acc = list(init)
