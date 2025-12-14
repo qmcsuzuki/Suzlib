@@ -1,4 +1,4 @@
-# competitive-verifier: https://judge.yosupo.jp/problem/range_affine_point_get
+# competitive-verifier: PROBLEM https://judge.yosupo.jp/problem/range_affine_point_get
 
 from python.data_structure.array1D.SegmentTreeDual importSegmentTreeDual
 
