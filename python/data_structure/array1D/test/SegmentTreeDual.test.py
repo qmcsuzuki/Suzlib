@@ -1,6 +1,6 @@
 # competitive-verifier: PROBLEM https://judge.yosupo.jp/problem/range_affine_point_get
 
-from python.data_structure.array1D.SegmentTreeDual importSegmentTreeDual
+from python.data_structure.array1D.SegmentTreeDual import SegmentTreeDual
 
 import sys
 readline = sys.stdin.readline
