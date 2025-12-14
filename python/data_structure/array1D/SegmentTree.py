@@ -42,8 +42,8 @@ class SegmentTree:
         return self.data[self.N0:self.N0+self.N]
 
     def __str__(self):
-        v = 1<<bit_length(len(self.data)) - len(self.data)
-        return _visualize_binarytree(self.data+[self.id_M]*(v), self.op, self.id_M)
+        v = 2**len(self.lazy).bit_length() - len(self.lazy)
+        return self._visualize_binarytree(self.lazy+[self.id_M]*(v), self.op, self.id_M)
         
     def _visualize_binarytree(A,op,v):
         h = len(A).bit_length() - 1 # height of tree
