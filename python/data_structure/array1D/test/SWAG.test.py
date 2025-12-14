@@ -1,4 +1,4 @@
-# competitive-verifier: https://judge.yosupo.jp/problem/queue_operate_all_composite
+# competitive-verifier: PROBLEM https://judge.yosupo.jp/problem/queue_operate_all_composite
 
 from python.data_structure.array1D.SlidingWindowAggregation import SWAG
 
