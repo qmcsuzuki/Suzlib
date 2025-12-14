@@ -42,12 +42,14 @@ class SegmentTree:
         return self.data[self.N0:self.N0+self.N]
 
     def __str__(self):
-        return _visualize_binarytree(self.data, self.e_M)
+        v = 1<<bit_length(len(self.data)) - len(self.data)
+        return _visualize_binarytree(self.data+[self.id_M]*(v), self.op, self.id_M)
         
-    def _visualize_binarytree(A,v=1<<60):
+    def _visualize_binarytree(A,op,v):
         h = len(A).bit_length() - 1 # height of tree
         assert len(A) == 1<<h
-        S = ["INF" if isinstance(v,int) and isinstance(x,int) and x >= v else str(x) for x in A] # large value is displayed "INF"
+        is_min = (op == min and isinstance(v,int))
+        S = ["INF" if is_min and x >= v else str(x) for x in A] # large value is displayed "INF"
         layers = [S[1<<i:2<<i] for i in range(h)] # layer of tree
         W = max(2+(max(map(len,lst)))<<i for i,lst in enumerate(layers)) # width of displayed tree
         return "".join("".join(f"{T:^{W>>i}}" for T in lst) + "\n" for i,lst in enumerate(layers))
