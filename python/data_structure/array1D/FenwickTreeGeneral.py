@@ -7,7 +7,7 @@
 """
 
 class FenwickTreeGeneral:
-    def __init__(self, n, op, e, inv, init=None):
+    def __init__(self, n, op, e, inv=None, init=None):
         self.size = n
         self.longest_interval = 1<<(n.bit_length()-1)
         self.e = e
@@ -26,7 +26,7 @@ class FenwickTreeGeneral:
             """
 
     def prefix_sum(self, r):
-        """ 半閉区間 [0,r) 上の和 a[0] + ... + a[r-1] を返す """
+        """ 半閉区間 [0,r) 上の和 a[0] op ... op a[r-1] を返す """
         s = self.e
         while r > 0:
             s = self.op(s,self.data[r-1])
@@ -34,17 +34,16 @@ class FenwickTreeGeneral:
         return s
 
     def range_sum(self,l,r):
-        """ 半閉区間 [l,r) 上の和 a[l] + ... + a[r-1] を返す """
+        """ 半閉区間 [l,r) 上の和 a[l] op ... op a[r-1] を返す """
         return self.op(self.prefix_sum(r), self.inv(self.prefix_sum(l)))
 
-    def suffix_sum(self,l): #a_l + ... (端まで)
-        """ l 以上の添字での和 a[l] + a[l+1] + ... + を返す """
+    def suffix_sum(self,l):
+        """ l 以上の添字での和 a[l] op a[l+1] op ... + を返す """
         return self.op(self.prefix_sum(self.size), self.inv(self.prefix_sum(l)))
 
     def add(self, i, x):
-        """ a[i] += x """
+        """ a[i] = a[i] op x """
         i += 1
         while i <= self.size:
             self.data[i-1] = self.op(self.data[i-1],x)
             i += i & -i
-
