@@ -1,4 +1,4 @@
-# verification-helper: TITLE ディスジョイントスパーステーブル (Disjoint Sparse Table)
+# verification-helper: TITLE Disjoint Sparse Table
 
 class DisjointSparseTable():
     def __init__(self, a:list, op):
@@ -25,4 +25,3 @@ class DisjointSparseTable():
             return self.data[0][l]
         d = self.data[(l^r).bit_length()-1]
         return self.op(d[l],d[r])
-
