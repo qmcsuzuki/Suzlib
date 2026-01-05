@@ -1,4 +1,4 @@
-# verification-helper: TITLE 絶対値関数の和 (AddAbsGetVal)
+# competitive-verifier: TITLE 絶対値関数の和 (AddAbsGetVal)
 
 from bisect import bisect_left
 class AddAbsGetValOffline:

@@ -1,3 +1,5 @@
+# competitive-verifier: TITLE 区間ヒープ (Interval Heap)
+
 """
 double ended priority queue
 """

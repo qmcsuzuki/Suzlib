@@ -1,3 +1,5 @@
+# competitive-verifier: TITLE UnionFind（経路圧縮なし）
+
 # マージテク only の UF
 class UnionFind:
     def __init__(self, n):

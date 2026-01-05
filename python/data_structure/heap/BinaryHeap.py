@@ -1,3 +1,5 @@
+# competitive-verifier: TITLE 二分ヒープ (Binary Heap)
+
 """
 general min heap, we can set "key" function
 """

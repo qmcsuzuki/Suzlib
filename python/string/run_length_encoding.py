@@ -1,4 +1,4 @@
-# verification-helper: TITLE ランレングス圧縮
+# competitive-verifier: TITLE ランレングス圧縮
 
 """
 ランレングス圧縮

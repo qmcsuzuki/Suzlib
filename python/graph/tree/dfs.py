@@ -1,3 +1,5 @@
+# competitive-verifier: TITLE 深さ優先探索 (DFS)
+
 n = int(readline())
 
 g = [[] for _ in range(n)]

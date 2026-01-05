@@ -1,3 +1,5 @@
+# competitive-verifier: TITLE 2次元セグメント木
+
 class SegmentTree2D:
     """ seg = SegmentTree2D(N,M,op,e,init=None) """
     def __init__(self, N,M, op, e, init=None):

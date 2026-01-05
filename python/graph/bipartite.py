@@ -1,4 +1,4 @@
-# verification-helper: TITLE 二部グラフ判定
+# competitive-verifier: TITLE 二部グラフ判定
 
 from python.data_structure.unionfind.UnionFind import UnionFind
 class bipartite(UnionFind):

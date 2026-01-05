@@ -1,3 +1,5 @@
+# competitive-verifier: TITLE エラトステネスの篩
+
 """
 エラトステネスの篩: N以下の素数のリストを返す
 #N=10**6で0.1secほど

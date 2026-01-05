@@ -1,3 +1,5 @@
+# competitive-verifier: TITLE 剰余行列
+
 """
 modint を成分に持つ行列の基底クラス
 

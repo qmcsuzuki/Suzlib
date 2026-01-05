@@ -1,4 +1,4 @@
-# verification-helper: TITLE 静的区間和（累積和）
+# competitive-verifier: TITLE 静的区間和（累積和）
 
 
 class StaticRangeSum:

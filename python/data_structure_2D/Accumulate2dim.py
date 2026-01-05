@@ -1,3 +1,5 @@
+# competitive-verifier: TITLE 2次元累積和
+
 class Accumulate2dim:
     """
     a: h*w 行列

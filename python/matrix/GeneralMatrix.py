@@ -1,3 +1,5 @@
+# competitive-verifier: TITLE 行列（一般）
+
 """
 演算が一般化された行列
 

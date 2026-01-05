@@ -1,3 +1,5 @@
+# competitive-verifier: TITLE 2次元Fenwick Tree Dual（一般）
+
 class FenwickTreeDualGeneral2D:
     def __init__(self, h: int, w: int, op, e_M):
         self.h = h

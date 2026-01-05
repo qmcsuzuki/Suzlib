@@ -1,3 +1,5 @@
+# competitive-verifier: TITLE DFS順序（オイラーツアー）
+
 """
 return
 - order[i]: i 番目の頂点

@@ -1,3 +1,5 @@
+# competitive-verifier: TITLE 区間ユーティリティ
+
 class IntervalsUtility:
     def __init__(self,LR):
         self.n = len(LR)

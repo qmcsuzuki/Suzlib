@@ -1,3 +1,5 @@
+# competitive-verifier: TITLE 直線上の格子点の個数
+
 def count_integer_points_of_queen_moves(a,b,c,x_min,x_max,y_min,y_max):
     # find number of (ax + by = c, x_min <= x < x_max, y_min <= y < y_max)
     # 範囲が range のように半開区間になっている点に注意

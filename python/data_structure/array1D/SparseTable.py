@@ -1,4 +1,4 @@
-# verification-helper: TITLE スパーステーブル (Sparse Table)
+# competitive-verifier: TITLE スパーステーブル (Sparse Table)
 
 class SparseTable:
     def __init__(self, a, op):

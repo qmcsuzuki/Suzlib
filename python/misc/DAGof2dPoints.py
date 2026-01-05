@@ -1,3 +1,5 @@
+# competitive-verifier: TITLE 2次元点のDAG
+
 # https://atcoder.jp/contests/arc165/submissions/66901191
 # https://atcoder.jp/contests/arc200/submissions/66901173
 """

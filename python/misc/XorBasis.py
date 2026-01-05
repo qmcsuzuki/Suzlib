@@ -1,3 +1,5 @@
+# competitive-verifier: TITLE XOR基底
+
 """
 xor 基底を管理する
 """

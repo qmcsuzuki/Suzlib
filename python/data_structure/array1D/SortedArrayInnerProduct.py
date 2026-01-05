@@ -1,4 +1,4 @@
-# verification-helper: TITLE ソート列と等差数列の内積 (SortedArrayInnerProduct)
+# competitive-verifier: TITLE ソート列と等差数列の内積 (SortedArrayInnerProduct)
 
 """
 S を常にソートされている配列（昇順・降順は事前に指定）として、

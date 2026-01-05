@@ -1,3 +1,5 @@
+# competitive-verifier: TITLE スライディングウィンドウ集約 (SWAG)
+
 from collections import deque
 class SWAG:
     def __init__(self, operator_M, e_M):

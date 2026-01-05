@@ -1,3 +1,5 @@
+# competitive-verifier: TITLE Disjoint Sparse Table
+
 class DisjointSparseTable():
     def __init__(self, a:list, op):
         self.op = op
@@ -23,4 +25,3 @@ class DisjointSparseTable():
             return self.data[0][l]
         d = self.data[(l^r).bit_length()-1]
         return self.op(d[l],d[r])
-

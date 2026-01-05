@@ -1,3 +1,5 @@
+# competitive-verifier: TITLE Segment Tree Dual（区間更新・一点取得）
+
 """
 双対セグメント木
 - apply(l,r,f): 区間に（左から）f を乗算
