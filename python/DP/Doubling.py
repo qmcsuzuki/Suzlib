@@ -1,4 +1,4 @@
-# verification-helper: TITLE ダブリング
+# competitive-verifier: TITLE ダブリング
 
 class Doubling:
     def __init__(self, nxt, depth=61):

@@ -1,4 +1,4 @@
-# verification-helper: TITLE 2次元Fenwick木
+# competitive-verifier: TITLE 2次元Fenwick木
 
 class FenwickTree2D:
     def __init__(self, h: int, w: int, init=None):

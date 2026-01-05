@@ -1,4 +1,4 @@
-# verification-helper: TITLE 上位 K 個の和を求める
+# competitive-verifier: TITLE 上位 K 個の和を求める
 
 from python.data_structure.heap.DeletableHeapq import DeletableHeapqInt
 """

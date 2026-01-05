@@ -1,4 +1,4 @@
-# verification-helper: TITLE 順序付き多重集合 with 座標圧縮（ordered multiset with zaatu）
+# competitive-verifier: TITLE 順序付き多重集合 with 座標圧縮（ordered multiset with zaatu）
 
 
 """

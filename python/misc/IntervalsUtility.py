@@ -1,4 +1,4 @@
-# verification-helper: TITLE 区間ユーティリティ
+# competitive-verifier: TITLE 区間ユーティリティ
 
 class IntervalsUtility:
     def __init__(self,LR):

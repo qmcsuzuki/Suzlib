@@ -1,4 +1,4 @@
-# verification-helper: TITLE デカルト木 (Cartesian Tree)
+# competitive-verifier: TITLE デカルト木 (Cartesian Tree)
 
 """
 Cartesian tree を構築。最小値で列を分割する（同じ値は左を優先的に使う）

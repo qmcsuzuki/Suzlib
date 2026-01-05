@@ -1,4 +1,4 @@
-# verification-helper: TITLE エラトステネスの篩
+# competitive-verifier: TITLE エラトステネスの篩
 
 """
 エラトステネスの篩: N以下の素数のリストを返す

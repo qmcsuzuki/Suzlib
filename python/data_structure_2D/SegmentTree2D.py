@@ -1,4 +1,4 @@
-# verification-helper: TITLE 2次元セグメント木
+# competitive-verifier: TITLE 2次元セグメント木
 
 class SegmentTree2D:
     """ seg = SegmentTree2D(N,M,op,e,init=None) """

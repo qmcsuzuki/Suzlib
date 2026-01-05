@@ -1,4 +1,4 @@
-# verification-helper: TITLE Disjoint Sparse Table
+# competitive-verifier: TITLE Disjoint Sparse Table
 
 class DisjointSparseTable():
     def __init__(self, a:list, op):

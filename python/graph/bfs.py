@@ -1,4 +1,4 @@
-# verification-helper: TITLE 幅優先探索 (BFS)
+# competitive-verifier: TITLE 幅優先探索 (BFS)
 
 def bfs(g,start):
     n = len(g)

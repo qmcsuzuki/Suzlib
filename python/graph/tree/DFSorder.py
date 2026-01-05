@@ -1,4 +1,4 @@
-# verification-helper: TITLE DFS順序
+# competitive-verifier: TITLE DFS順序（オイラーツアー）
 
 """
 return

@@ -1,4 +1,4 @@
-# verification-helper: TITLE ダイクストラ法
+# competitive-verifier: TITLE ダイクストラ法
 
 """
 Dijkstra法: 単一始点最短路（距離が正）

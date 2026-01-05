@@ -1,4 +1,4 @@
-# verification-helper: TITLE 行列（一般）
+# competitive-verifier: TITLE 行列（一般）
 
 """
 演算が一般化された行列

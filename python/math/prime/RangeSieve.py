@@ -1,4 +1,4 @@
-# verification-helper: TITLE 区間エラトステネスの篩
+# competitive-verifier: TITLE 区間エラトステネスの篩
 
 """
 区間篩: R-L および \sqrt(R) が十分小さいとき、

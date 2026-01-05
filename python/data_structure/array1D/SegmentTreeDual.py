@@ -1,4 +1,4 @@
-# verification-helper: TITLE Segment Tree Dual（区間更新・一点取得）
+# competitive-verifier: TITLE Segment Tree Dual（区間更新・一点取得）
 
 """
 双対セグメント木

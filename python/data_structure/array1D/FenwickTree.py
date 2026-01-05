@@ -1,4 +1,4 @@
-# verification-helper: TITLE Fenwick木 (Binary Indexed Tree)
+# competitive-verifier: TITLE Fenwick木 (Binary Indexed Tree)
 
 """
 Binary indexed tree (Fenwick tree)

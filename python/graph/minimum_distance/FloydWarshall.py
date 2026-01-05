@@ -1,4 +1,4 @@
-# verification-helper: TITLE フロイド・ワーシャル法
+# competitive-verifier: TITLE フロイド・ワーシャル法
 
 """
 とりあえず辺の重みは非負

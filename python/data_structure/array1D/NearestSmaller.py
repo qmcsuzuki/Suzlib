@@ -1,4 +1,4 @@
-# verification-helper: TITLE 自分より小さい値で一番近いものの位置（all nearest smaller values）
+# competitive-verifier: TITLE 自分より小さい値で一番近いものの位置（all nearest smaller values）
 
 """
 L[i]: A[l] < A[i] かつ l < i なる最大の l（存在しないなら -1）

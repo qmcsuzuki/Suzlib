@@ -1,4 +1,4 @@
-# verification-helper: TITLE 深さ優先探索 (DFS)
+# competitive-verifier: TITLE 深さ優先探索 (DFS)
 
 n = int(readline())
 

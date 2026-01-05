@@ -1,4 +1,4 @@
-# verification-helper: TITLE UnionFind（経路圧縮なし）
+# competitive-verifier: TITLE UnionFind（経路圧縮なし）
 
 # マージテク only の UF
 class UnionFind:

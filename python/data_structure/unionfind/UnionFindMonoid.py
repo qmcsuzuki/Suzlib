@@ -1,4 +1,4 @@
-# verification-helper: TITLE モノイド付きUnionFind
+# competitive-verifier: TITLE モノイド付きUnionFind
 
 from python.data_structure.unionfind.UnionFind import UnionFind
 class UnionFindMonoid(UnionFind):

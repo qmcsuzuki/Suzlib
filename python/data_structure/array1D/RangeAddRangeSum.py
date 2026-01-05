@@ -1,4 +1,4 @@
-# verification-helper: TITLE 区間加算・区間和 (Range Add Range Sum)
+# competitive-verifier: TITLE 区間加算・区間和 (Range Add Range Sum)
 
 class RangeAddRangeSum():
     def __init__(self, n, init=None):

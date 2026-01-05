@@ -1,4 +1,4 @@
-# verification-helper: TITLE 根付き木ハッシュ
+# competitive-verifier: TITLE 根付き木ハッシュ
 
 # competitive-verifier: TITLE 根付き木のハッシュ
 

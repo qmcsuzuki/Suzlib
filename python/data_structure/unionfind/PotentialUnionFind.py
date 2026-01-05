@@ -1,4 +1,4 @@
-# verification-helper: TITLE ポテンシャル付きUnionFind
+# competitive-verifier: TITLE ポテンシャル付きUnionFind
 
 class PotentialUnionFind:
     def __init__(self, n):

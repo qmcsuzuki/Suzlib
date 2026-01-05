@@ -1,4 +1,4 @@
-# verification-helper: TITLE 永続UnionFind
+# competitive-verifier: TITLE 永続UnionFind
 
 from bisect import bisect_left
 class PersistentUnionFind:

@@ -1,4 +1,4 @@
-# verification-helper: TITLE 区間加算・一点取得
+# competitive-verifier: TITLE 区間加算・一点取得
 
 class RangeAddPointGet(FenwickTree):
     def __init__(self, n, init=None):

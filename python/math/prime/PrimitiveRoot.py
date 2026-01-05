@@ -1,4 +1,4 @@
-# verification-helper: TITLE 原始根
+# competitive-verifier: TITLE 原始根
 
 """
 奇素数 p の原始根 g を求める

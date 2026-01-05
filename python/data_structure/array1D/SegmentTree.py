@@ -1,4 +1,4 @@
-# verification-helper: TITLE セグメント木 (Segment Tree)
+# competitive-verifier: TITLE セグメント木 (Segment Tree)
 
 class SegmentTree:
     # seg = SegmentTree(N,op,e,init=None)

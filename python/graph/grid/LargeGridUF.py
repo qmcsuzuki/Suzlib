@@ -1,4 +1,4 @@
-# verification-helper: TITLE 大規模グリッド用UnionFind
+# competitive-verifier: TITLE 大規模グリッド用UnionFind
 
 def LargeGridUF(H,W,blocks):
     UF = UnionFind(H+len(blocks))

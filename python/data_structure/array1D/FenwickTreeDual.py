@@ -1,4 +1,4 @@
-# verification-helper: TITLE Fenwick Tree Dual（区間加算・一点取得）
+# competitive-verifier: TITLE Fenwick Tree Dual（区間加算・一点取得）
 
 class FenwickTreeDual:
     def __init__(self, n: int, init=None):

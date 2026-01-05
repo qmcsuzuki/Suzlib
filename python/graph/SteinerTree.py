@@ -1,4 +1,4 @@
-# verification-helper: TITLE Steiner木
+# competitive-verifier: TITLE Steiner木
 
 class SteinerTree:
     def __init__(self,n):

@@ -1,4 +1,4 @@
-# verification-helper: TITLE 拡張ユークリッドの互除法
+# competitive-verifier: TITLE 拡張ユークリッドの互除法
 
 def extgcd(a,b):
     x1 = y0 = 0

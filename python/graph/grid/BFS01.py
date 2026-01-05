@@ -1,4 +1,4 @@
-# verification-helper: TITLE 01 BFS
+# competitive-verifier: TITLE 01 BFS
 
 from collections import deque
 def BFS01(board,start_list):

@@ -1,4 +1,4 @@
-# verification-helper: TITLE UnionFind
+# competitive-verifier: TITLE UnionFind
 
 class UnionFind:
     def __init__(self, n):

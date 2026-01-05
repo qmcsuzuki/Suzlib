@@ -1,4 +1,4 @@
-# verification-helper: TITLE 2次元累積和
+# competitive-verifier: TITLE 2次元累積和
 
 class Accumulate2dim:
     """

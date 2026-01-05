@@ -1,4 +1,4 @@
-# verification-helper: TITLE 格子上の幅優先探索 (Grid BFS)
+# competitive-verifier: TITLE 格子上の幅優先探索 (Grid BFS)
 
 """
 グリッド上の BFS

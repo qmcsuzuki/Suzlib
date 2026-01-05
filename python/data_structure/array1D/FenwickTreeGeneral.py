@@ -1,4 +1,4 @@
-# verification-helper: TITLE 一般化Fenwick木 (Fenwick Tree General)
+# competitive-verifier: TITLE 一般化Fenwick木 (Fenwick Tree General)
 
 """
 一般の演算 op に関する Fenwick tree
