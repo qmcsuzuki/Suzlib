@@ -10,7 +10,7 @@ def RangeSieve(L,R):
     is_prime = [1]*(R-L+1)
     for v in range(2): # 0,1 は素数でない
         if L <= v <= R:
-            is_prime[L-v] = 0
+            is_prime[v-L] = 0
     for p in Eratosthenes_prime_lst:
         for i in range((L+p-1)//p*p,R+1,p):
             if i != p: is_prime[i-L] = 0
