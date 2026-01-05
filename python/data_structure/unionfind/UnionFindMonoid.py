@@ -1,3 +1,5 @@
+# verification-helper: TITLE モノイド付きUnionFind
+
 from python.data_structure.unionfind.UnionFind import UnionFind
 class UnionFindMonoid(UnionFind):
     # UF = UnionFindMonoid(n,op,init)

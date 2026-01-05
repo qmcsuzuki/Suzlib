@@ -1,3 +1,5 @@
+# verification-helper: TITLE ディスジョイントスパーステーブル (Disjoint Sparse Table)
+
 class DisjointSparseTable():
     def __init__(self, a:list, op):
         self.op = op

@@ -1,3 +1,5 @@
+# verification-helper: TITLE Steiner木
+
 class SteinerTree:
     def __init__(self,n):
         self.n = n

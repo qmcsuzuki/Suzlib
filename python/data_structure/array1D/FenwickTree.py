@@ -1,3 +1,5 @@
+# verification-helper: TITLE Fenwick木 (Binary Indexed Tree)
+
 """
 Binary indexed tree (Fenwick tree)
 （外部的に）0-indexed, 関数は半開区間

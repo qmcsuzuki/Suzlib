@@ -1,3 +1,5 @@
+# verification-helper: TITLE ポテンシャル付きUnionFind（一般群）
+
 class PotentialUnionFindGeneral:
     def __init__(self, n, mul, inv, e_M):
         self.parent = [-1]*n #親ノード or size

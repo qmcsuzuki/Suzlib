@@ -1,3 +1,5 @@
+# verification-helper: TITLE 削除可能ヒープ (Deletable Heapq)
+
 from heapq import *
 class DeletableHeapq:
     """

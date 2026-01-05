@@ -1,3 +1,5 @@
+# verification-helper: TITLE 幅優先探索 (BFS)
+
 def bfs(g,start):
     n = len(g)
     #prev = [-1]*n

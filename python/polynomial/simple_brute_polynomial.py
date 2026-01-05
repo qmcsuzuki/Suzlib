@@ -1,3 +1,5 @@
+# verification-helper: TITLE 素朴多項式演算
+
 def polyadd(f,g):
     L = max(len(f),len(g))
     res = f[::] + [0]*(L-len(f))

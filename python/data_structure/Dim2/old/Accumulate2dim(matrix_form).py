@@ -1,3 +1,5 @@
+# verification-helper: TITLE 2次元累積和（行列形式）
+
 class Accumulate2dim:
     """
     a: h*w 行列

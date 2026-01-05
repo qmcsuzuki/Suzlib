@@ -1,3 +1,5 @@
+# verification-helper: TITLE ポテンシャル付きUnionFind
+
 class PotentialUnionFind:
     def __init__(self, n):
         self.parent = list(range(n)) #親ノード

@@ -1,3 +1,5 @@
+# verification-helper: TITLE 拡張ユークリッドの互除法
+
 def extgcd(a,b):
     x1 = y0 = 0
     x0 = y1 = 1

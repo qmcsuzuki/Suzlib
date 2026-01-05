@@ -1,3 +1,5 @@
+# verification-helper: TITLE セグメント木 (Segment Tree)
+
 class SegmentTree:
     # seg = SegmentTree(N,op,e,init=None)
     def __init__(self, N, op, e, init=None):

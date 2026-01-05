@@ -1,3 +1,5 @@
+# verification-helper: TITLE ダブリング
+
 class Doubling:
     def __init__(self, nxt, depth=61):
         self.D = depth # we have D rows
