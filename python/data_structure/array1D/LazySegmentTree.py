@@ -47,9 +47,9 @@ class LazySegmentTree:
 
     # デバッグ用出力
     def __str__(self):
-        s = self._visualize_binarytree(seg.lazy,self.e_X).split("\n")
-        t = self._visualize_binarytree(seg.data,self.e_X).split("\n")
-        return s + t
+        s = self._visualize_binarytree(self.lazy, self.e_X).split("\n")
+        t = self._visualize_binarytree(self.data, self.e_X).split("\n")
+        return "\n".join(s + t)
 
     # 1点更新
     def point_set(self, p, x):
@@ -205,11 +205,10 @@ class LazySegmentTree:
             self.lazy[2*k+1] = self.compose(self.lazy[k], self.lazy[2*k+1])
         self.lazy[k] = self.id_M
 
-    def _visualize_binarytree(A,v=1<<60):
+    def _visualize_binarytree(self, A, v=1<<60):
         h = len(A).bit_length() - 1 # height of tree
         assert len(A) == 1<<h
         S = ["INF" if isinstance(v,int) and isinstance(x,int) and x >= v else str(x) for x in A] # large value is displayed "INF"
         layers = [S[1<<i:2<<i] for i in range(h)] # layer of tree
         W = max(2+(max(map(len,lst)))<<i for i,lst in enumerate(layers)) # width of displayed tree
         return "".join("".join(f"{T:^{W>>i}}" for T in lst) + "\n" for i,lst in enumerate(layers))
-
