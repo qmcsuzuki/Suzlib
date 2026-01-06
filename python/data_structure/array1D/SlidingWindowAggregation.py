@@ -2,19 +2,19 @@
 
 from collections import deque
 class SWAG:
-    def __init__(self, operator_M, e_M):
+    def __init__(self, operator_M, e_M, init=None):
         self.op_M = operator_M
         self.e_M = e_M
-        self.q = deque([])
         self.accL = [e_M]
         self.accR = e_M
         self.L = self.R = 0
-
-    def build(self,lst):
-        self.q = deque(lst)
-        self.L = len(lst)
-        for i in reversed(lst):
-            self.accL.append(self.op_M(i,self.acc[-1]))
+        if init is None:
+            self.q = deque()
+        else:
+            self.q = deque(init)
+            self.L = len(init)
+            for i in reversed(init):
+                self.accL.append(self.op_M(i, self.acc[-1]))
 
     def __len__(self):
         return self.L + self.R
