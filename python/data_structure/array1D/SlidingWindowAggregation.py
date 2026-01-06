@@ -1,4 +1,4 @@
-# competitive-verifier: TITLE スライディングウィンドウ集約 (SWAG)
+# competitive-verifier: TITLE Sliding window aggregation (SWAG)
 
 from collections import deque
 class SWAG:
