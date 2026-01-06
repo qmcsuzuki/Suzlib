@@ -58,4 +58,34 @@ class TopKSum:
             x = self.q_topK.heappop()
             self.q_other.heappush(-x)
 
+# Median maintenance:
+# upper median: a[(n+1)//2] (1-based) -> a[n//2] (0-based)
+# lower median: a[(n+2)//2] (1-based) -> a[(n-1)//2] (0-based)
+class MedianMaintainer(TopKSum):
+    def __init__(self, initial = []):
+        self.n = len(initial)
+        super().__init__((self.n + 1) // 2, initial)
+
+    def add(self, v):
+        super().add(v)
+        self.n += 1
+        if (self.n + 1) // 2 > self.K:
+            self.add_K()
+
+    def remove(self, v):
+        super().remove(v)
+        self.n -= 1
+        if (self.n + 1) // 2 < self.K:
+            self.minus_K()
+
+    def get_upper_median(self):
+        assert self.n > 0
+        return self.q_topK.top()
+
+    def get_lower_median(self):
+        assert self.n > 0
+        if self.n % 2 == 1:
+            return self.q_topK.top()
+        return -self.q_other.top()
+
 # https://atcoder.jp/contests/arc196/submissions/64599110
