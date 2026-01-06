@@ -1,4 +1,4 @@
-# competitive-verifier: TITLE 上位 K 個の和を求める
+# competitive-verifier: TITLE 上位 K 個の和を求める/median の管理
 
 from python.data_structure.heap.DeletableHeapq import DeletableHeapqInt
 """
@@ -89,3 +89,4 @@ class MedianMaintainer(TopKSum):
             return self.q_topK.top()
         return -self.q_other.top()
 
+# https://atcoder.jp/contests/abc127/submissions/72270899
