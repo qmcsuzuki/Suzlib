@@ -48,14 +48,14 @@ class DeletableHeapqInt(DeletableHeapq):
 
     def heappop(self):
         self.propagate()
-        x = heapq.heappop(self.q)
+        x = heappop(self.q)
         self.sum -= x
         return x
 
     def remove(self,x):
-        heapq.heappush(self.q_del,x)
+        heappush(self.q_del,x)
         self.sum -= x
 
     def heappush(self,x):
-        heapq.heappush(self.q,x)
+        heappush(self.q,x)
         self.sum += x
