@@ -1,6 +1,6 @@
 # competitive-verifier: TITLE 削除可能ヒープ (Deletable Heapq)
 
-from heapq import *
+from heapq import heapify, heappush, heappop
 class DeletableHeapq:
     """
     削除可能heapq
