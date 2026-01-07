@@ -1,3 +1,6 @@
+# competitive-verifier: TITLE 遅延セグメント木 (lazy segment tree)
+
+
 """
 遅延セグメント木（区間演算、区間更新）
 data[] の要素に モノイド X をもつ
