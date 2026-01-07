@@ -1,5 +1,6 @@
-"""
+# competitive-verifier: TITLE 動的 Fenwick 木（使うとこだけ作る Fenwick 木）
 
+"""
 n: とりうる値の最大値
 """
 class FenwickTreeDinamic: #0-indexed
