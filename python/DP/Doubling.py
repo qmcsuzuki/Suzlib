@@ -35,6 +35,26 @@ class Doubling:
                 v = nxt[v]
         return w,v
 
+    # check(w, v) が単調 (False が並んでから True) のとき，
+    # 最小の k (0 <= k < 2^D) で check(w, f^k(v)) が True となる k と状態を返す
+    # すべて False の場合は k = 2^D を返す（w, v は k = 2^D-1 の状態）
+    # 戻り値: (k, w, v)
+    def binary_search(self, v, check):
+        k = 0
+        w = self.e
+        if check(w, v):
+            return k, w, v
+        for i in reversed(range(self.D)):
+            nw = self.op(w, self.Wtable[i][v])
+            nv = self.table[i][v]
+            if not check(nw, nv):
+                k += 1 << i
+                w = nw
+                v = nv
+        if k < (1 << self.D) - 1:
+            w = self.op(w, self.Wtable[0][v])
+            v = self.table[0][v]
+        return k + 1, w, v
 
 # example: https://atcoder.jp/contests/abc438/submissions/72051651
 
@@ -42,7 +62,4 @@ class Doubling:
 # wt = list(range(1,n+1))
 # D = Doubling(nxt,31)
 # D.set_weight(wt, int.__add__, 0)
-
-
-
 
