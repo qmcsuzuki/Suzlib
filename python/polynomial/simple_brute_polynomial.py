@@ -20,7 +20,10 @@ def polymul(f,g,maxdegree=None):
         L = min(L, maxdegree+1)
     res = [0]*L
     for i,v in enumerate(f):
-        for j in range(L-i):
+        if v == 0 or i >= L:
+            continue
+        max_j = min(len(g), L - i)
+        for j in range(max_j):
             res[i+j] = (res[i+j] + v*g[j])%MOD
     return res
 
@@ -69,16 +72,20 @@ def polydivmod(f,g,maxdegree=None):
     n = len(f)-1
     m = len(g)-1
     qdeg = n-m
-    if maxdegree is not None:
-        qdeg = min(qdeg, maxdegree)
     q = [0]*(qdeg+1)
     r = f[::]
     invgl = pow(g[-1], MOD-2, MOD)
     for k in range(qdeg, -1, -1):
         coeff = r[m+k]*invgl%MOD
         q[k] = coeff
+        if coeff == 0:
+            continue
         for j in range(m+1):
             r[j+k] = (r[j+k] - coeff*g[j])%MOD
+    if maxdegree is not None and maxdegree < qdeg:
+        q = polytrim(q[:maxdegree+1])
+        r = polytrim(polysub(f, polymul(q, g)))
+        return q, r
     return polytrim(q), polytrim(r)
 
 def polylog(f,n):
