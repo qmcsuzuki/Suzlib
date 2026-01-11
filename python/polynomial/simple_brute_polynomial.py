@@ -20,7 +20,7 @@ def polymul(f,g,maxdegree=None):
         L = min(L, maxdegree+1)
     res = [0]*L
     for i,v in enumerate(f):
-        for j in range(L-i):
+        for j in range(min(len(g), L-i)):
             res[i+j] = (res[i+j] + v*g[j])%MOD
     return res
 
