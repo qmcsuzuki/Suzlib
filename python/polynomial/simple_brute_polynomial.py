@@ -62,15 +62,13 @@ def polyinvert(f,n):
         res[i] = (-s*invf0)%MOD
     return res
 
-def polydivmod(f,g,maxdegree=None):
-    """Naive long division; g[-1]!=0. Truncates quotient to maxdegree if set. O(N^2)."""
+def polydivmod(f,g):
+    """Naive long division; g[-1]!=0. Returns (quotient, remainder). O(N^2)."""
     if len(f) < len(g):
         return [0], polytrim(f[::])
     n = len(f)-1
     m = len(g)-1
     qdeg = n-m
-    if maxdegree is not None:
-        qdeg = min(qdeg, maxdegree)
     q = [0]*(qdeg+1)
     r = f[::]
     invgl = pow(g[-1], MOD-2, MOD)
