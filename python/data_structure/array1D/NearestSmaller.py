@@ -17,3 +17,14 @@ def nearest_smaller(A):
             i = L[i]
         L[r] = i
     return L,R
+
+
+def nearest_larger(A):
+    """
+    L[i]: A[l] > A[i] かつ l < i なる最大の l（存在しないなら -1）
+    R[i]: A[r] <= A[i] かつ r > i なる最小の r （存在しないなら len(A)）
+    左、右で不等号にイコールが入るかどうかが異なることに注意
+    nearest_smaller を利用して実装する
+    """
+    inverted = [-a for a in A]
+    return nearest_smaller(inverted)
