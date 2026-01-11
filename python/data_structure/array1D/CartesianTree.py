@@ -15,6 +15,8 @@ def Cartesian_tree_DFSsearch(A, calc):
     n = len(A)
     A.append(min(A)-1) # 番兵
     L = [-1]*(n+1)
+    # leftchild = [-1]*n
+    # rightchild = [-1]*n
     for i,ai in enumerate(A):
         cur = i-1
         while cur != -1 and A[cur] > ai:
@@ -26,8 +28,12 @@ def Cartesian_tree_DFSsearch(A, calc):
             ここで cur に関する計算を行う
             """
             calc(cur,l,r,p)
-
             cur = l-1
+            # 左、右の子供の位置が必要なら、以下を有効化
+            # if i < p:
+            #     leftchild[p] = i
+            # else:
+            #     rightchild[p] = i
         L[i] = cur
     A.pop()
 
