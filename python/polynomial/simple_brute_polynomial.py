@@ -117,10 +117,10 @@ def polypow(f,k,n):
     if f[0] != 0:
         invf0 = pow(f[0], MOD-2, MOD)
         g = [v*invf0%MOD for v in f]
-        logf = polylog(g, n)
+        logf = FPSlog(g, n)
         for i in range(len(logf)):
             logf[i] = logf[i]*k%MOD
-        res = polyexp(logf, n)
+        res = FPSexp(logf, n)
         scale = pow(f[0], k, MOD)
         for i in range(len(res)):
             res[i] = res[i]*scale%MOD
@@ -135,10 +135,10 @@ def polypow(f,k,n):
     g = f[shift:]
     invg0 = pow(g[0], MOD-2, MOD)
     h = [v*invg0%MOD for v in g]
-    logg = polylog(h, n-shift*k)
+    logg = FPSlog(h, n-shift*k)
     for i in range(len(logg)):
         logg[i] = logg[i]*k%MOD
-    powg = polyexp(logg, n-shift*k)
+    powg = FPSexp(logg, n-shift*k)
     scale = pow(g[0], k, MOD)
     for i in range(len(powg)):
         powg[i] = powg[i]*scale%MOD
