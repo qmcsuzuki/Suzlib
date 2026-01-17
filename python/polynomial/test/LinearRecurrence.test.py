@@ -1,8 +1,10 @@
 # verification-helper: PROBLEM https://judge.yosupo.jp/problem/find_linear_recurrence
 import python.polynomial.LinearRecurrence as LinearRecurrence
+import python.polynomial.simple_brute_polynomial as simple_brute_polynomial
 
 MOD = 998244353
 LinearRecurrence.MOD = MOD
+simple_brute_polynomial.MOD = MOD
 def main():
     n = int(input())
     a = list(map(int, input().split()))
