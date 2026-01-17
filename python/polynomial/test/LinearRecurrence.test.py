@@ -10,7 +10,7 @@ Berlecamp_Massey = LinearRecurrence.Berlecamp_Massey
 def main():
     n = int(input())
     a = list(map(int, input().split()))
-    _, q = Berlecamp_Massey(a)
+    q = Berlecamp_Massey(a)
     k = len(q) - 1
     coeffs = [(-q[i]) % MOD for i in range(1, k + 1)]
     print(k)
