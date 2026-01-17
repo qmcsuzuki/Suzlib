@@ -1,14 +1,13 @@
 # verification-helper: PROBLEM https://judge.yosupo.jp/problem/find_linear_recurrence
 from python.polynomial.simple_brute_polynomial import polymul
-import python.polynomial.LinearRecurrence as LinearRecurrence
+from python.polynomial.LinearRecurrence import Berlecamp_Massey
 
 
+MOD = 998244353
 def main():
     n = int(input())
     a = list(map(int, input().split()))
-    LinearRecurrence.MOD = 998244353
-    LinearRecurrence.polymul = polymul
-    _, q = LinearRecurrence.Berlecamp_Massay(a)
+    _, q = Berlecamp_Massay(a)
     k = len(q) - 1
     coeffs = [(-q[i]) % LinearRecurrence.MOD for i in range(1, k + 1)]
     coeffs.reverse()
