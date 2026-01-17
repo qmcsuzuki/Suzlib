@@ -1,7 +1,8 @@
 # competitive-verifier: TITLE Linear Recurrence
 
 from python.polynomial.simple_brute_polynomial import polymul
-def Berlecamp_Massay(A):
+
+def Berlecamp_Massey(A):
     n = len(A)
     C = [1]
     B = [1]
@@ -49,4 +50,3 @@ def rec_nth_term(a,g,N):
     assert len(a) == L
     f = polymul(a,g)[:L-1]
     return fps_nth_term(f,g,N)
-
