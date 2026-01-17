@@ -2,6 +2,14 @@
 
 from python.polynomial.simple_brute_polynomial import polymul
 
+# A = P(x)/Q(x)
+def Berlecamp_Massey_with_generating_function(A):
+    Q = Berlecamp_Massey(A)
+    P = polymul(A, Q)[:len(Q)-1]
+    return P, Q
+
+# find minimal recurrence C:
+# A[i] = C[0]A[i-1] + C[1]A[i-2] + ... + C[L-1]A[i-L]
 def Berlecamp_Massey(A):
     n = len(A)
     C = [1]
@@ -28,10 +36,7 @@ def Berlecamp_Massey(A):
             m = 1
         else:
             m += 1
-    Q = C
-    P = polymul(A, Q)[:n]
-    return P, Q
-
+    return C
 # 母関数が f(x)/g(x) で与えられる線形漸化式の第 n 項
 def fps_nth_term(f,g,N):
     assert g[0] != 0
