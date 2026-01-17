@@ -9,7 +9,7 @@ def Berlecamp_Massey_with_generating_function(A):
     return P, Q
 
 # find minimal recurrence C:
-# A[i] = C[0]A[i-1] + C[1]A[i-2] + ... + C[L-1]A[i-L]
+# A[i] + C[0]A[i-1] + C[1]A[i-2] + ... + C[L-1]A[i-L] = 0
 def Berlecamp_Massey(A):
     n = len(A)
     C = [1]
