@@ -24,12 +24,45 @@ def polymul(f,g,maxdegree=None):
             res[i+j] = (res[i+j] + v*g[j])%MOD
     return res
 
+def polydivmod(f,g):
+    """Naive long division; g[-1]!=0. Returns (quotient, remainder). O(N^2)."""
+    assert g[-1] != 0
+    if len(f) < len(g):
+        return [0], polytrim(f[::])
+    m = len(g)-1
+    qdeg = (len(f)-1)-m
+    q = [0]*(qdeg+1)
+    r = f[::]
+    invgl = pow(g[-1], MOD-2, MOD)
+    for k in range(qdeg, -1, -1):
+        coeff = r[m+k]*invgl%MOD
+        q[k] = coeff
+        for j in range(m+1):
+            r[j+k] = (r[j+k] - coeff*g[j])%MOD
+    return polytrim(q), polytrim(r)
+
 def polytrim(f):
     """Remove trailing zeros; returns [0] for zero polynomial. O(N)."""
     i = len(f)-1
     while i > 0 and f[i] == 0:
         i -= 1
     return f[:i+1]
+
+def FPSinv(f,n):
+    """Series inverse up to n terms; f[0]!=0. Returns length n. O(N^2)."""
+    assert f[0] != 0, "constant term is 0"
+    if n <= 0:
+        return []
+    invf0 = pow(f[0], MOD-2, MOD)
+    res = [0]*n
+    res[0] = invf0
+    for i in range(1,n):
+        s = 0
+        for j in range(1,i+1):
+            if j < len(f):
+                s = (s + f[j]*res[i-j])%MOD
+        res[i] = (-s*invf0)%MOD
+    return res
 
 def polyderiv(f):
     """Derivative: f[i]*i. Returns degree-1 list or [0]. O(N)."""
@@ -47,50 +80,19 @@ def polyinteg(f):
         res[i+1] = v*pow(i+1, MOD-2, MOD)%MOD
     return res
 
-def polyinvert(f,n):
-    """Series inverse up to n terms; f[0]!=0. Returns length n. O(N^2)."""
-    if n <= 0:
-        return []
-    invf0 = pow(f[0], MOD-2, MOD)
-    res = [0]*n
-    res[0] = invf0
-    for i in range(1,n):
-        s = 0
-        for j in range(1,i+1):
-            if j < len(f):
-                s = (s + f[j]*res[i-j])%MOD
-        res[i] = (-s*invf0)%MOD
-    return res
 
-def polydivmod(f,g):
-    """Naive long division; g[-1]!=0. Returns (quotient, remainder). O(N^2)."""
-    if len(f) < len(g):
-        return [0], polytrim(f[::])
-    n = len(f)-1
-    m = len(g)-1
-    qdeg = n-m
-    q = [0]*(qdeg+1)
-    r = f[::]
-    invgl = pow(g[-1], MOD-2, MOD)
-    for k in range(qdeg, -1, -1):
-        coeff = r[m+k]*invgl%MOD
-        q[k] = coeff
-        for j in range(m+1):
-            r[j+k] = (r[j+k] - coeff*g[j])%MOD
-    return polytrim(q), polytrim(r)
-
-def polylog(f,n):
+def FPSlog(f,n):
     """Log series up to n terms; requires f[0]==1. Returns length n. O(N^2)."""
     if n <= 0:
         return []
     if n == 1:
         return [0]
     der = polyderiv(f)
-    inv = polyinvert(f, n-1)
+    inv = FPSinv(f, n-1)
     prod = polymul(der, inv, maxdegree=n-2)
     return polyinteg(prod)[:n]
 
-def polyexp(f,n):
+def FPSexp(f,n):
     """Exp series up to n terms; requires f[0]==0. Returns length n. O(N^2)."""
     if n <= 0:
         return []
