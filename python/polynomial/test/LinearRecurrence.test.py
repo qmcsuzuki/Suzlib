@@ -11,11 +11,8 @@ def main():
     _, q = LinearRecurrence.Berlecamp_Massey(a)
     k = len(q) - 1
     coeffs = [(-q[i]) % MOD for i in range(1, k + 1)]
-    coeffs.reverse()
     print(k)
-    if k > 0:
-        print(" ".join(map(str, coeffs)))
-
+    print(" ".join(map(str, coeffs)))
 
 if __name__ == "__main__":
     main()
