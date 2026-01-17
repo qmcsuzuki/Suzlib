@@ -1,5 +1,6 @@
 # competitive-verifier: TITLE Linear Recurrence
 
+from python.polynomial.simple_brute_polynomial import polymul
 def Berlecamp_Massay(A):
     n = len(A)
     C = [1]
@@ -30,6 +31,7 @@ def Berlecamp_Massay(A):
     P = polymul(A, Q)[:n]
     return P, Q
 
+# 母関数が f(x)/g(x) で与えられる線形漸化式の第 n 項
 def fps_nth_term(f,g,N):
     assert g[0] != 0
     while N:
