@@ -5,8 +5,7 @@ def Berlecamp_Massay(A):
     C = [1]
     B = [1]
     L = 0
-    m = 1
-    b = 1
+    m = b = 1
     for i in range(n):
         d = A[i]
         for j in range(1, L + 1):
@@ -31,20 +30,21 @@ def Berlecamp_Massay(A):
     P = polymul(A, Q)[:n]
     return P, Q
 
+def fps_nth_term(f,g,N):
+    assert g[0] != 0
+    while N:
+        h = g[:]
+        for i in range(1,len(g),2):
+            h[i] = -h[i]
+        f = polymul(f,h)[N%2:N+1:2]
+        g = polymul(g,h)[:N+1:2]
+        N //= 2
+    return f[0]*pow(g[0],MOD-2,MOD)%MOD
 
-def nth_term(p, q, n=None):
-    if n is None:
-        try:
-            n = N
-        except NameError as exc:
-            raise ValueError("n is required") from exc
-    p = p[:]
-    q = q[:]
-    while n > 0:
-        q_neg = [coef if i % 2 == 0 else (-coef) % MOD for i, coef in enumerate(q)]
-        pq = polymul(p, q_neg)
-        qq = polymul(q, q_neg)
-        p = pq[::2] if n % 2 == 0 else pq[1::2]
-        q = qq[::2]
-        n //= 2
-    return p[0] * pow(q[0], MOD - 2, MOD) % MOD
+# a[0],...,a[L-1] とL次特性多項式 g が与えられているL項間漸化式の第N項
+def rec_nth_term(a,g,N):
+    L = len(g) - 1
+    assert len(a) == L
+    f = polymul(a,g)[:L-1]
+    return fps_nth_term(f,g,N)
+
