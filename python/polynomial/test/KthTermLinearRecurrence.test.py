@@ -2,7 +2,6 @@
 #
 # need fast polynomial multiplication
 
-return
 
 # verification-helper: PROBLEM https://judge.yosupo.jp/problem/kth_term_of_linearly_recurrent_sequence
 # import python.polynomial.LinearRecurrence as LinearRecurrence
