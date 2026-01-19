@@ -53,5 +53,5 @@ def fps_nth_term(f,g,N):
 def rec_nth_term(a,g,N):
     L = len(g) - 1
     assert len(a) == L
-    f = polymul(a,g)[:L-1]
-    return fps_nth_term(f,g,N)
+    f = polymul(a, g)[:L]
+    return fps_nth_term(f, g, N)
