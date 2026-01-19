@@ -1,9 +1,11 @@
 # verification-helper: STANDALONE
 #
-# need fast polynomial multiplication
+"""
+to pass the test, need fast polynomial multiplication
+so we postpone
+"""
 
-
-# verification-helper: PROBLEM https://judge.yosupo.jp/problem/kth_term_of_linearly_recurrent_sequence
+# 問題の場所: https://judge.yosupo.jp/problem/kth_term_of_linearly_recurrent_sequence
 # import python.polynomial.LinearRecurrence as LinearRecurrence
 # import python.polynomial.simple_brute_polynomial as simple_brute_polynomial
 
