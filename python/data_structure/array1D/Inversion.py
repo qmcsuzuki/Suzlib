@@ -23,6 +23,17 @@ def inversion(a):
     return v
 
 """
+一般の数列 A の転倒数を求める（座標圧縮して計算）
+"""
+def inversion_general(a):
+    n = len(a)
+    if n <= 1:
+        return 0
+    sa = sorted(a)
+    za = {x:i for i,x in enumerate(sa)}
+    return inversion([za[v] for v in a])
+
+"""
 数列 A,B は隣接swap何回で移りあうか？
 移りあえないなら -1
 """
