@@ -29,7 +29,7 @@ def inversion_general(a):
     n = len(a)
     if n <= 1:
         return 0
-    sa = sorted(a)
+    sa = sorted(set(a))
     za = {x:i for i,x in enumerate(sa)}
     return inversion([za[v] for v in a])
 
