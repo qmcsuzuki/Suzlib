@@ -52,9 +52,9 @@ def inversion_brute(A):
 
 # 愚直、A,B は 0~L-1 の順列を仮定
 def inversion_distance_brute(A,B):
-    L = len(A)
-    assert L == len(B) and min(A) == 0
-    res = [0]*L
-    for i in range(L):
+    n = len(A)
+    assert n == len(B) and min(A) == 0
+    res = [0]*n
+    for i in range(n):
         res[A[i]] = i
     return inversion_brute([res[v] for v in B])
