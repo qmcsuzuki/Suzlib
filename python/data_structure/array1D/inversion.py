@@ -32,6 +32,7 @@ def inversion_distance(A,B):
     for i,bi in enumerate(B):
         d[bi].append(i)
     
+    n = len(A)
     res = [0]*n # A[i] mapsto B[res[i]]
     for i in range(len(A))[::-1]:
         try:
@@ -56,4 +57,4 @@ def inversion_distance_brute(A,B):
     res = [0]*L
     for i in range(L):
         res[A[i]] = i
-    return inbersion_brute([res[v] for v in B])
+    return inversion_brute([res[v] for v in B])
