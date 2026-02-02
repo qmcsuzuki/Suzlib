@@ -82,96 +82,102 @@
     return out.join("\n");
   }
 
-function makeModal(text) {
-  const bg = document.createElement("div");
-  // 重要: 既存CSSの影響を極力受けないよう、必要なプロパティを明示
-  bg.style.position = "fixed";
-  bg.style.top = "0";
-  bg.style.left = "0";
-  bg.style.width = "100vw";
-  bg.style.height = "100vh";
-  bg.style.margin = "0";
-  bg.style.padding = "2vh 2vw";
-  bg.style.boxSizing = "border-box";
-  bg.style.background = "rgba(0,0,0,.35)";
-  bg.style.zIndex = "2147483647"; // ほぼ最上位
-  bg.style.display = "flex";
-  bg.style.justifyContent = "center";
-  bg.style.alignItems = "stretch";
+function makeModal(codeText) {
+  // overlay (full viewport)
+  const overlay = document.createElement("div");
 
+  // orderedlist テーマの2カラムに影響されないよう、important 付きで強制
+  const setImp = (el, prop, value) => el.style.setProperty(prop, value, "important");
+
+  setImp(overlay, "position", "fixed");
+  setImp(overlay, "left", "0");
+  setImp(overlay, "top", "0");
+  setImp(overlay, "width", "100vw");
+  setImp(overlay, "height", "100vh");
+  setImp(overlay, "margin", "0");
+  setImp(overlay, "padding", "1.5vh 1.5vw");
+  setImp(overlay, "box-sizing", "border-box");
+  setImp(overlay, "background", "rgba(0,0,0,.35)");
+  setImp(overlay, "z-index", "2147483647");
+  setImp(overlay, "display", "flex");
+  setImp(overlay, "justify-content", "center");
+  setImp(overlay, "align-items", "stretch");
+
+  // modal box (wide)
   const box = document.createElement("div");
-  // 横幅を最大化（必要なら 1800px をさらに上げてOK）
-  box.style.width = "min(96vw, 1800px)";
-  box.style.height = "100%";
-  box.style.background = "#fff";
-  box.style.borderRadius = "10px";
-  box.style.boxShadow = "0 10px 30px rgba(0,0,0,.2)";
-  box.style.display = "flex";
-  box.style.flexDirection = "column";
-  box.style.overflow = "hidden";
+  setImp(box, "width", "min(98vw, 2200px)");  // 横幅を増やす（上限は好みで）
+  setImp(box, "height", "100%");
+  setImp(box, "background", "#fff");
+  setImp(box, "border-radius", "10px");
+  setImp(box, "box-shadow", "0 10px 30px rgba(0,0,0,.2)");
+  setImp(box, "display", "flex");
+  setImp(box, "flex-direction", "column");
+  setImp(box, "overflow", "hidden");
 
+  // header (copy button at top)
   const header = document.createElement("div");
-  // Copy ボタンを常に上に固定
-  header.style.display = "flex";
-  header.style.gap = "8px";
-  header.style.alignItems = "center";
-  header.style.padding = "10px 12px";
-  header.style.borderBottom = "1px solid #e5e5e5";
-  header.style.background = "#fff";
-  header.style.flex = "0 0 auto";
+  setImp(header, "display", "flex");
+  setImp(header, "gap", "8px");
+  setImp(header, "align-items", "center");
+  setImp(header, "padding", "10px 12px");
+  setImp(header, "background", "#fff");
+  setImp(header, "border-bottom", "1px solid #e5e5e5");
+  // スクロールしても上に残す
+  setImp(header, "position", "sticky");
+  setImp(header, "top", "0");
 
-  const copy = document.createElement("button");
-  copy.type = "button";
-  copy.textContent = "Copy bundled code";
-  copy.onclick = async () => {
-    await navigator.clipboard.writeText(text);
-    copy.textContent = "Copied";
-    setTimeout(() => (copy.textContent = "Copy bundled code"), 900);
-  };
+  const btnCopy = document.createElement("button");
+  btnCopy.type = "button";
+  btnCopy.textContent = "Copy bundled code";
+  btnCopy.addEventListener("click", async () => {
+    await navigator.clipboard.writeText(codeText);
+    btnCopy.textContent = "Copied";
+    setTimeout(() => (btnCopy.textContent = "Copy bundled code"), 900);
+  });
 
-  const close = document.createElement("button");
-  close.type = "button";
-  close.textContent = "Close";
-  close.onclick = () => bg.remove();
+  const btnClose = document.createElement("button");
+  btnClose.type = "button";
+  btnClose.textContent = "Close";
+  btnClose.addEventListener("click", () => overlay.remove());
 
-  header.append(copy, close);
+  header.append(btnCopy, btnClose);
 
+  // code area
   const pre = document.createElement("pre");
-  pre.style.margin = "0";
-  pre.style.padding = "12px";
-  pre.style.flex = "1 1 auto";
-  pre.style.overflow = "auto";
-  pre.style.background = "#fafafa";
-  pre.style.boxSizing = "border-box";
+  setImp(pre, "margin", "0");
+  setImp(pre, "padding", "12px");
+  setImp(pre, "flex", "1 1 auto");
+  setImp(pre, "overflow", "auto");
+  setImp(pre, "background", "#fafafa");
 
   const code = document.createElement("code");
   code.className = "language-python";
-  code.textContent = text;
+  code.textContent = codeText;
 
-  // 横スクロールを避けたい場合（インデントは維持しつつ長い行だけ折る）
-  code.style.whiteSpace = "pre-wrap";
-  code.style.overflowWrap = "anywhere";
+  // 横スクロール不要：折り返し
+  setImp(code, "white-space", "pre-wrap");
+  setImp(code, "overflow-wrap", "anywhere");
 
   pre.appendChild(code);
+
   box.append(header, pre);
-  bg.appendChild(box);
+  overlay.appendChild(box);
 
   // 背景クリックで閉じる
-  bg.addEventListener("click", (e) => {
-    if (e.target === bg) bg.remove();
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) overlay.remove();
   });
 
-  // ここが超重要: body ではなく html 直下に刺す（transform 罠を回避）
-  document.documentElement.appendChild(bg);
+  // 重要：右カラム内ではなく html 直下へ（左サイドバー問題を根絶）
+  document.documentElement.appendChild(overlay);
 
-  // highlight.js が入っているならハイライト（無ければ何もしない）
+  // highlight.js が入っている場合だけハイライト（後述）
   if (window.hljs && typeof window.hljs.highlightElement === "function") {
     window.hljs.highlightElement(code);
   }
 
-  return bg;
+  return overlay;
 }
-
 
   
   function injectBundleButton() {
