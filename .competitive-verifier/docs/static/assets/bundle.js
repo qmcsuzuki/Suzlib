@@ -1,133 +1,342 @@
-// /assets/bundle.js
+// suzlib-bundle.js
+// - Injects "Bundle" button on competitive-verifier generated pages
+// - Bundles code by following "Depends on" section links recursively
+// - Shows full-viewport modal (independent from sidebar layout)
+// - Copy button at top, wide area, line-wrapped code (no horizontal scroll by default)
+// - Optional syntax highlight if highlight.js (hljs) is present
 
-(function () {
-  function escapeHtml(s) {
-    return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+(() => {
+  "use strict";
+
+  // ---------- small utilities ----------
+  const IMP = "important";
+  const MAX_Z = "2147483647";
+
+  function setImp(el, prop, value) {
+    el.style.setProperty(prop, value, IMP);
   }
 
-  // ページHTMLからコードを抽出（competitive-verifier のページは "## Code" の直後に pre が来る想定）
-  function extractCodeFromHtml(html) {
-    const doc = new DOMParser().parseFromString(html, "text/html");
-    // よくある構造：<pre><code>...</code></pre>
-    const codeEl = doc.querySelector("pre code") || doc.querySelector("pre");
-    if (!codeEl) return null;
-    return codeEl.textContent.replace(/\r\n/g, "\n");
+  function normText(s) {
+    return (s || "").replace(/\s+/g, " ").trim();
   }
 
-  // `from python.a.b.C import X` / `import python.a.b.C` を拾う（必要なら拡張）
-  function parseInternalImports(code) {
-    const deps = new Set();
-    const lines = code.split("\n");
-    for (const line of lines) {
-      // from python.xxx.yyy import Z
-      let m = line.match(/^\s*from\s+(python(?:\.[A-Za-z0-9_]+)+)\s+import\s+/);
-      if (m) deps.add(m[1]);
-      // import python.xxx.yyy
-      m = line.match(/^\s*import\s+(python(?:\.[A-Za-z0-9_]+)+)\s*$/);
-      if (m) deps.add(m[1]);
+  function absUrl(href, base) {
+    return new URL(href, base).toString();
+  }
+
+  function sameOrigin(url) {
+    try {
+      return new URL(url, location.href).origin === location.origin;
+    } catch {
+      return false;
     }
-    return [...deps];
   }
 
-  // module "python.data_structure.array1D.FenwickTree" -> "/Suzlib/python/data_structure/array1D/FenwickTree.py"
-  function moduleToUrl(mod) {
-    const base = document.querySelector('meta[name="baseurl"]')?.content || ""; // 無ければ空
-    // Jekyll の relative_url をJSで再現するのは面倒なので、ここでは location から推定：
-    // site が /Suzlib/ 以下なら pathname の先頭2要素を採用して prefix を作る
-    const parts = location.pathname.split("/").filter(Boolean);
-    const prefix = parts.length >= 1 ? ("/" + parts[0]) : "";
-    return prefix + "/" + mod.replace(/\./g, "/") + ".py";
+  function sleep(ms) {
+    return new Promise((r) => setTimeout(r, ms));
   }
 
-  async function fetchCode(url) {
-    const res = await fetch(url, { cache: "force-cache" });
-    if (!res.ok) throw new Error(`fetch failed: ${url} (${res.status})`);
+  // ---------- extracting from HTML docs ----------
+  function parseHtml(html) {
+    return new DOMParser().parseFromString(html, "text/html");
+  }
+
+  function findH2(doc, title) {
+    const hs = Array.from(doc.querySelectorAll("h2"));
+    return hs.find((h) => normText(h.textContent) === title) || null;
+  }
+
+  function collectLinksUntilNextH2(h2) {
+    const links = [];
+    let cur = h2 ? h2.nextElementSibling : null;
+    while (cur) {
+      if (cur.tagName === "H2") break;
+      cur.querySelectorAll?.("a[href]")?.forEach((a) => {
+        const href = a.getAttribute("href");
+        if (href) links.push(href);
+      });
+      cur = cur.nextElementSibling;
+    }
+    return links;
+  }
+
+  function extractDependsLinks(doc, pageUrl) {
+    const h2 = findH2(doc, "Depends on");
+    if (!h2) return [];
+    const rels = collectLinksUntilNextH2(h2);
+
+    // Resolve & filter
+    const abs = [];
+    for (const href of rels) {
+      const u = absUrl(href, pageUrl);
+      // typically only within same site
+      if (sameOrigin(u)) abs.push(u);
+    }
+    // unique
+    return Array.from(new Set(abs));
+  }
+
+  function extractCodeText(doc) {
+    // competitive-verifier pages usually have "## Code" then <pre><code>...</code></pre>
+    const h2 = findH2(doc, "Code");
+    if (!h2) return null;
+
+    let cur = h2.nextElementSibling;
+    while (cur) {
+      if (cur.tagName === "H2") break;
+
+      // first <pre><code> or <pre>
+      const codeEl = cur.querySelector?.("pre code") || cur.querySelector?.("pre");
+      if (codeEl) {
+        let t = (codeEl.textContent || "").replace(/\r\n/g, "\n").trimEnd();
+        // One-level dedent (competitive-verifier often indents code blocks by 4 spaces)
+        const lines = t.split("\n");
+        const nonEmpty = lines.filter((x) => x.length > 0);
+        const allIndented = nonEmpty.length > 0 && nonEmpty.every((x) => x.startsWith("    "));
+        if (allIndented) {
+          t = lines.map((x) => (x.startsWith("    ") ? x.slice(4) : x)).join("\n").trimEnd();
+        }
+        return t + "\n";
+      }
+      cur = cur.nextElementSibling;
+    }
+    return null;
+  }
+
+  function extractTitle(doc) {
+    const h1 = doc.querySelector("h1");
+    if (h1) return normText(h1.textContent);
+    return "";
+  }
+
+  // ---------- fetching ----------
+  async function fetchPageDoc(url) {
+    const res = await fetch(url, { cache: "no-store", credentials: "same-origin" });
+    if (!res.ok) throw new Error(`fetch failed: ${res.status} ${url}`);
     const html = await res.text();
-    const code = extractCodeFromHtml(html);
-    if (code == null) throw new Error(`code not found in: ${url}`);
-    return code;
+    return parseHtml(html);
   }
 
-  // 依存を DFS で並べる（重複排除、依存→本体の順）
-  async function bundleFromEntryUrl(entryUrl) {
+  // ---------- bundling ----------
+  async function bundleFromEntry(entryUrl, opts) {
     const visited = new Set();
-    const ordered = []; // url のトポロジカル順（依存が先）
+    const order = []; // deps first, then the page itself
 
-    async function dfsUrl(url) {
+    async function dfs(url, depth) {
       if (visited.has(url)) return;
       visited.add(url);
 
-      const code = await fetchCode(url);
-      const mods = parseInternalImports(code);
-      for (const mod of mods) {
-        const depUrl = moduleToUrl(mod);
-        await dfsUrl(depUrl);
+      if (opts.maxDepth != null && depth > opts.maxDepth) return;
+
+      const doc = await fetchPageDoc(url);
+
+      // deps first
+      const deps = extractDependsLinks(doc, url);
+      for (const d of deps) {
+        await dfs(d, depth + 1);
       }
-      ordered.push({ url, code });
+
+      const code = extractCodeText(doc) || "";
+      const title = extractTitle(doc) || "";
+      order.push({ url, title, code });
     }
 
-    await dfsUrl(entryUrl);
-    return ordered;
+    await dfs(entryUrl, 0);
+
+    // stitch
+    const parts = [];
+    for (const it of order) {
+      if (!it.code) continue;
+      const path = new URL(it.url).pathname;
+      const label = it.title ? `${it.title} (${path})` : path;
+      parts.push(`# ===== BEGIN: ${label} =====\n${it.code}# ===== END: ${label} =====\n`);
+    }
+    return parts.join("\n");
   }
 
-  function ensureUi() {
-    // "Code" 見出し付近にボタンを置く（雑に pre の直前に置く）
-    const pre = document.querySelector("pre");
-    if (!pre) return null;
+  // ---------- modal UI ----------
+  function makeModal(codeText, options) {
+    const overlay = document.createElement("div");
+    setImp(overlay, "position", "fixed");
+    setImp(overlay, "left", "0");
+    setImp(overlay, "top", "0");
+    setImp(overlay, "width", "100vw");
+    setImp(overlay, "height", "100vh");
+    setImp(overlay, "margin", "0");
+    setImp(overlay, "padding", "1.5vh 1.5vw");
+    setImp(overlay, "box-sizing", "border-box");
+    setImp(overlay, "background", "rgba(0,0,0,.35)");
+    setImp(overlay, "z-index", MAX_Z);
+    setImp(overlay, "display", "flex");
+    setImp(overlay, "justify-content", "center");
+    setImp(overlay, "align-items", "stretch");
 
-    const wrap = document.createElement("div");
-    wrap.style.display = "flex";
-    wrap.style.gap = "8px";
-    wrap.style.margin = "12px 0";
+    const box = document.createElement("div");
+    setImp(box, "width", `min(${options.maxWidthVw}vw, ${options.maxWidthPx}px)`);
+    setImp(box, "height", "100%");
+    setImp(box, "background", "#fff");
+    setImp(box, "border-radius", "10px");
+    setImp(box, "box-shadow", "0 10px 30px rgba(0,0,0,.2)");
+    setImp(box, "display", "flex");
+    setImp(box, "flex-direction", "column");
+    setImp(box, "overflow", "hidden");
+
+    // header (sticky)
+    const header = document.createElement("div");
+    setImp(header, "display", "flex");
+    setImp(header, "gap", "8px");
+    setImp(header, "align-items", "center");
+    setImp(header, "padding", "10px 12px");
+    setImp(header, "background", "#fff");
+    setImp(header, "border-bottom", "1px solid #e5e5e5");
+    setImp(header, "position", "sticky");
+    setImp(header, "top", "0");
+
+    const title = document.createElement("div");
+    title.textContent = "Bundled code";
+    setImp(title, "font-weight", "600");
+    setImp(title, "margin-right", "auto");
+
+    const btnCopy = document.createElement("button");
+    btnCopy.type = "button";
+    btnCopy.textContent = "Copy";
+    btnCopy.addEventListener("click", async () => {
+      await navigator.clipboard.writeText(codeText);
+      btnCopy.textContent = "Copied";
+      await sleep(800);
+      btnCopy.textContent = "Copy";
+    });
+
+    const btnClose = document.createElement("button");
+    btnClose.type = "button";
+    btnClose.textContent = "Close";
+
+    header.append(title, btnCopy, btnClose);
+
+    // body
+    const pre = document.createElement("pre");
+    setImp(pre, "margin", "0");
+    setImp(pre, "padding", "12px");
+    setImp(pre, "flex", "1 1 auto");
+    setImp(pre, "overflow", "auto");
+    setImp(pre, "background", "#fafafa");
+
+    const code = document.createElement("code");
+    code.className = "language-python";
+    code.textContent = codeText;
+
+    // No horizontal scroll by default: wrap long lines
+    if (options.wrap) {
+      setImp(code, "white-space", "pre-wrap");
+      setImp(code, "overflow-wrap", "anywhere");
+    } else {
+      setImp(code, "white-space", "pre");
+    }
+
+    pre.appendChild(code);
+    box.append(header, pre);
+    overlay.appendChild(box);
+
+    function close() {
+      overlay.remove();
+      document.removeEventListener("keydown", onKeydown, true);
+    }
+
+    function onKeydown(e) {
+      if (e.key === "Escape") close();
+    }
+
+    btnClose.addEventListener("click", close);
+
+    overlay.addEventListener("click", (e) => {
+      if (e.target === overlay) close();
+    });
+
+    // IMPORTANT: append to <html> to avoid sidebar/container effects
+    document.documentElement.appendChild(overlay);
+    document.addEventListener("keydown", onKeydown, true);
+
+    // Optional highlight.js support (if present)
+    if (window.hljs && typeof window.hljs.highlightElement === "function") {
+      try {
+        window.hljs.highlightElement(code);
+      } catch {
+        // ignore
+      }
+    }
+
+    return overlay;
+  }
+
+  // ---------- button injection ----------
+  function alreadyInjected() {
+    return !!document.querySelector("[data-suzlib-bundle-btn='1']");
+  }
+
+  function injectBundleButton() {
+    if (alreadyInjected()) return;
+
+    const codeH2 = findH2(document, "Code");
+    if (!codeH2) return;
 
     const btn = document.createElement("button");
-    btn.textContent = "Bundle";
     btn.type = "button";
+    btn.textContent = "Bundle";
+    btn.setAttribute("data-suzlib-bundle-btn", "1");
+    // modest styling that won't clash badly
+    btn.style.margin = "8px 0";
+    btn.style.padding = "6px 10px";
+    btn.style.border = "1px solid #888";
+    btn.style.borderRadius = "6px";
+    btn.style.background = "#f7f7f7";
+    btn.style.cursor = "pointer";
 
-    const out = document.createElement("div");
-    out.style.marginTop = "12px";
+    const note = document.createElement("span");
+    note.textContent = " (shows single bundled snippet)";
+    note.style.marginLeft = "8px";
+    note.style.color = "#666";
+    note.style.fontSize = "0.9em";
 
+    const wrap = document.createElement("div");
     wrap.appendChild(btn);
-    pre.parentNode.insertBefore(wrap, pre);
-    pre.parentNode.insertBefore(out, pre);
+    wrap.appendChild(note);
 
-    return { btn, out };
+    codeH2.insertAdjacentElement("afterend", wrap);
+
+    btn.addEventListener("click", async () => {
+      btn.disabled = true;
+      const old = btn.textContent;
+      btn.textContent = "Bundling...";
+
+      try {
+        const bundled = await bundleFromEntry(location.href, { maxDepth: 200 });
+
+        makeModal(bundled, {
+          wrap: true,       // no horizontal scroll
+          maxWidthVw: 98,   // wide
+          maxWidthPx: 2400, // cap
+        });
+      } catch (e) {
+        console.error(e);
+        alert(String(e && e.message ? e.message : e));
+      } finally {
+        btn.textContent = old;
+        btn.disabled = false;
+      }
+    });
   }
 
-  async function onBundleClick(out) {
-    out.innerHTML = "Bundling...";
-    try {
-      const entryUrl = location.pathname; // このページ自体（.py だが HTML）
-      const items = await bundleFromEntryUrl(entryUrl);
-
-      // import 行は二重になりやすいので、内部 import は削って見やすくする（必要ならOFFに）
-      const cleaned = items.map(({ url, code }) => {
-        const lines = code.split("\n").filter(line =>
-          !line.match(/^\s*from\s+python\./) && !line.match(/^\s*import\s+python\./)
-        );
-        return { url, code: lines.join("\n") };
-      });
-
-      const bundled =
-        cleaned.map(x => `# ===== ${x.url} =====\n${x.code}\n`).join("\n");
-
-      out.innerHTML = `
-        <div style="margin:8px 0;">
-          <button type="button" id="bundle-copy">Copy bundled code</button>
-        </div>
-        <pre><code>${escapeHtml(bundled)}</code></pre>
-      `;
-      out.querySelector("#bundle-copy").addEventListener("click", async () => {
-        await navigator.clipboard.writeText(bundled);
-      });
-    } catch (e) {
-      out.textContent = String(e);
-    }
+  // ---------- boot ----------
+  // Run once DOM is ready (and also try again shortly in case theme scripts modify DOM)
+  function boot() {
+    injectBundleButton();
+    // some themes may modify after load; retry once
+    setTimeout(injectBundleButton, 300);
   }
 
-  document.addEventListener("DOMContentLoaded", () => {
-    const ui = ensureUi();
-    if (!ui) return;
-    ui.btn.addEventListener("click", () => onBundleClick(ui.out));
-  });
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", boot);
+  } else {
+    boot();
+  }
 })();
