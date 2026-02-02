@@ -1,56 +1,41 @@
 // suzlib-bundle.js
-// - Injects "Bundle" button on competitive-verifier generated pages
-// - Bundles code by following "Depends on" section links recursively
-// - Shows full-viewport modal (independent from sidebar layout)
-// - Copy button at top, wide area, line-wrapped code (no horizontal scroll by default)
-// - Optional syntax highlight if highlight.js (hljs) is present
-
 (() => {
   "use strict";
 
-  // ---------- small utilities ----------
   const IMP = "important";
-  const MAX_Z = "2147483647";
+  const ZMAX = "2147483647";
 
   function setImp(el, prop, value) {
     el.style.setProperty(prop, value, IMP);
   }
 
-  function normText(s) {
+  function norm(s) {
     return (s || "").replace(/\s+/g, " ").trim();
   }
 
-  function absUrl(href, base) {
-    return new URL(href, base).toString();
-  }
-
-  function sameOrigin(url) {
-    try {
-      return new URL(url, location.href).origin === location.origin;
-    } catch {
-      return false;
-    }
-  }
-
-  function sleep(ms) {
-    return new Promise((r) => setTimeout(r, ms));
-  }
-
-  // ---------- extracting from HTML docs ----------
   function parseHtml(html) {
     return new DOMParser().parseFromString(html, "text/html");
   }
 
-  function findH2(doc, title) {
-    const hs = Array.from(doc.querySelectorAll("h2"));
-    return hs.find((h) => normText(h.textContent) === title) || null;
+  function headings(doc) {
+    return Array.from(doc.querySelectorAll("h2, h3"));
   }
 
-  function collectLinksUntilNextH2(h2) {
+  function findHeading(doc, title) {
+    const hs = headings(doc);
+    return hs.find((h) => norm(h.textContent) === title) || null;
+  }
+
+  function isHeadingTag(tagName) {
+    return tagName === "H2" || tagName === "H3";
+  }
+
+  // Collect links between a heading and the next heading (h2/h3)
+  function collectLinksUntilNextHeading(h) {
     const links = [];
-    let cur = h2 ? h2.nextElementSibling : null;
+    let cur = h ? h.nextElementSibling : null;
     while (cur) {
-      if (cur.tagName === "H2") break;
+      if (isHeadingTag(cur.tagName)) break;
       cur.querySelectorAll?.("a[href]")?.forEach((a) => {
         const href = a.getAttribute("href");
         if (href) links.push(href);
@@ -60,102 +45,94 @@
     return links;
   }
 
-  function extractDependsLinks(doc, pageUrl) {
-    const h2 = findH2(doc, "Depends on");
-    if (!h2) return [];
-    const rels = collectLinksUntilNextH2(h2);
+  function sameOrigin(u) {
+    try {
+      return new URL(u, location.href).origin === location.origin;
+    } catch {
+      return false;
+    }
+  }
 
-    // Resolve & filter
+  function absUrl(href, base) {
+    return new URL(href, base).toString();
+  }
+
+  async function fetchDoc(url) {
+    const res = await fetch(url, { cache: "no-store", credentials: "same-origin" });
+    if (!res.ok) throw new Error(`fetch failed: ${res.status} ${url}`);
+    return parseHtml(await res.text());
+  }
+
+  function extractDepends(doc, pageUrl) {
+    const h = findHeading(doc, "Depends on");
+    if (!h) return [];
+    const rels = collectLinksUntilNextHeading(h);
     const abs = [];
     for (const href of rels) {
       const u = absUrl(href, pageUrl);
-      // typically only within same site
       if (sameOrigin(u)) abs.push(u);
     }
-    // unique
     return Array.from(new Set(abs));
   }
 
-  function extractCodeText(doc) {
-    // competitive-verifier pages usually have "## Code" then <pre><code>...</code></pre>
-    const h2 = findH2(doc, "Code");
-    if (!h2) return null;
-
-    let cur = h2.nextElementSibling;
-    while (cur) {
-      if (cur.tagName === "H2") break;
-
-      // first <pre><code> or <pre>
-      const codeEl = cur.querySelector?.("pre code") || cur.querySelector?.("pre");
-      if (codeEl) {
-        let t = (codeEl.textContent || "").replace(/\r\n/g, "\n").trimEnd();
-        // One-level dedent (competitive-verifier often indents code blocks by 4 spaces)
-        const lines = t.split("\n");
-        const nonEmpty = lines.filter((x) => x.length > 0);
-        const allIndented = nonEmpty.length > 0 && nonEmpty.every((x) => x.startsWith("    "));
-        if (allIndented) {
-          t = lines.map((x) => (x.startsWith("    ") ? x.slice(4) : x)).join("\n").trimEnd();
-        }
-        return t + "\n";
+  function extractCode(doc) {
+    // Prefer: after "Code" heading, find first <pre><code> or <pre>
+    const h = findHeading(doc, "Code");
+    if (h) {
+      let cur = h.nextElementSibling;
+      while (cur) {
+        if (isHeadingTag(cur.tagName)) break;
+        const codeEl = cur.querySelector?.("pre code") || cur.querySelector?.("pre");
+        if (codeEl) return normalizeCodeText(codeEl.textContent || "");
+        cur = cur.nextElementSibling;
       }
-      cur = cur.nextElementSibling;
     }
+    // Fallback: first <pre><code> on page
+    const fallback = doc.querySelector("pre code") || doc.querySelector("pre");
+    if (fallback) return normalizeCodeText(fallback.textContent || "");
     return null;
   }
 
-  function extractTitle(doc) {
-    const h1 = doc.querySelector("h1");
-    if (h1) return normText(h1.textContent);
-    return "";
+  function normalizeCodeText(t) {
+    let s = (t || "").replace(/\r\n/g, "\n").trimEnd();
+    // One-level dedent if all non-empty lines start with 4 spaces
+    const lines = s.split("\n");
+    const nonEmpty = lines.filter((x) => x.length > 0);
+    const allIndented = nonEmpty.length > 0 && nonEmpty.every((x) => x.startsWith("    "));
+    if (allIndented) {
+      s = lines.map((x) => (x.startsWith("    ") ? x.slice(4) : x)).join("\n").trimEnd();
+    }
+    return s + "\n";
   }
 
-  // ---------- fetching ----------
-  async function fetchPageDoc(url) {
-    const res = await fetch(url, { cache: "no-store", credentials: "same-origin" });
-    if (!res.ok) throw new Error(`fetch failed: ${res.status} ${url}`);
-    const html = await res.text();
-    return parseHtml(html);
-  }
-
-  // ---------- bundling ----------
-  async function bundleFromEntry(entryUrl, opts) {
+  async function bundleFrom(entryUrl) {
     const visited = new Set();
-    const order = []; // deps first, then the page itself
+    const ordered = [];
 
-    async function dfs(url, depth) {
-      if (visited.has(url)) return;
-      visited.add(url);
+    async function dfs(url) {
+      const abs = absUrl(url, location.href);
+      if (visited.has(abs)) return;
+      visited.add(abs);
 
-      if (opts.maxDepth != null && depth > opts.maxDepth) return;
-
-      const doc = await fetchPageDoc(url);
+      const doc = await fetchDoc(abs);
 
       // deps first
-      const deps = extractDependsLinks(doc, url);
-      for (const d of deps) {
-        await dfs(d, depth + 1);
+      for (const dep of extractDepends(doc, abs)) {
+        await dfs(dep);
       }
 
-      const code = extractCodeText(doc) || "";
-      const title = extractTitle(doc) || "";
-      order.push({ url, title, code });
+      const code = extractCode(doc) || "";
+      const path = new URL(abs).pathname;
+      if (code) {
+        ordered.push(`# ===== BEGIN: ${path} =====\n${code}# ===== END: ${path} =====\n`);
+      }
     }
 
-    await dfs(entryUrl, 0);
-
-    // stitch
-    const parts = [];
-    for (const it of order) {
-      if (!it.code) continue;
-      const path = new URL(it.url).pathname;
-      const label = it.title ? `${it.title} (${path})` : path;
-      parts.push(`# ===== BEGIN: ${label} =====\n${it.code}# ===== END: ${label} =====\n`);
-    }
-    return parts.join("\n");
+    await dfs(entryUrl);
+    return ordered.join("\n");
   }
 
-  // ---------- modal UI ----------
-  function makeModal(codeText, options) {
+  function makeModal(codeText) {
     const overlay = document.createElement("div");
     setImp(overlay, "position", "fixed");
     setImp(overlay, "left", "0");
@@ -166,13 +143,13 @@
     setImp(overlay, "padding", "1.5vh 1.5vw");
     setImp(overlay, "box-sizing", "border-box");
     setImp(overlay, "background", "rgba(0,0,0,.35)");
-    setImp(overlay, "z-index", MAX_Z);
+    setImp(overlay, "z-index", ZMAX);
     setImp(overlay, "display", "flex");
     setImp(overlay, "justify-content", "center");
     setImp(overlay, "align-items", "stretch");
 
     const box = document.createElement("div");
-    setImp(box, "width", `min(${options.maxWidthVw}vw, ${options.maxWidthPx}px)`);
+    setImp(box, "width", "min(98vw, 2400px)");   // 横幅を増やす
     setImp(box, "height", "100%");
     setImp(box, "background", "#fff");
     setImp(box, "border-radius", "10px");
@@ -181,7 +158,6 @@
     setImp(box, "flex-direction", "column");
     setImp(box, "overflow", "hidden");
 
-    // header (sticky)
     const header = document.createElement("div");
     setImp(header, "display", "flex");
     setImp(header, "gap", "8px");
@@ -203,8 +179,7 @@
     btnCopy.addEventListener("click", async () => {
       await navigator.clipboard.writeText(codeText);
       btnCopy.textContent = "Copied";
-      await sleep(800);
-      btnCopy.textContent = "Copy";
+      setTimeout(() => (btnCopy.textContent = "Copy"), 900);
     });
 
     const btnClose = document.createElement("button");
@@ -213,7 +188,6 @@
 
     header.append(title, btnCopy, btnClose);
 
-    // body
     const pre = document.createElement("pre");
     setImp(pre, "margin", "0");
     setImp(pre, "padding", "12px");
@@ -225,13 +199,9 @@
     code.className = "language-python";
     code.textContent = codeText;
 
-    // No horizontal scroll by default: wrap long lines
-    if (options.wrap) {
-      setImp(code, "white-space", "pre-wrap");
-      setImp(code, "overflow-wrap", "anywhere");
-    } else {
-      setImp(code, "white-space", "pre");
-    }
+    // 横スクロールを避ける（長い行は折る）
+    setImp(code, "white-space", "pre-wrap");
+    setImp(code, "overflow-wrap", "anywhere");
 
     pre.appendChild(code);
     box.append(header, pre);
@@ -241,22 +211,20 @@
       overlay.remove();
       document.removeEventListener("keydown", onKeydown, true);
     }
-
     function onKeydown(e) {
       if (e.key === "Escape") close();
     }
 
     btnClose.addEventListener("click", close);
-
     overlay.addEventListener("click", (e) => {
       if (e.target === overlay) close();
     });
 
-    // IMPORTANT: append to <html> to avoid sidebar/container effects
+    // 重要：右カラム内ではなく html 直下へ（左サイドバー問題を根絶）
     document.documentElement.appendChild(overlay);
     document.addEventListener("keydown", onKeydown, true);
 
-    // Optional highlight.js support (if present)
+    // highlight.js が入っているなら自動で効かせる（無ければ何もしない）
     if (window.hljs && typeof window.hljs.highlightElement === "function") {
       try {
         window.hljs.highlightElement(code);
@@ -264,26 +232,20 @@
         // ignore
       }
     }
-
-    return overlay;
-  }
-
-  // ---------- button injection ----------
-  function alreadyInjected() {
-    return !!document.querySelector("[data-suzlib-bundle-btn='1']");
   }
 
   function injectBundleButton() {
-    if (alreadyInjected()) return;
+    if (document.querySelector("[data-suzlib-bundle='1']")) return;
 
-    const codeH2 = findH2(document, "Code");
-    if (!codeH2) return;
+    // Prefer to inject right after "Code" heading if exists; otherwise before first <pre>
+    const h = findHeading(document, "Code");
+    const pre = document.querySelector("pre");
+    if (!h && !pre) return;
 
     const btn = document.createElement("button");
     btn.type = "button";
     btn.textContent = "Bundle";
-    btn.setAttribute("data-suzlib-bundle-btn", "1");
-    // modest styling that won't clash badly
+    btn.setAttribute("data-suzlib-bundle", "1");
     btn.style.margin = "8px 0";
     btn.style.padding = "6px 10px";
     btn.style.border = "1px solid #888";
@@ -291,31 +253,16 @@
     btn.style.background = "#f7f7f7";
     btn.style.cursor = "pointer";
 
-    const note = document.createElement("span");
-    note.textContent = " (shows single bundled snippet)";
-    note.style.marginLeft = "8px";
-    note.style.color = "#666";
-    note.style.fontSize = "0.9em";
-
-    const wrap = document.createElement("div");
-    wrap.appendChild(btn);
-    wrap.appendChild(note);
-
-    codeH2.insertAdjacentElement("afterend", wrap);
+    const place = h ? h : pre;
+    place.insertAdjacentElement("afterend", btn);
 
     btn.addEventListener("click", async () => {
       btn.disabled = true;
       const old = btn.textContent;
       btn.textContent = "Bundling...";
-
       try {
-        const bundled = await bundleFromEntry(location.href, { maxDepth: 200 });
-
-        makeModal(bundled, {
-          wrap: true,       // no horizontal scroll
-          maxWidthVw: 98,   // wide
-          maxWidthPx: 2400, // cap
-        });
+        const bundled = await bundleFrom(location.href);
+        makeModal(bundled);
       } catch (e) {
         console.error(e);
         alert(String(e && e.message ? e.message : e));
@@ -326,11 +273,9 @@
     });
   }
 
-  // ---------- boot ----------
-  // Run once DOM is ready (and also try again shortly in case theme scripts modify DOM)
   function boot() {
     injectBundleButton();
-    // some themes may modify after load; retry once
+    // テーマ側が後からDOMをいじる場合に備えて1回だけリトライ
     setTimeout(injectBundleButton, 300);
   }
 
