@@ -84,22 +84,45 @@
 
 function makeModal(text) {
   const bg = document.createElement("div");
-  bg.style.cssText =
-    "position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:9999;padding:2vh 2vw;";
+  // 重要: 既存CSSの影響を極力受けないよう、必要なプロパティを明示
+  bg.style.position = "fixed";
+  bg.style.top = "0";
+  bg.style.left = "0";
+  bg.style.width = "100vw";
+  bg.style.height = "100vh";
+  bg.style.margin = "0";
+  bg.style.padding = "2vh 2vw";
+  bg.style.boxSizing = "border-box";
+  bg.style.background = "rgba(0,0,0,.35)";
+  bg.style.zIndex = "2147483647"; // ほぼ最上位
+  bg.style.display = "flex";
+  bg.style.justifyContent = "center";
+  bg.style.alignItems = "stretch";
 
   const box = document.createElement("div");
-  // 横幅を大きく（以前の体感に寄せるなら max-width を上げる/ほぼvwにする）
-  box.style.cssText =
-    "background:#fff;width:min(98vw,1600px);margin:0 auto;padding:14px;border-radius:10px;" +
-    "box-shadow:0 10px 30px rgba(0,0,0,.2);height:96vh;display:flex;flex-direction:column;gap:10px;";
+  // 横幅を最大化（必要なら 1800px をさらに上げてOK）
+  box.style.width = "min(96vw, 1800px)";
+  box.style.height = "100%";
+  box.style.background = "#fff";
+  box.style.borderRadius = "10px";
+  box.style.boxShadow = "0 10px 30px rgba(0,0,0,.2)";
+  box.style.display = "flex";
+  box.style.flexDirection = "column";
+  box.style.overflow = "hidden";
 
-  const row = document.createElement("div");
-  // Copy を上に配置（常に見える）
-  row.style.cssText = "display:flex;gap:8px;align-items:center;position:sticky;top:0;background:#fff;padding-bottom:6px;";
+  const header = document.createElement("div");
+  // Copy ボタンを常に上に固定
+  header.style.display = "flex";
+  header.style.gap = "8px";
+  header.style.alignItems = "center";
+  header.style.padding = "10px 12px";
+  header.style.borderBottom = "1px solid #e5e5e5";
+  header.style.background = "#fff";
+  header.style.flex = "0 0 auto";
 
   const copy = document.createElement("button");
-  copy.textContent = "Copy bundled code";
   copy.type = "button";
+  copy.textContent = "Copy bundled code";
   copy.onclick = async () => {
     await navigator.clipboard.writeText(text);
     copy.textContent = "Copied";
@@ -107,39 +130,41 @@ function makeModal(text) {
   };
 
   const close = document.createElement("button");
-  close.textContent = "Close";
   close.type = "button";
+  close.textContent = "Close";
   close.onclick = () => bg.remove();
 
-  row.append(copy, close);
+  header.append(copy, close);
 
-  // 表示は pre/code に（ハイライト可能、CSSで折り返しも制御可能）
   const pre = document.createElement("pre");
-  pre.style.cssText =
-    "margin:0;flex:1;overflow:auto;border:1px solid #ddd;border-radius:8px;padding:10px;" +
-    "background:#fafafa;";
+  pre.style.margin = "0";
+  pre.style.padding = "12px";
+  pre.style.flex = "1 1 auto";
+  pre.style.overflow = "auto";
+  pre.style.background = "#fafafa";
+  pre.style.boxSizing = "border-box";
 
   const code = document.createElement("code");
   code.className = "language-python";
   code.textContent = text;
 
-  // 横スクロール不要にしたいなら折り返しを有効化
-  // （インデントは維持しつつ、長い1行だけを折る）
+  // 横スクロールを避けたい場合（インデントは維持しつつ長い行だけ折る）
   code.style.whiteSpace = "pre-wrap";
-  code.style.overflowWrap = "anywhere"; // 長いトークンも折る
-  code.style.wordBreak = "break-word";
+  code.style.overflowWrap = "anywhere";
 
   pre.appendChild(code);
-
-  box.append(row, pre);
-  bg.append(box);
+  box.append(header, pre);
+  bg.appendChild(box);
 
   // 背景クリックで閉じる
   bg.addEventListener("click", (e) => {
     if (e.target === bg) bg.remove();
   });
 
-  // highlight.js が入っていればハイライト（入っていなければ何もしない）
+  // ここが超重要: body ではなく html 直下に刺す（transform 罠を回避）
+  document.documentElement.appendChild(bg);
+
+  // highlight.js が入っているならハイライト（無ければ何もしない）
   if (window.hljs && typeof window.hljs.highlightElement === "function") {
     window.hljs.highlightElement(code);
   }
@@ -147,6 +172,8 @@ function makeModal(text) {
   return bg;
 }
 
+
+  
   function injectBundleButton() {
     // 「## Code」見出しの近くに置く
     const codeH2 = findH2ByText("Code");
