@@ -1,13 +1,5 @@
 import { bundlePythonSnippet } from "./snippet-bundler.js";
 
-function normalizePythonPath(pathname) {
-  const pythonIndex = pathname.indexOf("/python/");
-  if (pythonIndex >= 0) {
-    return pathname.slice(pythonIndex + 1);
-  }
-  return pathname.startsWith("/") ? pathname.slice(1) : pathname;
-}
-
 function inferPathFromLink(link) {
   if (!link) {
     return null;
@@ -19,10 +11,10 @@ function inferPathFromLink(link) {
       const pathPart = url.pathname.slice(blobIndex + "/blob/".length);
       const segments = pathPart.split("/").slice(1);
       const filePath = segments.join("/");
-      return normalizePythonPath(filePath);
-    }
-    if (url.pathname.endsWith(".py")) {
-      return normalizePythonPath(url.pathname);
+      if (filePath.includes("python/")) {
+        return filePath.slice(filePath.indexOf("python/"));
+      }
+      return filePath;
     }
   } catch (error) {
     return null;
@@ -52,20 +44,10 @@ function resolveSnippetPath(container) {
     }
   }
 
-  const link =
-    container.querySelector('a[href*="/blob/"]') ||
-    container.querySelector('a[href$=".py"]');
+  const link = container.querySelector('a[href*="/blob/"]');
   const inferred = inferPathFromLink(link);
   if (inferred) {
     return inferred;
-  }
-
-  const fallbackLink = document.querySelector('a[href$=".py"]');
-  if (fallbackLink) {
-    const fallbackPath = inferPathFromLink(fallbackLink);
-    if (fallbackPath) {
-      return fallbackPath;
-    }
   }
 
   return inferPathFromLocation();
