@@ -1,6 +1,8 @@
 // /assets/bundle.js
 
 (function () {
+  let bundledCache = "";
+
   function escapeHtml(s) {
     return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   }
@@ -79,19 +81,36 @@
     wrap.style.display = "flex";
     wrap.style.gap = "8px";
     wrap.style.margin = "12px 0";
+    wrap.style.alignItems = "center";
 
     const btn = document.createElement("button");
     btn.textContent = "Bundle";
     btn.type = "button";
 
+    const copyBtn = document.createElement("button");
+    copyBtn.textContent = "Copy bundled code";
+    copyBtn.type = "button";
+    copyBtn.disabled = true;
+
     const out = document.createElement("div");
     out.style.marginTop = "12px";
 
     wrap.appendChild(btn);
+    wrap.appendChild(copyBtn);
     pre.parentNode.insertBefore(wrap, pre);
     pre.parentNode.insertBefore(out, pre);
 
-    return { btn, out };
+    return { btn, copyBtn, out };
+  }
+
+  function highlightCodeBlock(codeEl) {
+    if (!codeEl) return;
+    if (!codeEl.className.includes("language-")) {
+      codeEl.classList.add("language-python");
+    }
+    if (window.hljs?.highlightElement) {
+      window.hljs.highlightElement(codeEl);
+    }
   }
 
   async function onBundleClick(out) {
@@ -112,14 +131,11 @@
         cleaned.map(x => `# ===== ${x.url} =====\n${x.code}\n`).join("\n");
 
       out.innerHTML = `
-        <div style="margin:8px 0;">
-          <button type="button" id="bundle-copy">Copy bundled code</button>
-        </div>
         <pre><code>${escapeHtml(bundled)}</code></pre>
       `;
-      out.querySelector("#bundle-copy").addEventListener("click", async () => {
-        await navigator.clipboard.writeText(bundled);
-      });
+      bundledCache = bundled;
+      const bundledCode = out.querySelector("pre code");
+      highlightCodeBlock(bundledCode);
     } catch (e) {
       out.textContent = String(e);
     }
@@ -128,6 +144,16 @@
   document.addEventListener("DOMContentLoaded", () => {
     const ui = ensureUi();
     if (!ui) return;
+    const baseCode = document.querySelector("pre code") || document.querySelector("pre");
+    highlightCodeBlock(baseCode?.tagName === "PRE" ? baseCode.querySelector("code") : baseCode);
     ui.btn.addEventListener("click", () => onBundleClick(ui.out));
+    ui.copyBtn.addEventListener("click", async () => {
+      if (!bundledCache) return;
+      await navigator.clipboard.writeText(bundledCache);
+    });
+    const observer = new MutationObserver(() => {
+      ui.copyBtn.disabled = !bundledCache;
+    });
+    observer.observe(ui.out, { childList: true, subtree: true });
   });
 })();
