@@ -1,4 +1,4 @@
-// suzlib-bundle.js
+// bundle.js
 (() => {
   "use strict";
 
