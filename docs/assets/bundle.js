@@ -94,6 +94,13 @@
     return { btn, out };
   }
 
+  function highlightCodeBlocks(root = document) {
+    if (!window.hljs) return;
+    root.querySelectorAll("pre code").forEach(block => {
+      window.hljs.highlightElement(block);
+    });
+  }
+
   async function onBundleClick(out) {
     out.innerHTML = "Bundling...";
     try {
@@ -117,6 +124,7 @@
         </div>
         <pre><code>${escapeHtml(bundled)}</code></pre>
       `;
+      highlightCodeBlocks(out);
       out.querySelector("#bundle-copy").addEventListener("click", async () => {
         await navigator.clipboard.writeText(bundled);
       });
@@ -126,6 +134,7 @@
   }
 
   document.addEventListener("DOMContentLoaded", () => {
+    highlightCodeBlocks();
     const ui = ensureUi();
     if (!ui) return;
     ui.btn.addEventListener("click", () => onBundleClick(ui.out));
