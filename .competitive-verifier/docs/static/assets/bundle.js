@@ -346,12 +346,39 @@ function enableCopyButtonMinimal() {
   }, true);
 }
 
+function styleCopyLikeBundleAndAddGap() {
+  const bundle = document.querySelector("[data-suzlib-bundle='1']");
+  if (!bundle) return;
+
+  const copy = [...document.querySelectorAll("button")]
+    .find(b => b.textContent.trim() === "Copy");
+  if (!copy) return;
+
+  // 既に適用済みなら終了
+  if (copy.dataset.suzBtnStyled === "1") return;
+  copy.dataset.suzBtnStyled = "1";
+
+  // Bundle の見た目を Copy に合わせる（必要最小限）
+  copy.style.margin = bundle.style.margin;               // ただし次で上書きする
+  copy.style.padding = bundle.style.padding;
+  copy.style.border = bundle.style.border;
+  copy.style.borderRadius = bundle.style.borderRadius;
+  copy.style.background = bundle.style.background;
+  copy.style.cursor = bundle.style.cursor;
+
+  // 2つのボタン間にスペース
+  copy.style.marginLeft = "8px";     // gap
+  copy.style.marginTop = "0";
+  copy.style.marginBottom = "0";
+}
+
   
 function boot() {
     injectBundleButton();
     highlightPageCode();
     moveExistingCopyNextToBundle(); 
     enableCopyButtonMinimal(); 
+    styleCopyLikeBundleAndAddGap();
     // テーマ側が後からDOMをいじる場合に備えて1回だけリトライ
     setTimeout(injectBundleButton, 300);
   }
