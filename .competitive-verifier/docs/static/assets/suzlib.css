@@ -1,29 +1,22 @@
-/* suzlib.css */
+/* suzlib.css: widen orderedlist theme WITHOUT overlap */
 
 @media screen and (min-width: 900px) {
-  /* 全体の最大幅を広げる（左右の余白を減らす） */
   .wrapper {
     width: 96% !important;
-    max-width: 1800px !important;  /* 好みで 1400～2400 */
+    max-width: 1800px !important;
   }
 
-  /* 左サイド（テーマの header） */
   header {
-    width: 320px !important;       /* 好みで 260～380 */
+    width: 320px !important;
   }
 
-  /* 右本文（テーマの section）
-     header と重ならないように margin-left で避けるのが重要 */
   section {
-    margin-left: 360px !important; /* header(320) + 余白(40) */
+    margin-left: 360px !important; /* header(320)+余白(40) */
     width: auto !important;
     max-width: none !important;
   }
 
-  /* コードブロックは本文幅いっぱい */
   pre, pre code {
     max-width: none !important;
   }
 }
-
-/* スマホ幅ではテーマ標準の1カラムのまま（何もしない） */
