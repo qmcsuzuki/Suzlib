@@ -1,38 +1,29 @@
-/* suzlib-wide.css: orderedlist theme layout fix + widen */
+/* suzlib.css */
 
 @media screen and (min-width: 900px) {
+  /* 全体の最大幅を広げる（左右の余白を減らす） */
   .wrapper {
-    display: flex !important;
-    flex-wrap: wrap !important;     /* footer を下に回す */
-    align-items: flex-start !important;
-
     width: 96% !important;
-    max-width: 1800px !important;   /* 好みで 1400～2400 */
+    max-width: 1800px !important;  /* 好みで 1400～2400 */
   }
 
+  /* 左サイド（テーマの header） */
   header {
-    float: none !important;
-    width: 320px !important;        /* 左カラム幅（好みで 260～380） */
-    flex: 0 0 auto !important;
-    margin: 0 !important;
+    width: 320px !important;       /* 好みで 260～380 */
   }
 
+  /* 右本文（テーマの section）
+     header と重ならないように margin-left で避けるのが重要 */
   section {
-    float: none !important;
-    flex: 1 1 auto !important;      /* 右カラムを残り幅に伸ばす */
-    min-width: 0 !important;        /* 重要：長いコードで押し広げない */
+    margin-left: 360px !important; /* header(320) + 余白(40) */
     width: auto !important;
     max-width: none !important;
-    margin: 0 !important;
   }
 
-  footer {
-    float: none !important;
-    flex: 0 0 100% !important;      /* フッターは全幅で下 */
-    width: 100% !important;
-  }
-
+  /* コードブロックは本文幅いっぱい */
   pre, pre code {
     max-width: none !important;
   }
 }
+
+/* スマホ幅ではテーマ標準の1カラムのまま（何もしない） */
