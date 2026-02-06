@@ -293,10 +293,27 @@
     }
   });
   }
-  
-  function boot() {
+
+  function moveExistingCopyNextToBundle() {
+  const bundle = document.querySelector("[data-suzlib-bundle='1']");
+  if (!bundle) return;
+
+  // 既存 Copy ボタンを拾う（ページ末尾のやつ）
+  const copy = Array.from(document.querySelectorAll("button,a,input[type='button'],input[type='submit']"))
+    .find(el => ((el.tagName === "INPUT") ? el.value : el.textContent).trim() === "Copy");
+  if (!copy) return;
+
+  // すでに隣なら何もしない
+  if (copy.previousElementSibling === bundle || bundle.previousElementSibling === copy) return;
+
+  // Bundle の直後へ移動（DOMを移すだけ。スタイルはいじらない）
+  bundle.insertAdjacentElement("afterend", copy);
+}
+
+function boot() {
     injectBundleButton();
     highlightPageCode();
+    moveExistingCopyNextToBundle(); 
     // テーマ側が後からDOMをいじる場合に備えて1回だけリトライ
     setTimeout(injectBundleButton, 300);
   }
