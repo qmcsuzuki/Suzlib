@@ -1,0 +1,20 @@
+/* suzlib-wide.css: orderedlist theme width override */
+
+@media screen and (min-width: 1100px) {
+  /* wrapper の最大幅を広げて、左右の余白を減らす */
+  .wrapper {
+    width: 96% !important;
+    max-width: 1700px !important;  /* 好みで 1400〜2200 の間で調整 */
+  }
+
+  /* 本文側を伸ばす（テーマによっては section が効く） */
+  section {
+    width: auto !important;
+    max-width: none !important;
+  }
+
+  /* コードブロックをコンテナ幅いっぱいに使う */
+  pre, pre code {
+    max-width: none !important;
+  }
+}
