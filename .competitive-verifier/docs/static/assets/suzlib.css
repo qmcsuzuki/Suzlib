@@ -1,19 +1,28 @@
-/* suzlib.css: widen orderedlist theme WITHOUT overlap */
+/* suzlib.css: orderedlist theme – remove huge middle gap */
 
 @media screen and (min-width: 900px) {
   .wrapper {
     width: 96% !important;
-    max-width: 1800px !important;
+    max-width: 1800px !important; /* 好みで 1400～2400 */
   }
 
   header {
-    width: 320px !important;
+    width: 320px !important;      /* 好みで 260～380 */
+    float: left !important;
+    position: static !important;  /* テーマ差異対策 */
+    margin: 0 !important;
   }
 
   section {
-    margin-left: 360px !important; /* header(320)+余白(40) */
-    width: auto !important;
+    float: left !important;       /* 右寄せ/右floatを殺す */
+    margin-left: 40px !important; /* header との間の余白 */
+    width: calc(100% - 360px) !important; /* 320 + 40 */
     max-width: none !important;
+    box-sizing: border-box !important;
+  }
+
+  footer {
+    clear: both !important;
   }
 
   pre, pre code {
