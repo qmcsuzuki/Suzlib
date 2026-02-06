@@ -8,7 +8,7 @@ class Doubling:
             nxt = [nxt[v] for v in nxt]
             self.table.append(nxt)
 
-    # 入力: weights[k] = (k から１回移動するときの重み)
+    # 入力: weights[v] = (v から１回移動するときの重み)
     # 計算: Wtable[k][v] = v から 2^k 回移動した時の重みの和
     def set_weight(self,weights,op,e):
         assert len(weights) == len(self.table[0])
