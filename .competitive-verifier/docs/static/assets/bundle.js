@@ -310,10 +310,48 @@
   bundle.insertAdjacentElement("afterend", copy);
 }
 
+function enableCopyButtonMinimal() {
+  const btn = [...document.querySelectorAll("button")]
+    .find(b => b.textContent.trim() === "Copy");
+  if (!btn) return;
+  if (btn.dataset.suzCopyFix === "1") return;
+  btn.dataset.suzCopyFix = "1";
+
+  btn.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const pre = document.querySelector("pre");
+    const text = pre ? (pre.textContent || "") : "";
+    if (!text) return;
+
+    // Clipboard API（ダメなら fallback）
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).catch(() => {
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        ta.remove();
+      });
+    } else {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      ta.remove();
+    }
+  }, true);
+}
+
+  
 function boot() {
     injectBundleButton();
     highlightPageCode();
     moveExistingCopyNextToBundle(); 
+    enableCopyButtonMinimal(); 
     // テーマ側が後からDOMをいじる場合に備えて1回だけリトライ
     setTimeout(injectBundleButton, 300);
   }
