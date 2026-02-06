@@ -273,8 +273,30 @@
     });
   }
 
+  function highlightPageCode() {
+  if (!window.hljs || typeof window.hljs.highlightElement !== "function") return;
+
+  // 既存のコード（ページの Code セクション等）
+  document.querySelectorAll("pre code").forEach((code) => {
+    if (code.dataset.suzHlDone === "1") return;
+
+    // 言語が付いていない場合、python をデフォルトにしておく（好みで変更可）
+    if (!code.className || !/language-/.test(code.className)) {
+      code.classList.add("language-python");
+    }
+
+    try {
+      window.hljs.highlightElement(code);
+      code.dataset.suzHlDone = "1";
+    } catch {
+      // 無視
+    }
+  });
+  }
+  
   function boot() {
     injectBundleButton();
+    highlightPageCode();
     // テーマ側が後からDOMをいじる場合に備えて1回だけリトライ
     setTimeout(injectBundleButton, 300);
   }
