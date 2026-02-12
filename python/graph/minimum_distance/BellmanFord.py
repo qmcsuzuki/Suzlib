@@ -1,3 +1,4 @@
+# competitive-verifier: TITLE ベルマン・フォード法
 """
 dist: start からの距離の配列
 ただし未到達には INF, 負回路から行ける道には -INF が格納
