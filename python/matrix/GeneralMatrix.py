@@ -71,7 +71,7 @@ class GeneralMatrix:
             k >>= 1
         return self.__class__(self.n, self.n, res, False)
 
-INF = 1<<30
+INF = 1<<60
 class TropicalMatrix(GeneralMatrix):
     add = staticmethod(lambda a, b: min(a, b))
     mul = staticmethod(lambda a, b: a + b)
