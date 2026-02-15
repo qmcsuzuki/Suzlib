@@ -19,6 +19,12 @@ class bipartite(UnionFind):
         if self.issame(u,u+self.n):
             self.is_bipartite = False
 
+    def coloring(self): # 二部グラフの色付けとなる、01 二値の配列を返す。
+        col = [0] * self.n
+        for v in range(self.n):
+            col[v] = 0 if self.leader(v) < self.leader(v + self.n) else 1
+        return col
+
     def all_connected_components(self):
         """
         全ての連結成分についての （白頂点の個数、黒頂点の個数）のペアのリストを返す
