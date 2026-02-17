@@ -7,6 +7,8 @@ class HopcroftKarp:
     内部でやること: 二部彩色 -> L/R詰め直し -> Hopcroft-Karp -> 派生量
     - max_matching(nL,nR,X2Y): （内部関数）二部グラフの左右からマッチングを計算
 
+    初期化
+    - HK = HopcroftKarp(n): n 頂点 0 辺のグラフで初期化    
     関数
     - HK.add_edge(u,v): （無向）辺追加
     - HK.solve(): 最大マッチングの値を返す
