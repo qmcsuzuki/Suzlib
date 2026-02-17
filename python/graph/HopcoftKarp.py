@@ -1,3 +1,4 @@
+# competitive-verifier: TITLE Hopcroft-Karp法（最大二部マッチング）
 # https://atcoder.jp/contests/abc445/submissions/73385137
 
 from collections import deque
@@ -264,4 +265,3 @@ class HopcroftKarp:
             if not visR[vR]:
                 indep.append(v)
         return indep
-
