@@ -101,84 +101,6 @@
     });
   }
 
-  // class / def 直下の docstring を雑に抽出して一覧化
-  function extractPythonDocEntries(code) {
-    const entries = [];
-    const lines = code.split("\n");
-
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-      const m = line.match(/^(\s*)(?:async\s+def|def|class)\s+([A-Za-z_][A-Za-z0-9_]*)\b/);
-      if (!m) continue;
-
-      const baseIndent = m[1].length;
-      const name = m[2];
-
-      // 次の有効行を探す
-      let j = i + 1;
-      while (j < lines.length && lines[j].trim() === "") j++;
-      if (j >= lines.length) continue;
-
-      const next = lines[j];
-      const nextIndent = (next.match(/^\s*/) || [""])[0].length;
-      if (nextIndent <= baseIndent) continue;
-
-      const tripleMatch = next.match(/^\s*(["']{3})(.*)$/);
-      if (!tripleMatch) continue;
-
-      const quote = tripleMatch[1];
-      let body = tripleMatch[2];
-
-      if (body.includes(quote)) {
-        body = body.split(quote)[0];
-      } else {
-        const chunks = [body];
-        j++;
-        while (j < lines.length) {
-          const ln = lines[j];
-          const idx = ln.indexOf(quote);
-          if (idx !== -1) {
-            chunks.push(ln.slice(0, idx));
-            break;
-          }
-          chunks.push(ln);
-          j++;
-        }
-        body = chunks.join("\n");
-      }
-
-      const text = body.replace(/^\s*\n/, "").replace(/\s+$/, "");
-      if (!text) continue;
-      entries.push({ name, text });
-    }
-
-    return entries;
-  }
-
-  function renderDocEntries(entries, root = document) {
-    if (!entries.length) return;
-
-    const pre = root.querySelector("pre");
-    if (!pre || !pre.parentNode) return;
-
-    const section = document.createElement("section");
-    section.style.margin = "20px 0";
-    section.innerHTML = `<h2>Docs</h2>`;
-
-    for (const entry of entries) {
-      const block = document.createElement("details");
-      block.style.margin = "8px 0";
-      block.innerHTML = `
-        <summary><code>${escapeHtml(entry.name)}</code></summary>
-        <pre><code>${escapeHtml(entry.text)}</code></pre>
-      `;
-      section.appendChild(block);
-    }
-
-    pre.parentNode.insertBefore(section, pre);
-    highlightCodeBlocks(section);
-  }
-
   async function onBundleClick(out) {
     out.innerHTML = "Bundling...";
     try {
@@ -213,13 +135,6 @@
 
   document.addEventListener("DOMContentLoaded", () => {
     highlightCodeBlocks();
-
-    const codeEl = document.querySelector("pre code") || document.querySelector("pre");
-    if (codeEl) {
-      const entries = extractPythonDocEntries(codeEl.textContent || "");
-      renderDocEntries(entries);
-    }
-
     const ui = ensureUi();
     if (!ui) return;
     ui.btn.addEventListener("click", () => onBundleClick(ui.out));
