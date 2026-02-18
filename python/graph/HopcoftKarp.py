@@ -100,7 +100,7 @@ class HopcroftKarp:
     # ---------- インスタンス（ビルド＋派生量） ----------
     def __init__(self, n: int):
         self.n = n
-        self.edges: list[tuple[int, int]] = []  # 無向辺を1本だけ保持
+        self.edges: list[tuple[int, int]] = []
 
         self.color: list[int] = [-1] * n
 
@@ -111,7 +111,7 @@ class HopcroftKarp:
 
         self.X2Y: list[list[int]] = []
 
-        self.size = 0
+        self.size = 0 # 最大マッチングの個数
         self.mate: list[int] = [-1] * n
         self.mateL: list[int] = []
         self.mateR: list[int] = []
@@ -148,8 +148,7 @@ class HopcroftKarp:
                     if cv == -1:
                         color[v] = cu ^ 1
                         q.append(v)
-                    elif cv == cu:
-                        raise ValueError("graph is not bipartite")
+                    assert cv != cu
 
     def _build_lr(self) -> None:
         n = self.n
