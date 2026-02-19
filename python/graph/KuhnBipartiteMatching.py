@@ -1,4 +1,5 @@
-# https://judge.yosupo.jp/submission/353909
+# competitive-verifier: TITLE 最大二部マッチング（辺追加可能）
+# https://judge.yosupo.jp/submission/353978
 
 from collections import deque
 import random
@@ -40,12 +41,15 @@ class DynamicBipartiteMatching:
         左頂点をランダム順に見て、空いている右頂点があれば即マッチ。
         （最初の1回だけ。最大性は後段の増大路探索で保証される）
         """
-        order = list(range(self.n))
-        random.shuffle(order)
-
         g = self.g
         X2Y = self.X2Y
         Y2X = self.Y2X
+
+        order = list(range(self.n))
+        random.shuffle(order)
+        for lst in g:
+            random.shuffle(order)
+
 
         for x in order:
             if X2Y[x] != -1:
@@ -56,6 +60,7 @@ class DynamicBipartiteMatching:
                     Y2X[y] = x
                     self.cnt += 1
                     break
+
     def increment_edge(self, x: int, y: int) -> bool:
         """max_matching() 後: 辺 (x,y) を追加し、増分更新（高々1）を1回だけ試す。"""
         assert self._built
@@ -100,24 +105,20 @@ class DynamicBipartiteMatching:
         
         return self._augment_from_all_free_left()
 
-
-
-
     def _augment_from_all_free_left(self) -> bool:
         """
-        多始点BFS を 1 回走らせ、その最中に見つかる限り増大路を反転する。(snuke's huristic)
+        多始点BFS を 1 回走らせ、その最中に見つかる限り増大路を反転する。
         戻り値: そのラウンドで 1 回でも更新したか
         """
-        n = self.n
         g = self.g
         X2Y = self.X2Y
         Y2X = self.Y2X
 
         q = deque()
-        root = [-1] * n
-        par = [-1] * n
+        root = [-1] * self.n
+        par = [-1] * self.n
 
-        for i in range(n):
+        for i in range(self.n):
             if X2Y[i] == -1:
                 q.append(i)
                 root[i] = i
