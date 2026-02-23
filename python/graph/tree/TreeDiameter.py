@@ -1,3 +1,5 @@
+# competitive-verifier: TITLE 木の直径（中心取得・中心追加）
+
 from collections import deque
 
 def diameter(g):

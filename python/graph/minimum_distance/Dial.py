@@ -1,3 +1,5 @@
+# competitive-verifier: TITLE Dial法（非負整数重み単一始点最短路）
+
 def Dial(g, Wmax, start):
     """
     Dial's algorithm (circular buckets), O(Wmax * V + E)
