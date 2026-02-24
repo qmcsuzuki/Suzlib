@@ -25,6 +25,11 @@ class OrderedMultiset:
         # k 番目 (1-indexed) に小さい元の値を求める。k が大きすぎると、範囲外エラーとなるので注意
         return self.bit.bisect_left(k+1) - 1
 
+    def kth_largest_value(self,k):
+        # k 番目 (1-indexed) に大きい元の値を求める。k が大きすぎると、範囲外エラーとなるので注意
+        size = self.bit.prefix_sum(self.bit.size)
+        return self.kth_value(size - k - 1)
+
     def prev_value(self,v): #一個前の元の値
         s = self.bit.prefix_sum(v+1)
         return self.bit.bisect_left(s) - 1
