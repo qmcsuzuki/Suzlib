@@ -37,3 +37,15 @@ class FenwickTreeDinamic: #0-indexed
                 w -= self.tree[x+k]
                 x += k
         return x if x!=self.MAX-1 else -1
+
+    def bisect_left_key(self,w,key):
+        #key(get_sum(i)) が w 以上になる最小の index
+        #存在しない場合 -1 を返す
+        x,k,s = 0,self.MAX,0
+        while k:
+            k >>= 1
+            nxt = s + self.tree[x+k] if x+k in self.tree else s
+            if key(nxt) < w:
+                x += k
+                s = nxt
+        return x if x!=self.MAX-1 else -1

@@ -54,3 +54,20 @@ class FenwickTree:
                 x += k
             k >>= 1
         return x
+
+    def bisect_left_key(self,w,key):
+        """
+        key(prefix_sum(i+1)) が w 以上になる最小の index を返す
+        （存在しない場合 self.size）
+
+        key(prefix_sum(i)) が i について単調非減少であることを仮定
+        """
+        x,k,s = 0,self.longest_interval,0
+        while k:
+            if x+k <= self.size:
+                nxt = s + self.data[x+k-1]
+                if key(nxt) < w:
+                    x += k
+                    s = nxt
+            k >>= 1
+        return x
