@@ -26,3 +26,9 @@ if __name__ == "__main__":
                 assert idx==n or bit.prefix_sum(idx+1) >= x
                 assert x <= 0 or bit.prefix_sum(idx) < x
 
+            # check bisect with key
+            for x in range(-10,160):
+                idx = bit.bisect_left_key(x, key=lambda v: v*v)
+                assert idx==n or bit.prefix_sum(idx+1)**2 >= x
+                assert idx==0 or bit.prefix_sum(idx)**2 < x
+
