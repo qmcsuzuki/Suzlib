@@ -1,3 +1,5 @@
+# competitive-verifier: TITLE Floor Sum
+
 """
 sum((a*i+b)//m for i in range(n)) を返す
 a,b <= 0 もOK
