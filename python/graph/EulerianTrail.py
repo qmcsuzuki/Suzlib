@@ -1,3 +1,5 @@
+# competitive-verifier: TITLE オイラー路
+
 """
 （頂点辞書順最小の）オイラー路を求める
 Eulerian_trail_directed(n,edges): 有向
