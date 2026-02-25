@@ -45,12 +45,12 @@ def Eulerian_trail_directed(n, edges):
     if m == 0:  # 辺が 0 なら、任意の長さ 0 のパスが OK
         return True, [0], []
 
-    degdiff = [0] * n  # outdeg - indeg
-    outdeg = [0] * n
+    degdiff = [0]*n  # outdeg - indeg
+    min_u = n+1 # outdeg > 0 となる最小の点番号
     for (u, v) in edges:
         degdiff[u] += 1
         degdiff[v] -= 1
-        outdeg[u] += 1
+        min_u = min(min_u, u)
 
     start = end = -1
     for v, d in enumerate(degdiff):
@@ -67,22 +67,18 @@ def Eulerian_trail_directed(n, edges):
 
     # 閉路ができる場合、辺がある頂点を始点に選ぶ
     if start == -1:
-        for v in range(n):
-            if outdeg[v] > 0:
-                start = v
-                break
-    assert start != -1  # m>0 なら必ず outdeg>0 の頂点が存在
+        start = min_u
 
     base = m + 1
-    adj = [[] for _ in range(n)]
+    g = [[] for _ in range(n)]
     for eid, (u, v) in enumerate(edges):
-        adj[u].append(v * base + eid)
+        g[u].append(v * base + eid)
 
     # 頂点順で辞書順最小のため、降順ソート（pop() で最小を取り出す）
-    for v in range(n):
-        adj[v].sort(reverse=True)
+    for lst in g:
+        lst.sort(reverse=True)
 
-    vertices, edge_ids = _find_trail(adj, start, base, m)
+    vertices, edge_ids = _find_trail(g, start, base, m)
     if len(edge_ids) != m or len(vertices) != m + 1:
         return False, [], []
     return True, vertices, edge_ids
@@ -99,36 +95,32 @@ def Eulerian_trail_undirected(n, edges):
     if m == 0:  # 辺が 0 なら、任意の長さ 0 のパスが OK
         return True, [0], []
 
-    deg = [0] * n
+    deg = [0]*n
+    min_u = n+1
     for (u, v) in edges:
         deg[u] += 1
         deg[v] += 1
+        min_u = min(min_u, u, v)
 
     odd = [v for v in range(n) if deg[v] & 1]
     if len(odd) == 2:
         start = odd[0]  # 奇数次数の片方から始める
-    elif len(odd) == 0:
-        # 閉路ができる場合、辺がある頂点を始点に選ぶ
-        start = -1
-        for v in range(n):
-            if deg[v] > 0:
-                start = v
-                break
-        assert start != -1
+    elif len(odd) == 0: # 閉路ができる場合、辺がある頂点を始点に選ぶ
+        start = min_u
     else:
         return False, [], []
 
     base = m + 1
-    adj = [[] for _ in range(n)]
+    g = [[] for _ in range(n)]
     for eid, (u, v) in enumerate(edges):
-        adj[u].append(v * base + eid)
-        adj[v].append(u * base + eid)
+        g[u].append(v*base + eid)
+        g[v].append(u*base + eid)
 
     # 頂点順で辞書順最小のため、降順ソート（pop() で最小を取り出す）
-    for v in range(n):
-        adj[v].sort(reverse=True)
+    for lst in g:
+        lst.sort(reverse=True)
 
-    vertices, edge_ids = _find_trail(adj, start, base, m)
+    vertices, edge_ids = _find_trail(g, start, base, m)
     if len(edge_ids) != m or len(vertices) != m + 1:
         return False, [], []
     return True, vertices, edge_ids
