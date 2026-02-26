@@ -18,11 +18,13 @@ from bisect import bisect_left, bisect_right
 class OrderedMultisetWithZaatu:
     def __init__(self, values, banhei_min, banhei_max):
         assert banhei_min < min(values) and max(values) < banhei_max
+        self.banhei_min = banhei_min
+        self.banhei_max = banhei_max
         self.sortedvalues = [banhei_min] + sorted(set(values)) + [banhei_max]
         self.za = {v:i for i,v in enumerate(self.sortedvalues)}
         self.bit = FenwickTree(len(self.sortedvalues)) #存在すれば 1、しないなら 0
-        self.add(banhei_min)
-        self.add(banhei_max)
+        self.add(self.banhei_min)
+        self.add(self.banhei_max)
 
     def __contains__(self,v):
         idx = self.za[v]
@@ -33,6 +35,33 @@ class OrderedMultisetWithZaatu:
         
     def delete(self,v): # 値を削除
         self.add(v,-1)
+
+    def count_less(self,v):
+        # v 未満の要素数（自動挿入される番兵 2 個は除く）
+        idx = bisect_left(self.sortedvalues, v)
+        res = self.bit.prefix_sum(idx)
+        if v > self.banhei_min:
+            res -= 1
+        if v > self.banhei_max:
+            res -= 1
+        return res
+
+    def count_eq(self,v):
+        # ちょうど v の要素数
+        if v not in self.za:
+            return 0
+        idx = self.za[v]
+        return self.bit.range_sum(idx, idx+1)
+
+    def count_ge(self,v):
+        # v 以上の要素数（自動挿入される番兵 2 個は除く）
+        idx = bisect_left(self.sortedvalues, v)
+        res = self.bit.suffix_sum(idx)
+        if v <= self.banhei_min:
+            res -= 1
+        if v <= self.banhei_max:
+            res -= 1
+        return res
 
     def kth_index(self,k): # k 番目 (1-indexed) に小さい元の sortedvalues における index
         return self.bit.bisect_left(k+1)
