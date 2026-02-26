@@ -23,13 +23,12 @@ class OrderedMultiset:
 
     def count_less(self,v):
         # v 未満の要素数（自動挿入される番兵 2 個は除く）
-        idx = max(0, min(self.bit.size, v+1))
-        res = self.bit.prefix_sum(idx)
-        if v > self.banhei_min:
-            res -= 1
-        if v > self.banhei_max:
-            res -= 1
-        return res
+        if v <= self.banhei_min + 1:
+            return 0
+        # 外部値 x は bit の x+1 番目に対応する。
+        # v 未満の通常要素は [0, v) なので、内部 index の [1, v+1) を足せばよい。
+        upper = min(v+1, self.banhei_max+1)
+        return self.bit.range_sum(1, upper)
 
     def count_eq(self,v):
         # ちょうど v の要素数
@@ -39,13 +38,12 @@ class OrderedMultiset:
 
     def count_ge(self,v):
         # v 以上の要素数（自動挿入される番兵 2 個は除く）
-        idx = max(0, min(self.bit.size, v+1))
-        res = self.bit.suffix_sum(idx)
-        if v <= self.banhei_min:
-            res -= 1
-        if v <= self.banhei_max:
-            res -= 1
-        return res
+        if v > self.banhei_max:
+            return 0
+        # 外部値 x は bit の x+1 番目に対応する。
+        # lower 以上の和には番兵（大）が 1 つ含まれるので、最後に 1 引く。
+        lower = max(v+1, 1)
+        return self.bit.suffix_sum(lower) - 1
 
     def kth_value(self,k):
         # k 番目 (1-indexed) に小さい元の値を求める。k が大きすぎると、範囲外エラーとなるので注意
