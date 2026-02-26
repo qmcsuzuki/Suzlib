@@ -1,3 +1,4 @@
+# competitive-verifier: TITLE Suffix Array Doubling
 
 """
 - suffix_array_functional_graph(nexts,labels): 一般の functional graph で suffix array の一般化
