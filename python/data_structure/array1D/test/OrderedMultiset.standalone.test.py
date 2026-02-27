@@ -12,8 +12,8 @@ def brute_count_ge(values, v):
 
 
 if __name__ == "__main__":
-    N = 7
-    S = OrderedMultiset(N, N + 1)
+    banhei_min, banhei_max = -1, 8
+    S = OrderedMultiset(banhei_min, banhei_max)
     values = [0, 2, 2, 5, 7]
     for x in values:
         S.add(x)
