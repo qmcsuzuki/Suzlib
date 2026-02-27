@@ -17,6 +17,7 @@ if __name__ == "__main__":
     values = [0, 2, 2, 5, 7]
     for x in values:
         S.add(x)
+    assert len(S) == len(values)
 
     for v in range(-5, 15):
         assert S.count_less(v) == brute_count_less(values, v)
@@ -27,6 +28,7 @@ if __name__ == "__main__":
     values.remove(2)
     S.add(6)
     values.append(6)
+    assert len(S) == len(values)
 
     for v in range(-5, 15):
         assert S.count_less(v) == brute_count_less(values, v)

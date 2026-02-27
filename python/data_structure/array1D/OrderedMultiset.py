@@ -8,16 +8,21 @@ class OrderedMultiset:
         assert banhei_min + 1 <= banhei_max - 1
         self.banhei_min = banhei_min
         self.banhei_max = banhei_max
+        self.cnt = -2 # 番兵を含めて add し、外部向けサイズは番兵を除く
         # 添字 (v - banhei_min) は [0, banhei_max-banhei_min] を取り得るため +1 が必要
         self.bit = FenwickTree(self.banhei_max - self.banhei_min + 1) #存在すれば 1、しないなら 0
         self.add(self.banhei_min)
         self.add(self.banhei_max)
+
+    def __len__(self):
+        return self.cnt
 
     def __contains__(self,v):
         i = v - self.banhei_min
         return self.bit.range_sum(i, i+1) > 0
 
     def add(self,v,wt=1): # 値 v を重み wt で追加（通常重み=1）
+        self.cnt += wt
         self.bit.add(v - self.banhei_min, wt)
         
     def delete(self,v): # 値 v を削除
@@ -41,11 +46,7 @@ class OrderedMultiset:
 
     def count_ge(self,v):
         # v 以上の要素数（自動挿入される番兵 2 個は除く）
-        max_val = self.banhei_max - 1
-        if v > max_val:
-            return 0
-        lower = max(v, self.banhei_min + 1)
-        return self.bit.suffix_sum(lower - self.banhei_min) - 1
+        return len(self) - self.count_less(v)
 
     def kth_value(self,k):
         # k 番目 (1-indexed) に小さい元の値を求める。k が大きすぎると、範囲外エラーとなるので注意
@@ -53,8 +54,7 @@ class OrderedMultiset:
 
     def kth_largest_value(self,k):
         # k 番目 (1-indexed) に大きい元の値を求める。k が大きすぎると、範囲外エラーとなるので注意
-        size = self.bit.prefix_sum(self.bit.size) - 2
-        return self.kth_value(size - k + 1)
+        return self.kth_value(len(self) - k + 1)
 
     def prev_value(self,v): #一個前の元の値
         s = self.bit.prefix_sum(v - self.banhei_min)
