@@ -3,61 +3,63 @@
 from python.data_structure.array1D.FenwickTree import FenwickTree
 
 class OrderedMultiset:
-    def __init__(self, N, banhei): # 0 以上 N 以下
-        # 番兵 -1 を FenwickTree の 0 として扱う、つまり外部の値 v では bit 内部の v+1 を操作することに注意
-        assert banhei == N+1
-        self.banhei_min = -1
-        self.banhei_max = banhei
-        self.bit = FenwickTree(N+3) #存在すれば 1、しないなら 0
+    def __init__(self, banhei_min, banhei_max):
+        # 値域 (banhei_min, banhei_max) のみを扱う（両端は番兵）
+        assert banhei_min + 1 <= banhei_max - 1
+        self.banhei_min = banhei_min
+        self.banhei_max = banhei_max
+        # 添字 (v - banhei_min) は [0, banhei_max-banhei_min] を取り得るため +1 が必要
+        self.bit = FenwickTree(self.banhei_max - self.banhei_min + 1) #存在すれば 1、しないなら 0
         self.add(self.banhei_min)
         self.add(self.banhei_max)
 
     def __contains__(self,v):
-        return self.bit.range_sum(v+1,v+2) > 0
+        i = v - self.banhei_min
+        return self.bit.range_sum(i, i+1) > 0
 
     def add(self,v,wt=1): # 値 v を重み wt で追加（通常重み=1）
-        self.bit.add(v+1,wt)
+        self.bit.add(v - self.banhei_min, wt)
         
     def delete(self,v): # 値 v を削除
         self.add(v,-1)
 
     def count_less(self,v):
         # v 未満の要素数（自動挿入される番兵 2 個は除く）
-        if v <= self.banhei_min + 1:
+        min_val = self.banhei_min + 1
+        if v <= min_val:
             return 0
-        # 外部値 x は bit の x+1 番目に対応する。
-        # v 未満の通常要素は [0, v) なので、内部 index の [1, v+1) を足せばよい。
-        upper = min(v+1, self.banhei_max+1)
-        return self.bit.range_sum(1, upper)
+        # v 未満の通常要素は [min_val, min(v,banhei_max))
+        upper = min(v, self.banhei_max)
+        return self.bit.prefix_sum(upper - self.banhei_min) - 1
 
     def count_eq(self,v):
         # ちょうど v の要素数
-        if v < self.banhei_min or v > self.banhei_max:
+        if v <= self.banhei_min or v >= self.banhei_max:
             return 0
-        return self.bit.range_sum(v+1, v+2)
+        i = v - self.banhei_min
+        return self.bit.range_sum(i, i+1)
 
     def count_ge(self,v):
         # v 以上の要素数（自動挿入される番兵 2 個は除く）
-        if v > self.banhei_max:
+        max_val = self.banhei_max - 1
+        if v > max_val:
             return 0
-        # 外部値 x は bit の x+1 番目に対応する。
-        # lower 以上の和には番兵（大）が 1 つ含まれるので、最後に 1 引く。
-        lower = max(v+1, 1)
-        return self.bit.suffix_sum(lower) - 1
+        lower = max(v, self.banhei_min + 1)
+        return self.bit.suffix_sum(lower - self.banhei_min) - 1
 
     def kth_value(self,k):
         # k 番目 (1-indexed) に小さい元の値を求める。k が大きすぎると、範囲外エラーとなるので注意
-        return self.bit.bisect_left(k+1) - 1
+        return self.banhei_min + self.bit.bisect_left(k+1)
 
     def kth_largest_value(self,k):
         # k 番目 (1-indexed) に大きい元の値を求める。k が大きすぎると、範囲外エラーとなるので注意
-        size = self.bit.prefix_sum(self.bit.size)
-        return self.kth_value(size - k - 1)
+        size = self.bit.prefix_sum(self.bit.size) - 2
+        return self.kth_value(size - k + 1)
 
     def prev_value(self,v): #一個前の元の値
-        s = self.bit.prefix_sum(v+1)
-        return self.bit.bisect_left(s) - 1
+        s = self.bit.prefix_sum(v - self.banhei_min)
+        return self.banhei_min + self.bit.bisect_left(s)
 
     def next_value(self,v):
-        s = self.bit.prefix_sum(v+2)
-        return self.bit.bisect_left(s+1) - 1
+        s = self.bit.prefix_sum(v - self.banhei_min + 1)
+        return self.banhei_min + self.bit.bisect_left(s+1)

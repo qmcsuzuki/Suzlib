@@ -9,8 +9,8 @@ def main():
     n,Q = map(int,readline().split())
     T = readline().strip()
     
-    m,M = -1,n+1
-    S = OrderedMultiset(n,M)
+    m,M = -1,n
+    S = OrderedMultiset(m,M)
     for i in range(n):
         if T[i] == "1":
             S.add(i)
