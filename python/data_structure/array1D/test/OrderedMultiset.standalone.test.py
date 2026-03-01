@@ -1,6 +1,6 @@
 # competitive-verifier: STANDALONE
 
-from python.data_structure.array1D.OrderedMultiset import OrderedMultiset
+from python.data_structure.array1D.OrderedMultisetWithSum import OrderedMultiset
 
 
 def brute_count_less(values, v):
