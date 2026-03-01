@@ -44,23 +44,3 @@ class SlidingWindowMaximum:
             self.q.popleft()
         self.R = r
         return self.q[0][1]
-
-#######################################
-# http://judge.u-aizu.ac.jp/onlinejudge/review.jsp?rid=4953425#1
-#######################################
-
-# coding: utf-8
-# Your code here!
-import sys
-readline = sys.stdin.readline
-read = sys.stdin.read
-
-n,l = map(int,readline().split())
-*a, = map(int,readline().split())
-
-dat = SlidingWindowMinimum(a)
-
-ans = [0]*(n-l+1)
-for i in range(n-l+1):
-    ans[i] = dat.query(i,i+l)
-print(*ans)
