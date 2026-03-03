@@ -105,6 +105,48 @@
     return s + "\n";
   }
 
+  function stripInternalImports(codeText) {
+    const lines = (codeText || "").replace(/\r\n/g, "\n").split("\n");
+    const out = [];
+
+    const parenDelta = (s) => (s.match(/\(/g) || []).length - (s.match(/\)/g) || []).length;
+
+    for (let i = 0; i < lines.length; i++) {
+      let line = lines[i];
+
+      // internal imports: "from python.... import ..." or "import python...."
+      const m = line.match(
+        /^(\s*)(?:from\s+(python(?:\.[A-Za-z0-9_]+)*)\s+import\b|import\s+(python(?:\.[A-Za-z0-9_]+)*)(?:\s|$))/
+      );
+
+      if (!m) {
+        out.push(line);
+        continue;
+      }
+
+      const indent = m[1] || "";
+      const trimmed = line.trim();
+
+      // Keep syntax valid even inside blocks
+      if (indent.length === 0) out.push(`# [bundled] ${trimmed}`);
+      else out.push(`${indent}pass  # [bundled] ${trimmed}`);
+
+      // Skip multiline import blocks: parentheses / backslash continuation
+      let depth = parenDelta(line);
+      while (depth > 0 && i + 1 < lines.length) {
+        i++;
+        line = lines[i];
+        depth += parenDelta(line);
+      }
+      while (line.trimEnd().endsWith("\\") && i + 1 < lines.length) {
+        i++;
+        line = lines[i];
+      }
+    }
+
+    return out.join("\n");
+  }
+
   async function bundleFrom(entryUrl) {
     const visited = new Set();
     const ordered = [];
@@ -129,7 +171,7 @@
     }
 
     await dfs(entryUrl);
-    return ordered.join("\n");
+    return stripInternalImports(ordered.join("\n"));
   }
 
   function makeModal(codeText) {
