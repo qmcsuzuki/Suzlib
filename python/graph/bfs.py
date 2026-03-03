@@ -15,3 +15,22 @@ def bfs(g,start):
             bfs_order.append(v)
         idx += 1
     return bfs_order, dist #,prev
+
+
+def BFSmulti(g,starts):
+    n = len(g)
+    bfs_order = []
+    dist = [-1]*n
+    for s in starts:
+        if dist[s] != -1: continue
+        dist[s] = 0
+        bfs_order.append(s)
+    idx = 0
+    while idx < len(bfs_order):
+        u = bfs_order[idx]
+        for v in g[u]:
+            if dist[v] != -1: continue
+            dist[v] = dist[u] + 1
+            bfs_order.append(v)
+        idx += 1
+    return bfs_order, dist
