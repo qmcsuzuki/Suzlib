@@ -3,6 +3,7 @@
 """
 - suffix_array_functional_graph(nexts,labels): 一般の functional graph で suffix array の一般化
 - suffix_array_doubling(S): 普通の文字列や数列 S のダブリング
+- concat_sort(Strings): S = Strings[i] と T = Strings[j] を比較関数 S+T < T+S? でソート
 """
 
 def suffix_array_functional_graph(nexts: list[int], labels: list[int]) -> tuple[list[int], list[int]]:
@@ -99,3 +100,41 @@ def suffix_array_doubling(S) -> list[int]:
 
     sa, _ = suffix_array_functional_graph(nexts, a)
     return [i for i in sa if i < n] # 終端（頂点 n）に相当するものを除外
+
+def concat_sort(strings: list[str]) -> tuple[list[int], list[int]]:
+    """
+    概要:
+        S_i + S_j < S_j + S_i かどうか、という比較関数で順列をソートする。
+    入力:
+        strings = [S_0, ..., S_{N-1}]: 空でない文字列の配列
+    返り値:
+      rank[i]  = strings[i] の順位（同率なら同じ値）
+      order    = その昇順に並べた index 列
+    """
+    N = len(strings)
+    nexts = []
+    labels = []
+    starts = [0]*N
+    base = 0
+    for i,s in enumerate(strings):
+        starts[i] = base
+        m = len(s)
+        for j in range(m):
+            nexts.append(base + (j+1)%m)
+            labels.append(ord(s[j]))
+        base += m
+
+    sa, v_rank = suffix_array_functional_graph(nexts, labels)
+
+    rank = [v_rank[st] for st in starts]
+
+    start_id = [-1] * len(nexts)
+    for i, st in enumerate(starts):
+        start_id[st] = i
+    order = []
+    for v in sa:
+        i = start_id[v]
+        if i != -1:
+            order.append(i)
+
+    return rank, order
