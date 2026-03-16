@@ -116,10 +116,14 @@ class AreaOfUnionOfRectangles:
 
     def solve_without_zaatu(self, y_max):
         assert y_max < 1 << 20
+        if not self.queries:
+            return 0
 
-        ans = y_width = prev = 0
+        ans = y_width = 0
         seg = UnionOfLines(y_max + 1)
-        for x, duv in self.sorted_tuples(self.queries, key=lambda lst: lst[0]):
+        events = self.sorted_tuples(self.queries, key=lambda lst: lst[0])
+        prev = events[0][0]
+        for x, duv in events:
             ans += y_width * (x - prev)
             d, u = divmod(duv >> 1, self.MMM)
             seg.apply(d, u, 2 * (duv & 1) - 1)
