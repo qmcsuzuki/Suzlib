@@ -68,10 +68,9 @@ class UnionOfLines:
 
 class AreaOfUnionOfRectangles:
     MMM = 1 << 31
-    BIAS = 1 << 30
-
     def sorted_tuples(self, lists, key):
-        return [lst for _, lst in sorted(enumerate(lists), key=lambda kv: (key(kv[1]), kv[0]))]
+        idx = sorted(key(lst) * self.MMM + i for i, lst in enumerate(lists))
+        return [lists[i % self.MMM] for i in idx]
 
     def __init__(self):
         self.queries = []
@@ -79,11 +78,11 @@ class AreaOfUnionOfRectangles:
 
     # [l,r) * [d,u) を追加
     def add_query(self, l, d, r, u):
-        assert -self.BIAS <= d < self.BIAS
-        assert -self.BIAS <= u < self.BIAS
+        assert d >= 0
+        assert u >= 0
         self.y_coord.append(d)
         self.y_coord.append(u)
-        val = 2 * (self.MMM * (d + self.BIAS) + (u + self.BIAS))
+        val = 2 * (self.MMM * d + u)
         self.queries.append((l, val + 1))  # add segment
         self.queries.append((r, val + 0))  # remove segment
 
@@ -112,8 +111,6 @@ class AreaOfUnionOfRectangles:
         for x, duv in events:
             ans += y_width * (x - prev)
             d, u = divmod(duv >> 1, self.MMM)
-            d -= self.BIAS
-            u -= self.BIAS
             seg.apply(zaatu_y[d ^ RANDOM], zaatu_y[u ^ RANDOM], 2 * (duv & 1) - 1)
             y_width = seg.all_prod()
             prev = x
@@ -122,9 +119,8 @@ class AreaOfUnionOfRectangles:
     def solve(self):
         if not self.queries:
             return 0
-        y_min = min(self.y_coord)
         y_max = max(self.y_coord)
-        if 0 <= y_min and y_max < 1 << 20:
+        if y_max < 1 << 20:
             return self._solve_without_zaatu(y_max)
         return self.solve_with_zaatu()
 
@@ -144,7 +140,7 @@ class AreaOfUnionOfRectangles:
         for x, duv in events:
             ans += y_width * (x - prev)
             d, u = divmod(duv >> 1, self.MMM)
-            seg.apply(d - self.BIAS, u - self.BIAS, 2 * (duv & 1) - 1)
+            seg.apply(d, u, 2 * (duv & 1) - 1)
             y_width = seg.all_prod()
             prev = x
 
