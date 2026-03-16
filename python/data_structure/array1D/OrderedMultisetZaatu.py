@@ -157,6 +157,8 @@ class OrderedMultisetWithSumWithZaatu(OrderedMultisetWithZaatu):
 
     def sum_eq(self, v):
         # ちょうど v の要素和
+        if v == self.banhei_min or v == self.banhei_max:
+            return 0
         return v * self.count_eq(v)
 
     def sum_range(self, l, r):
