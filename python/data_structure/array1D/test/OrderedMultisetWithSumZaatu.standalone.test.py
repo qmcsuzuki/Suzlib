@@ -21,6 +21,11 @@ def brute_sum_top_k(values, k):
     return sum(sorted(values, reverse=True)[:k])
 
 
+
+def brute_sum_eq(values, v):
+    return sum(x for x in values if x == v)
+
+
 if __name__ == "__main__":
     random.seed(0)
 
@@ -46,6 +51,7 @@ if __name__ == "__main__":
         for v in range(-20, 31):
             assert S.sum_less(v) == brute_sum_less(values, v)
             assert S.sum_ge(v) == brute_sum_ge(values, v)
+            assert S.sum_eq(v) == brute_sum_eq(values, v)
 
         for k in range(0, len(values) + 2):
             kk = min(k, len(values))
