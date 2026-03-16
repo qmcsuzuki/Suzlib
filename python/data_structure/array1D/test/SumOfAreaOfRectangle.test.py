@@ -1,4 +1,5 @@
 # competitive-verifier: PROBLEM https://judge.yosupo.jp/problem/area_of_union_of_rectangles
+# competitive-verifier: TITLE 長方形の和集合の面積・線分の追加削除全体長
 
 import sys
 from python.data_structure.array1D.SumOfAreaOfRectangle import AreaOfUnionOfRectangles

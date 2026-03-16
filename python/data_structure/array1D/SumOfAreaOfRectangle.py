@@ -1,3 +1,4 @@
+# competitive-verifier: TITLE 長方形の和集合の面積・線分の追加削除全体長
 class UnionOfLines:
     """
     区間の追加 / 削除を行い、被覆長を管理するデータ構造。
@@ -67,7 +68,6 @@ class UnionOfLines:
 
 class AreaOfUnionOfRectangles:
     MMM = 1 << 31
-
     def sorted_tuples(self, lists, key):
         idx = sorted(key(lst) * self.MMM + i for i, lst in enumerate(lists))
         return [lists[i % self.MMM] for i in idx]
@@ -78,6 +78,8 @@ class AreaOfUnionOfRectangles:
 
     # [l,r) * [d,u) を追加
     def add_query(self, l, d, r, u):
+        assert d >= 0
+        assert u >= 0
         self.y_coord.append(d)
         self.y_coord.append(u)
         val = 2 * (self.MMM * d + u)
@@ -114,10 +116,22 @@ class AreaOfUnionOfRectangles:
             prev = x
         return ans
 
-    def solve_without_zaatu(self, y_max):
-        assert y_max < 1 << 20
+    def solve(self):
         if not self.queries:
             return 0
+        y_max = max(self.y_coord)
+        if y_max < 1 << 20:
+            return self._solve_without_zaatu(y_max)
+        return self.solve_with_zaatu()
+
+    def solve_without_zaatu(self, y_max):
+        return self._solve_without_zaatu(y_max)
+
+    def _solve_without_zaatu(self, y_max):
+        if not self.queries:
+            return 0
+        assert min(self.y_coord) >= 0
+        assert y_max < 1 << 20
 
         ans = y_width = 0
         seg = UnionOfLines(y_max + 1)
