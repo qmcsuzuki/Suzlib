@@ -23,17 +23,20 @@ def Cartesian_tree_DFSsearch(A, calc):
             l = L[cur] + 1
             r = i
             p = l-1 if (r == n or (l != 0 and A[l-1] > A[r])) else r
+
+            
+            # 左、右の子供の位置が必要なら、以下を有効化
+            #if cur < p:
+            #    leftchild[p] = cur
+            #else:
+            #    rightchild[p] = cur
             """
             cur が管理する半開区間 [l:r] および親 p 確定（両端のうち大きい値が親）
             ここで cur に関する計算を行う
             """
             calc(cur,l,r,p)
+            # calc(cur,l,r,p,leftchild[cur],rightchild[cur])
             cur = l-1
-            # 左、右の子供の位置が必要なら、以下を有効化
-            # if i < p:
-            #     leftchild[p] = i
-            # else:
-            #     rightchild[p] = i
         L[i] = cur
     A.pop()
 
