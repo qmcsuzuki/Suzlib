@@ -26,10 +26,11 @@ def Cartesian_tree_DFSsearch(A, calc):
 
             
             # 左、右の子供の位置が必要なら、以下を有効化
-            #if cur < p:
-            #    leftchild[p] = cur
-            #else:
-            #    rightchild[p] = cur
+            #if p != -1:
+                #if cur < p:
+                #    leftchild[p] = cur
+                #else:
+                #    rightchild[p] = cur
             """
             cur が管理する半開区間 [l:r] および親 p 確定（両端のうち大きい値が親）
             ここで cur に関する計算を行う
