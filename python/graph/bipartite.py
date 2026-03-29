@@ -98,30 +98,22 @@ class bipartite:
         y = self.orig_vertex_count[r1]
         return (x, y) if r0 < r1 else (y, x)
 
-    def all_connected_components(self):
-        """
-        全ての連結成分についての (色0頂点の個数, 色1頂点の個数) のリストを返す。
-        """
-        assert self.is_bipartite
-        res = []
-        used = [0] * self.n
-        for v in range(self.n):
-            if used[v]:
-                continue
-            for u in range(v, self.n):
-                pass
-            r0 = self.UF.leader(v)
-            r1 = self.UF.leader(v + self.n)
-            x = self.orig_vertex_count[r0]
-            y = self.orig_vertex_count[r1]
-
-            # この連結成分の頂点を used に載せる
-            for u in range(self.n):
-                if not used[u] and (self.UF.issame(u, v) or self.UF.issame(u, v + self.n)):
-                    used[u] = 1
-
-            res.append((x, y) if r0 < r1 else (y, x))
-        return res
+def all_connected_components(self):
+    """
+    全ての連結成分についての (色0頂点の個数, 色1頂点の個数) のリストを返す
+    色0/1 の規約は coloring() と同じ
+    """
+    res = []
+    used = [0] * (2 * self.n)
+    for v in range(self.n):
+        r0 = self.UF.leader(v)
+        r1 = self.UF.leader(v + self.n)
+        rep = r0 if r0 < r1 else r1
+        if used[rep]:
+            continue
+        used[rep] = 1
+        res.append(self.connected_component_color_sizes(v))
+    return res
 
     def number_of_connected_component(self):
         return self.num_conn_comp
