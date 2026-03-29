@@ -42,12 +42,6 @@ class bipartite:
             return None
         return 1 if self.UF.issame(u, v) else -1
 
-    def is_same_color(self, u, v):
-        return self.connected_color_relation(u, v) == 1
-
-    def is_different_color(self, u, v):
-        return self.connected_color_relation(u, v) == -1
-
     def add_edge(self, u, v):
         # 元のグラフの連結成分数の更新
         if not self.is_connected(u, v):
@@ -74,11 +68,9 @@ class bipartite:
 
     def coloring(self):
         """
-        グラフ全体が二部グラフのとき、01 二値の色配列を返す。
-        各連結成分ごとに、leader(v) < leader(v+n) 側を色 0 とする。
+        01 二値の色配列を返す。各連結成分ごとに、leader(v) < leader(v+n) 側を色 0 とする
         """
-        if not self.is_bipartite:
-            raise ValueError("graph is not bipartite")
+        assert self.component_is_bipartite(v)
 
         col = [0] * self.n
         for v in range(self.n):
