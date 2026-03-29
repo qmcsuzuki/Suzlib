@@ -30,16 +30,13 @@ class bipartite:
 
     def connected_color_relation(self, u, v):
         """
-        u, v の関係を返す
+        u, v の関係を返す（二部グラフを前提）
           0   : 非連結
           1   : 同じ連結成分で同色
          -1   : 同じ連結成分で異色
-          None: 同じ連結成分だが、その成分は二部グラフでない
         """
         if not self.is_connected(u, v):
             return 0
-        if self.UF.issame(u, u + self.n):
-            return None
         return 1 if self.UF.issame(u, v) else -1
 
     def add_edge(self, u, v):
@@ -70,7 +67,7 @@ class bipartite:
         """
         01 二値の色配列を返す。各連結成分ごとに、leader(v) < leader(v+n) 側を色 0 とする
         """
-        assert self.component_is_bipartite(v)
+        #assert self.component_is_bipartite(v)
 
         col = [0] * self.n
         for v in range(self.n):
@@ -82,7 +79,7 @@ class bipartite:
         v を含む連結成分について、
         coloring() と同じ規約で (色0の個数, 色1の個数) を返す。
         """
-        assert self.component_is_bipartite(v)
+        #assert self.component_is_bipartite(v)
 
         r0 = self.UF.leader(v)
         r1 = self.UF.leader(v + self.n)
@@ -90,22 +87,22 @@ class bipartite:
         y = self.orig_vertex_count[r1]
         return (x, y) if r0 < r1 else (y, x)
 
-def all_connected_components(self):
-    """
-    全ての連結成分についての (色0頂点の個数, 色1頂点の個数) のリストを返す
-    色0/1 の規約は coloring() と同じ
-    """
-    res = []
-    used = [0] * (2 * self.n)
-    for v in range(self.n):
-        r0 = self.UF.leader(v)
-        r1 = self.UF.leader(v + self.n)
-        rep = r0 if r0 < r1 else r1
-        if used[rep]:
-            continue
-        used[rep] = 1
-        res.append(self.connected_component_color_sizes(v))
-    return res
+    def all_connected_components(self):
+        """
+        全ての連結成分についての (色0頂点の個数, 色1頂点の個数) のリストを返す
+        色0/1 の規約は coloring() と同じ
+        """
+        res = []
+        used = [0] * (2 * self.n)
+        for v in range(self.n):
+            r0 = self.UF.leader(v)
+            r1 = self.UF.leader(v + self.n)
+            rep = r0 if r0 < r1 else r1
+            if used[rep]:
+                continue
+            used[rep] = 1
+            res.append(self.connected_component_color_sizes(v))
+        return res
 
     def number_of_connected_component(self):
         return self.num_conn_comp
