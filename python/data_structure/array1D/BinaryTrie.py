@@ -140,32 +140,14 @@ class BinaryTrie:
                 v = self._ch0(v)
         return ans
 
-    def pop_min(self):
-        """
-        最小値を 1 個取り出して削除し、その値を返す.
-        空なら IndexError.
-        """
-        x = self.get_min()
-        self.discard(x)
-        return x
-
-    def pop_max(self):
-        """
-        最大値を 1 個取り出して削除し、その値を返す.
-        空なら IndexError.
-        """
-        x = self.get_max()
-        self.discard(x)
-        return x
-
     def kth(self, k):
         """
         0-indexed で k 番目に小さい値を返す.
         例えば kth(0) は最小値.
-        範囲外なら IndexError.
+        範囲外は保証なし
         """
-        if not (0 <= k < self.size[1]):
-            raise IndexError("k out of range")
+        #if not (0 <= k < self.size[1]):
+        #    raise IndexError("k out of range")
         v = 1
         ans = 0
         for b in range(self.MAX_BIT, -1, -1):
