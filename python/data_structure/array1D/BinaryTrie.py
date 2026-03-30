@@ -109,36 +109,14 @@ class BinaryTrie:
         multiset 内の最小値を返す.
         空なら IndexError.
         """
-        if self.size[1] == 0:
-            raise IndexError("BinaryTrie is empty")
-        v = 1
-        ans = 0
-        for b in range(self.MAX_BIT, -1, -1):
-            nv = self._ch0(v)
-            if nv and self.size[nv] > 0:
-                v = nv
-            else:
-                v = self._ch1(v)
-                ans |= 1 << b
-        return ans
+        return self.min_xor_element(0)
 
     def get_max(self):
         """
         multiset 内の最大値を返す.
         空なら IndexError.
         """
-        if self.size[1] == 0:
-            raise IndexError("BinaryTrie is empty")
-        v = 1
-        ans = 0
-        for b in range(self.MAX_BIT, -1, -1):
-            nv = self._ch1(v)
-            if nv and self.size[nv] > 0:
-                v = nv
-                ans |= 1 << b
-            else:
-                v = self._ch0(v)
-        return ans
+        return self.max_xor_element(0)
 
     def kth(self, k):
         """
@@ -166,26 +144,11 @@ class BinaryTrie:
         x より小さい要素の個数を返す.
         sorted multiset に対する bisect_left と同様.
         """
-        if x <= 0:
-            return 0
-        res = 0
-        v = 1
-        for b in range(self.MAX_BIT, -1, -1):
-            if v == 0:
-                break
-            if (x >> b) & 1:
-                lc = self._ch0(v)
-                if lc:
-                    res += self.size[lc]
-                v = self._ch1(v)
-            else:
-                v = self._ch0(v)
-        return res
+        return self.xor_bisect_left(0, x)
 
-    def xor_bisect_left(self, x, k):
+    def _xor_bisect_left(self, x, k):
         """
-        x xor y < k を満たす y in multiset の個数を返す.
-        すなわち #{y | x ^ y < k}.
+        x xor y < k を満たす y in multiset の個数を返す内部実装.
         """
         if k <= 0:
             return 0
@@ -220,29 +183,48 @@ class BinaryTrie:
 
         return res
 
-    def min_xor_element(self, x):
+    def xor_bisect_left(self, x, k):
         """
-        multiset 内の要素 y のうち、
-        x xor y を最小にするような y を返す.
-        空なら IndexError.
+        x xor y < k を満たす y in multiset の個数を返す.
+        すなわち #{y | x ^ y < k}.
+        """
+        return self._xor_bisect_left(x, k)
+
+    def _xor_extreme_element(self, x, maximize):
+        """
+        x xor y を最大/最小にする y を返す内部実装.
+        maximize=True なら最大化, False なら最小化.
         """
         if self.size[1] == 0:
             raise IndexError("BinaryTrie is empty")
         v = 1
         ans = 0
         for b in range(self.MAX_BIT, -1, -1):
-            bit = (x >> b) & 1
-            preferred = self._ch1(v) if bit else self._ch0(v)
-            other = self._ch0(v) if bit else self._ch1(v)
+            xb = (x >> b) & 1
+            if maximize:
+                preferred = self._ch0(v) if xb else self._ch1(v)
+                fallback = self._ch1(v) if xb else self._ch0(v)
+            else:
+                preferred = self._ch1(v) if xb else self._ch0(v)
+                fallback = self._ch0(v) if xb else self._ch1(v)
+
             if preferred and self.size[preferred] > 0:
                 v = preferred
-                if bit:
-                    ans |= 1 << b
+                yb = xb ^ maximize
             else:
-                v = other
-                if bit ^ 1:
-                    ans |= 1 << b
+                v = fallback
+                yb = xb ^ maximize ^ 1
+            if yb:
+                ans |= 1 << b
         return ans
+
+    def min_xor_element(self, x):
+        """
+        multiset 内の要素 y のうち、
+        x xor y を最小にするような y を返す.
+        空なら IndexError.
+        """
+        return self._xor_extreme_element(x, False)
 
     def min_xor_value(self, x):
         """
@@ -257,23 +239,7 @@ class BinaryTrie:
         x xor y を最大にするような y を返す.
         空なら IndexError.
         """
-        if self.size[1] == 0:
-            raise IndexError("BinaryTrie is empty")
-        v = 1
-        ans = 0
-        for b in range(self.MAX_BIT, -1, -1):
-            bit = (x >> b) & 1
-            preferred = self._ch0(v) if bit else self._ch1(v)
-            other = self._ch1(v) if bit else self._ch0(v)
-            if preferred and self.size[preferred] > 0:
-                v = preferred
-                if bit ^ 1:
-                    ans |= 1 << b
-            else:
-                v = other
-                if bit:
-                    ans |= 1 << b
-        return ans
+        return self._xor_extreme_element(x, True)
 
     def max_xor_value(self, x):
         """
