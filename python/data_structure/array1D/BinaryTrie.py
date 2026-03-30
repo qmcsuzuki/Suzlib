@@ -1,3 +1,6 @@
+# competitive-verifier: TITLE Binary Trie（非負整数 multiset）
+
+
 class BinaryTrie:
     """
     非負整数 multiset 用の binary trie. 各操作は O(MAX_BIT).
@@ -10,9 +13,11 @@ class BinaryTrie:
             例えば 0 <= x < 2^30 なら max_bit=29 で十分.
         """
         self.MAX_BIT = max_bit
-        self.ch0 = [0, 0]  # 0: null, 1: root （ch0/ch1: 左/右の子の idx）
-        self.ch1 = [0, 0]
-        self.size = [0, 0] # 部分木のサイズ
+        self.SHIFT = 30
+        self.MASK = (1 << self.SHIFT) - 1
+        # child[v] = ch0[v] + (ch1[v] << SHIFT)
+        self.child = [0, 0]  # 0: null, 1: root
+        self.size = [0, 0]   # 部分木のサイズ
 
     def __len__(self):
         """
@@ -24,10 +29,21 @@ class BinaryTrie:
         """
         新しいノードを 1 つ作って、その index を返す.
         """
-        self.ch0.append(0)
-        self.ch1.append(0)
+        self.child.append(0)
         self.size.append(0)
         return len(self.size) - 1
+
+    def _ch0(self, v):
+        return self.child[v] & self.MASK
+
+    def _ch1(self, v):
+        return self.child[v] >> self.SHIFT
+
+    def _set_ch0(self, v, nv):
+        self.child[v] = (self.child[v] & (~self.MASK)) | nv
+
+    def _set_ch1(self, v, nv):
+        self.child[v] = (self.child[v] & self.MASK) | (nv << self.SHIFT)
 
     def add(self, x, k=1):
         """
@@ -39,15 +55,15 @@ class BinaryTrie:
         self.size[v] += k
         for b in range(self.MAX_BIT, -1, -1):
             if (x >> b) & 1:
-                nv = self.ch1[v]
+                nv = self._ch1(v)
                 if nv == 0:
                     nv = self._new_node()
-                    self.ch1[v] = nv
+                    self._set_ch1(v, nv)
             else:
-                nv = self.ch0[v]
+                nv = self._ch0(v)
                 if nv == 0:
                     nv = self._new_node()
-                    self.ch0[v] = nv
+                    self._set_ch0(v, nv)
             v = nv
             self.size[v] += k
 
@@ -58,7 +74,7 @@ class BinaryTrie:
         """
         v = 1
         for b in range(self.MAX_BIT, -1, -1):
-            v = self.ch1[v] if ((x >> b) & 1) else self.ch0[v]
+            v = self._ch1(v) if ((x >> b) & 1) else self._ch0(v)
             if v == 0:
                 return 0
         return self.size[v]
@@ -76,7 +92,7 @@ class BinaryTrie:
         v = 1
         self.size[v] -= k
         for b in range(self.MAX_BIT, -1, -1):
-            v = self.ch1[v] if ((x >> b) & 1) else self.ch0[v]
+            v = self._ch1(v) if ((x >> b) & 1) else self._ch0(v)
             self.size[v] -= k
         return True
 
@@ -98,11 +114,11 @@ class BinaryTrie:
         v = 1
         ans = 0
         for b in range(self.MAX_BIT, -1, -1):
-            nv = self.ch0[v]
+            nv = self._ch0(v)
             if nv and self.size[nv] > 0:
                 v = nv
             else:
-                v = self.ch1[v]
+                v = self._ch1(v)
                 ans |= 1 << b
         return ans
 
@@ -116,12 +132,12 @@ class BinaryTrie:
         v = 1
         ans = 0
         for b in range(self.MAX_BIT, -1, -1):
-            nv = self.ch1[v]
+            nv = self._ch1(v)
             if nv and self.size[nv] > 0:
                 v = nv
                 ans |= 1 << b
             else:
-                v = self.ch0[v]
+                v = self._ch0(v)
         return ans
 
     def pop_min(self):
@@ -153,13 +169,13 @@ class BinaryTrie:
         v = 1
         ans = 0
         for b in range(self.MAX_BIT, -1, -1):
-            lc = self.ch0[v]
+            lc = self._ch0(v)
             left_cnt = self.size[lc] if lc else 0
             if k < left_cnt:
                 v = lc
             else:
                 k -= left_cnt
-                v = self.ch1[v]
+                v = self._ch1(v)
                 ans |= 1 << b
         return ans
 
@@ -176,12 +192,12 @@ class BinaryTrie:
             if v == 0:
                 break
             if (x >> b) & 1:
-                lc = self.ch0[v]
+                lc = self._ch0(v)
                 if lc:
                     res += self.size[lc]
-                v = self.ch1[v]
+                v = self._ch1(v)
             else:
-                v = self.ch0[v]
+                v = self._ch0(v)
         return res
 
     def xor_bisect_left(self, x, k):
@@ -211,17 +227,16 @@ class BinaryTrie:
             kb = (k >> b) & 1
             if kb == 1:
                 # この bit で xor bit = 0 を選ぶと、ここで初めて k より小さくなる
-                same = self.ch1[v] if xb else self.ch0[v]
+                same = self._ch1(v) if xb else self._ch0(v)
                 if same:
                     res += self.size[same]
 
                 # 等号を保つには xor bit = 1 を選んで進む
-                v = self.ch0[v] if xb else self.ch1[v]
-            else: # xor bit = 0 しか許されない
-                v = self.ch1[v] if xb else self.ch0[v]
+                v = self._ch0(v) if xb else self._ch1(v)
+            else:  # xor bit = 0 しか許されない
+                v = self._ch1(v) if xb else self._ch0(v)
 
         return res
-
 
     def min_xor_element(self, x):
         """
@@ -235,8 +250,8 @@ class BinaryTrie:
         ans = 0
         for b in range(self.MAX_BIT, -1, -1):
             bit = (x >> b) & 1
-            preferred = self.ch1[v] if bit else self.ch0[v]
-            other = self.ch0[v] if bit else self.ch1[v]
+            preferred = self._ch1(v) if bit else self._ch0(v)
+            other = self._ch0(v) if bit else self._ch1(v)
             if preferred and self.size[preferred] > 0:
                 v = preferred
                 if bit:
@@ -266,8 +281,8 @@ class BinaryTrie:
         ans = 0
         for b in range(self.MAX_BIT, -1, -1):
             bit = (x >> b) & 1
-            preferred = self.ch0[v] if bit else self.ch1[v]
-            other = self.ch1[v] if bit else self.ch0[v]
+            preferred = self._ch0(v) if bit else self._ch1(v)
+            other = self._ch1(v) if bit else self._ch0(v)
             if preferred and self.size[preferred] > 0:
                 v = preferred
                 if bit ^ 1:
