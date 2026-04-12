@@ -1,9 +1,16 @@
 # competitive-verifier: TITLE 木の基本関数（DFS順、親、サイズ、深さ）
 
+""" usage
+g = input_tree(n, offseet=1)
+order, par = get_order_and_parent(g, root=0)
+size = getsize(g,wt=None) # 重み 1
+depth = get_depth(order, par)
+"""
+
+
+# 木を入力して隣接リストを返す。
 def input_tree(n, offset=1):
     """
-    木を入力して隣接リストを返す。
-
     引数:
     - n: 頂点数
     - offset: 入力頂点番号の基準（1-indexed なら 1, 0-indexed なら 0）
@@ -19,14 +26,9 @@ def input_tree(n, offset=1):
     return g
 
 
+# root から DFS した訪問順と親配列を返す。
 def get_order_and_parent(g, root):
     """
-    root から DFS した訪問順と親配列を返す。
-
-    引数:
-    - g: 木の隣接リスト
-    - root: 根頂点
-
     返り値:
     - order: DFS の訪問順
     - par: 親配列（par[root] = -1）
@@ -44,11 +46,9 @@ def get_order_and_parent(g, root):
                 st.append(c)
     return order, par
 
-
+# 部分木サイズ（または部分木重み和）を返す
 def get_size(order, par, wt=None):
     """
-    DFS 順と親配列から部分木サイズ（または部分木重み和）を返す。
-
     引数:
     - order: DFS の訪問順
     - par: 親配列
@@ -64,18 +64,9 @@ def get_size(order, par, wt=None):
             size[par[v]] += size[v]
     return size
 
-
-def get_depth(order, par):
-    """
-    DFS 順と親配列から各頂点の深さを返す。
-
-    引数:
-    - order: DFS の訪問順
-    - par: 親配列
-
-    返り値:
-    - depth: 深さ配列（根は 0）
-    """
+#DFS 順と親配列から各頂点の深さを返す
+def get_depth(order, par): 
+    # 返り値: depth: 深さ配列（根は order[0]）
     depth = [0] * len(par)
     for v in order:
         p = par[v]
