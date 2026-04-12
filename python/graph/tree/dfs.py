@@ -56,22 +56,44 @@ def get_order_and_parent(g, root):
     return order, par
 
 
-def get_size(order, par):
+def get_size(order, par, wt=None):
     """
-    DFS 順と親配列から部分木サイズを返す。
+    DFS 順と親配列から部分木サイズ（または部分木重み和）を返す。
+
+    引数:
+    - order: DFS の訪問順
+    - par: 親配列
+    - wt: 各頂点の重み配列。None のときは全頂点の重みを 1 とみなす
+
+    返り値:
+    - size: 部分木サイズ配列（wt 指定時は部分木重み和）
+
+    計算量: O(n)
+    """
+    n = len(par)
+    size = [1] * n if wt is None else wt[:]
+    for v in order[::-1]:
+        if par[v] != -1:
+            size[par[v]] += size[v]
+    return size
+
+
+def get_depth(order, par):
+    """
+    DFS 順と親配列から各頂点の深さを返す。
 
     引数:
     - order: DFS の訪問順
     - par: 親配列
 
     返り値:
-    - size: 部分木サイズ配列
+    - depth: 深さ配列（根は 0）
 
     計算量: O(n)
     """
-    n = len(par)
-    size = [1] * n
-    for v in order[::-1]:
-        if par[v] != -1:
-            size[par[v]] += size[v]
-    return size
+    depth = [0] * len(par)
+    for v in order:
+        p = par[v]
+        if p != -1:
+            depth[v] = depth[p] + 1
+    return depth
