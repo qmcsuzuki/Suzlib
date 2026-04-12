@@ -12,10 +12,8 @@ def input_tree(n, offset=1):
     - g: 隣接リスト
     """
     g = [[] for _ in range(n)]
-    for _ in range(n - 1):
-        u, v = map(int, readline().split())
-        u -= offset
-        v -= offset
+    for _ in range(n-1):
+        u, v = [int(i)-offset for i in readline().split()]
         g[u].append(v)
         g[v].append(u)
     return g
