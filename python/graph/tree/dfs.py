@@ -15,8 +15,6 @@ def input_tree(n, offset=1):
 
     返り値:
     - g: 隣接リスト
-
-    計算量: O(n)
     """
     g = [[] for _ in range(n)]
     for _ in range(n - 1):
@@ -39,8 +37,6 @@ def get_order_and_parent(g, root):
     返り値:
     - order: DFS の訪問順
     - par: 親配列（par[root] = -1）
-
-    計算量: O(n)
     """
     n = len(g)
     par = [-1] * n
@@ -67,8 +63,6 @@ def get_size(order, par, wt=None):
 
     返り値:
     - size: 部分木サイズ配列（wt 指定時は部分木重み和）
-
-    計算量: O(n)
     """
     n = len(par)
     size = [1] * n if wt is None else wt[:]
@@ -88,8 +82,6 @@ def get_depth(order, par):
 
     返り値:
     - depth: 深さ配列（根は 0）
-
-    計算量: O(n)
     """
     depth = [0] * len(par)
     for v in order:
