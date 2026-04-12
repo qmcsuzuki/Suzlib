@@ -1,9 +1,4 @@
-# competitive-verifier: TITLE 深さ優先探索 (DFS)
-
-"""
-木の入力と DFS の基本情報を作る補助関数群。
-"""
-
+# competitive-verifier: TITLE 木の基本関数（DFS順、親、サイズ、深さ）
 
 def input_tree(n, offset=1):
     """
