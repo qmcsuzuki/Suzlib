@@ -1,9 +1,9 @@
 # competitive-verifier: TITLE 木の基本関数（DFS順、親、サイズ、深さ）
 
 """ usage
-g = input_tree(n, offseet=1)
+g = input_tree(n, offset=1)
 order, par = get_order_and_parent(g, root=0)
-size = getsize(g,wt=None) # 重み 1
+size = get_size(g,wt=None) # 重み 1
 depth = get_depth(order, par)
 """
 
