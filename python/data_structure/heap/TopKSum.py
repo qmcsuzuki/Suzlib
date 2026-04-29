@@ -89,4 +89,7 @@ class MedianMaintainer(TopKSum):
             return self.q_topK.top()
         return -self.q_other.top()
 
-# https://atcoder.jp/contests/abc127/submissions/72270899
+"""
+- https://atcoder.jp/contests/abc127/submissions/72270899
+- https://atcoder.jp/contests/awc0055/submissions/75345247
+"""
