@@ -28,11 +28,6 @@ jobs:
           python-version: "3.11"
           cache-pip: true
 
-      - name: Set up PyPy for verified programs
-        uses: actions/setup-python@v5
-        with:
-          python-version: "pypy3.11"
-
       # Initialize your own environment for resolving.
       - name: oj-resolve
         uses: competitive-verifier/actions/oj-resolve@v2
@@ -79,15 +74,15 @@ jobs:
       - name: Download verify_files.json
         uses: competitive-verifier/actions/download-verify-artifact@v2
 
-      - name: Set up PyPy
-        uses: actions/setup-python@v5
-        with:
-          python-version: "pypy3.11"
-
       - name: Set up competitive-verifier
         uses: competitive-verifier/actions/setup@v2
         with:
           cache-pip: true
+
+      - name: Set up PyPy
+        uses: actions/setup-python@v5
+        with:
+          python-version: "pypy3.11"
 
       - name: Verify
         uses: competitive-verifier/actions/verify@v2
