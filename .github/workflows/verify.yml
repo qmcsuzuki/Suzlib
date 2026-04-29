@@ -129,6 +129,12 @@ jobs:
         env:
           SRCDIR: .artifacts/Bundled-${{ runner.os }}
 
+      - name: Set up competitive-verifier
+        uses: competitive-verifier/actions/setup@v2
+        with:
+          python-version: "3.11"
+          cache-pip: true
+
       - name: Docs
         uses: competitive-verifier/actions/docs@v2
         with:
