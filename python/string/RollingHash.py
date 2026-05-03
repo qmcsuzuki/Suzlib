@@ -1,3 +1,4 @@
+# competitive-verifier: TITLE ローリングハッシュ
 MOD61 = (1<<61)-1
 
 # a * b % MOD61 を計算
