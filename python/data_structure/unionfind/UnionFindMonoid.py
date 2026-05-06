@@ -1,4 +1,4 @@
-# competitive-verifier: TITLE モノイド付きUnionFind
+# competitive-verifier: TITLE モノイド付きUnionFind/ 辺数カウント（as 特殊化）
 
 from python.data_structure.unionfind.UnionFind import UnionFind
 class UnionFindMonoid(UnionFind):
@@ -29,6 +29,25 @@ class UnionFindMonoid(UnionFind):
 
     def get_value(self, x): # 頂点 x を含む連結成分の管理する値を取得
         return self.data[self.leader(x)]
+
+class UnionFindEdgeNum(UnionFindMonoid):
+    # 各連結成分の辺数を管理する UnionFind.
+    # グラフに辺 (u, v) を追加するときは add_edge(u, v) を使う。
+
+    def __init__(self, n):
+        super().__init__(n, int.__add__, [0] * n)
+
+    def add_edge(self, x, y):
+        # 辺 (x, y) を 1 本追加する。
+        self.add_value(x, 1)
+        return super().merge(x, y)
+
+    def merge(self, x, y):
+        raise AttributeError("UnionFindEdgeNum.merge is disabled. Use add_edge(x, y) instead.")
+
+    def get_edge_num(self, x):
+        return self.get_value(x)
+
 
 """
 例: マージテク
