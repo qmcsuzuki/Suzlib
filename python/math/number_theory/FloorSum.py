@@ -60,7 +60,13 @@ import sys
 readline = sys.stdin.buffer.readline
 read = sys.stdin.read
 
-T = int(readline())
-for _ in range(T):
-    n,m,a,b = map(int,readline().split())
-    print(floor_sum(n,m,a,b))
+
+def main():
+    T = int(readline())
+    for _ in range(T):
+        n,m,a,b = map(int,readline().split())
+        print(floor_sum(n,m,a,b))
+
+
+if __name__ == '__main__':
+    main()
