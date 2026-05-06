@@ -27,10 +27,10 @@ class UnionFind:
         return -self.parent_or_size[self.leader(x)]
 
     def all_leaders(self): # 全てのリーダーのリストを返す
-        return [i for i,v in enumerate(self.parent) if v < 0]
+        return [i for i,v in enumerate(self.parent_or_size) if v < 0]
         
     def groups(self): # 全ての連結成分からなるリストを返す
-        n = len(self.parent)
+        n = len(self.parent_or_size)
         gp = [[] for _ in range(n)]
         for v in range(n):
             gp[self.leader(v)].append(v)
