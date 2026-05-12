@@ -16,7 +16,7 @@ def fwt_inplace(a):
         a[i] %= MOD
         
 def ifwt_inplace(a):
-    fwt(a)
+    fwt_inplace(a)
     v = pow(len(a),MOD-2,MOD)
     for i in range(len(a)):
       a[i] = v*a[i]%MOD
