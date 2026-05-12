@@ -14,7 +14,7 @@ def fwt_inplace(a):
         i <<= 1
     for i in range(n):
         a[i] %= MOD
-        
+
 def ifwt_inplace(a):
     fwt_inplace(a)
     v = pow(len(a),MOD-2,MOD)
