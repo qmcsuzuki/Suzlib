@@ -20,7 +20,7 @@ def count_bounded_ordered_division(N, K):
     ans = 0
     for i in range(N//(K+1) + 1):
         m = N - (K+1)*i
-        # [x^{N+1}] (1-x) \sum_i (2x-x^{k+1})^2
+        # [x^N] (1-x) / (1-2x+x^{K+1}) = [x^N] sum_i (-1)^i x^{(K+1)i}(1-x)/(1-2x)^{i+1}
         term = pow2[m] * choose(m + i, i) % MOD
         if m >= 1:
             term -= pow2[m - 1] * choose(m - 1 + i, i) % MOD
