@@ -1,3 +1,5 @@
+# competitive-verifier: TITLE 長さ K 以下のブロックで合計長 N を作る場合の数
+
 pow2 = [1]*(SIZE+1)
 for i in range(1,SIZE+1):
     pow2[i] = pow2[i-1]*2%MOD
