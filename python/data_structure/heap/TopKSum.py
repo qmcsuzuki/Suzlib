@@ -11,8 +11,9 @@ from python.data_structure.heap.DeletableHeapq import DeletableHeapqInt
 - `minus_K()`：K の値を 1 減らす
 """
 class TopKSum:
-    def __init__(self, K, initial = []):
+    def __init__(self, K, initial = None):
         self.K = K
+        initial = [] if initial is None else list(initial)
         initial.sort(reverse=1)
         self.q_topK = DeletableHeapqInt(initial[:K])
         self.q_other = DeletableHeapqInt([-x for x in initial[K:]])
@@ -63,7 +64,8 @@ class TopKSum:
 # Specialized for Median maintenance:
 # add, remove, get upper/lower median
 class MedianMaintainer(TopKSum):
-    def __init__(self, initial = []):
+    def __init__(self, initial = None):
+        initial = [] if initial is None else list(initial)
         self.n = len(initial)
         super().__init__((self.n + 1) // 2, initial)
 
