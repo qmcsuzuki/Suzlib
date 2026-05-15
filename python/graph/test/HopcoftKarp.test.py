@@ -1,4 +1,4 @@
-# verification-helper: PROBLEM https://judge.yosupo.jp/problem/bipartitematching
+# competitive-verifier: PROBLEM https://judge.yosupo.jp/problem/bipartitematching
 
 from python.graph.HopcoftKarp import HopcroftKarp
 

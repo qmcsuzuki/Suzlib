@@ -1,4 +1,4 @@
-# verification-helper: PROBLEM https://judge.yosupo.jp/problem/unionfind_with_potential_non_commutative_group
+# competitive-verifier: PROBLEM https://judge.yosupo.jp/problem/unionfind_with_potential_non_commutative_group
 
 from python.data_structure.unionfind.PotentialUnionFindGeneral import PotentialUnionFindGeneral
 import sys

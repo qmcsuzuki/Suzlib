@@ -1,4 +1,4 @@
-# verification-helper: PROBLEM https://judge.yosupo.jp/problem/rooted_tree_isomorphism_classification
+# competitive-verifier: PROBLEM https://judge.yosupo.jp/problem/rooted_tree_isomorphism_classification
 
 from python.graph.tree.RootedTreeHash import rooted_tree_hash
 

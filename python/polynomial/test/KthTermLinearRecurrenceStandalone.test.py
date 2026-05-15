@@ -1,4 +1,4 @@
-# verification-helper: STANDALONE
+# competitive-verifier: STANDALONE
 import python.polynomial.LinearRecurrence as LinearRecurrence
 import python.polynomial.simple_brute_polynomial as simple_brute_polynomial
 

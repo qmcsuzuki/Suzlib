@@ -1,4 +1,4 @@
-# verification-helper: PROBLEM https://judge.yosupo.jp/problem/zalgorithm
+# competitive-verifier: PROBLEM https://judge.yosupo.jp/problem/zalgorithm
 import sys
 from python.string.RollingHash import RollingHash61
 

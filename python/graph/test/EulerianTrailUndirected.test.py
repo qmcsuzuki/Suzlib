@@ -1,4 +1,4 @@
-# verification-helper: PROBLEM https://judge.yosupo.jp/problem/eulerian_trail_undirected
+# competitive-verifier: PROBLEM https://judge.yosupo.jp/problem/eulerian_trail_undirected
 
 from python.graph.EulerianTrail import Eulerian_trail_undirected
 

@@ -1,4 +1,4 @@
-# verification-helper: PROBLEM https://judge.yosupo.jp/problem/unionfind
+# competitive-verifier: PROBLEM https://judge.yosupo.jp/problem/unionfind
 
 from python.data_structure.unionfind.UnionFind import UnionFind
 import sys

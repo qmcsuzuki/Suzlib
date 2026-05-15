@@ -1,4 +1,4 @@
-# verification-helper: PROBLEM https://judge.yosupo.jp/problem/unionfind_with_potential
+# competitive-verifier: PROBLEM https://judge.yosupo.jp/problem/unionfind_with_potential
 
 from python.data_structure.unionfind.PotentialUnionFind import PotentialUnionFind
 import sys
