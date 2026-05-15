@@ -6,11 +6,12 @@ class DeletableHeapq:
     削除可能heapq
     削除する元があることを仮定している（必要なときは別途 set や dict を持つ）
     """
-    def __init__(self, initial = []):
-        if initial:
-            self.q = initial[::]
+    def __init__(self, initial = None):
+        if initial is None:
+            self.q = []
+        else:
+            self.q = list(initial)
             heapify(self.q)
-        else: self.q = []
         self.q_del = []
 
     def __len__(self):
@@ -42,9 +43,9 @@ class DeletableHeapq:
 要素が整数の場合、和も一緒に管理する特殊化
 """
 class DeletableHeapqInt(DeletableHeapq):
-    def __init__(self, initial = []):
+    def __init__(self, initial = None):
         super().__init__(initial)
-        self.sum = sum(initial)
+        self.sum = 0 if initial is None else sum(initial)
 
     def heappop(self):
         self.propagate()
