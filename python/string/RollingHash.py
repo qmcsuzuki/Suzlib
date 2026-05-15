@@ -103,7 +103,7 @@ class RollingHash61:
 
     @classmethod
     def concat_pairs(cls, a, b):
-        # (hash1, len1) と (hash2, len2) の結合
         ha, la = a
         hb, lb = b
-        return (cls.concat_hash(ha, la, hb, lb), la + lb)
+        return (cls.concat_hash(ha, hb, lb), la + lb)
+
