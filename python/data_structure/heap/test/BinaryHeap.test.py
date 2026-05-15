@@ -1,4 +1,4 @@
-# verification-helper: PROBLEM https://onlinejudge.u-aizu.ac.jp/courses/lesson/8/ITP2/2/ITP2_2_C
+# competitive-verifier: PROBLEM https://onlinejudge.u-aizu.ac.jp/courses/lesson/8/ITP2/2/ITP2_2_C
 
 from python.data_structure.heap.BinaryHeap import BinaryHeap
 import sys

@@ -1,4 +1,4 @@
-# verification-helper: PROBLEM https://judge.yosupo.jp/problem/suffixarray
+# competitive-verifier: PROBLEM https://judge.yosupo.jp/problem/suffixarray
 
 from python.string.SuffixArrayDoubling import suffix_array_doubling
 

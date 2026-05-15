@@ -1,4 +1,4 @@
-# verification-helper: PROBLEM https://judge.yosupo.jp/problem/sum_of_floor_of_linear
+# competitive-verifier: PROBLEM https://judge.yosupo.jp/problem/sum_of_floor_of_linear
 
 from python.math.number_theory.FloorSum import floor_sum
 import sys

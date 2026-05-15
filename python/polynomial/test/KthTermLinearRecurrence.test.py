@@ -1,4 +1,4 @@
-# verification-helper: STANDALONE
+# competitive-verifier: STANDALONE
 #
 """
 to pass the test, need fast polynomial multiplication
