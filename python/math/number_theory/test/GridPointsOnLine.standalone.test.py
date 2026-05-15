@@ -2,7 +2,7 @@
 
 from itertools import product
 
-from python.number_theory.GridPointsOnLine import grid_points_on_line
+from python.math.number_theory.GridPointsOnLine import grid_points_on_line
 
 
 def brute(a, b, c, L, n, R, m):

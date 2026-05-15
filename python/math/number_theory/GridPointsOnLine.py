@@ -1,6 +1,6 @@
 # competitive-verifier: TITLE 直線上の格子点の個数
 
-from python.number_theory.extgcd import extgcd
+from python.math.number_theory.extgcd import extgcd
 
 def count_integer_points_of_queen_moves(a,b,c,x_min,x_max,y_min,y_max):
     # find number of (ax + by = c, x_min <= x < x_max, y_min <= y < y_max)
@@ -36,7 +36,7 @@ def grid_points_on_line(a,b,c,x_min,x_max,y_min,y_max):
             return 0,0,0,0
     if b < 0: a,b,c = -a,-b,-c
 
-    x0,y0,g = extgcd(a,b)
+    g,x0,y0 = extgcd(a,b)
     if c%g: return 0,0,0,0
     x0 *= c//g
     y0 *= c//g
