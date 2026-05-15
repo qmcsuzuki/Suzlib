@@ -1,5 +1,7 @@
 # competitive-verifier: TITLE Floor Sum
 
+from python.math.number_theory.extgcd import extgcd
+
 """
 sum((a*i+b)//m for i in range(n)) を返す
 a,b <= 0 もOK
