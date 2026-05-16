@@ -142,13 +142,6 @@ jobs:
           destination: _jekyll
           write-summary: true
 
-      - name: Generate API index
-        run: |
-          python3 scripts/generate_api_index.py \
-            --src python \
-            --out _jekyll/api-index.md \
-            --index _jekyll/index.md
-
       - name: Setup Pages
         uses: actions/configure-pages@v4
       - name: Build with Jekyll
