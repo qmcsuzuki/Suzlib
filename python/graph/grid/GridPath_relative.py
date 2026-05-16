@@ -1,5 +1,7 @@
 # competitive-verifier: TITLE グリッドを相対座標で持って移動するユーティリティ
 
+# https://atcoder.jp/contests/abc232/submissions/75894787
+
 class GridPath:
     """
     0-indexed の局所盤面ビュー + 経路履歴。
