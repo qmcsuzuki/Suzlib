@@ -65,7 +65,12 @@ def signature(node: ast.FunctionDef | ast.AsyncFunctionDef) -> str:
 def parse_python_file(path: Path) -> list[dict]:
     """Python ファイルから公開 class / function / method を抽出する。"""
     text = path.read_text(encoding="utf-8")
-    tree = ast.parse(text, filename=str(path))
+    try:
+        tree = ast.parse(text, filename=str(path))
+    except SyntaxError as e:
+        print(f"skip: syntax error in {path}: {e}")
+        return []
+
     items = []
     module_doc = first_line(ast.get_docstring(tree))
 
