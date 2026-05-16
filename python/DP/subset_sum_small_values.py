@@ -1,10 +1,10 @@
 """
 subset sum を O(N max A) で解く (Pisinger)
 A: 値のリスト
-C: ?????
+C: 和の上限
 return:
   - ans: 部分和の最大値
-  - res2: ????
+  - res2: 各要素を選んだかどうかを表す 0/1 リスト（元の A の順）
 """
 def subset_sum(A,C):
     assert C >= 0
