@@ -142,6 +142,10 @@ jobs:
           destination: _jekyll
           write-summary: true
 
+      - name: Add quick references
+        run: |
+          python3 scripts/add_quick_reference.py
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
       - name: Build with Jekyll
