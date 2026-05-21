@@ -38,10 +38,27 @@ class DirectedTrailDecomposition:
     def _find_trail(self, start):
         """
         start から始まる maximal directed trail を 1 本返す。
+        途中で挿入できる閉路も吸収する Hierholzer 型にする。
         self._g を破壊する。
         return: list[int]  # edge ids
         """
-        ...
+        vs = [start]
+        es = []
+        trail = []
+
+        while vs:
+            v = vs[-1]
+            if self._g[v]:
+                eid = self._g[v].pop()
+                es.append(eid)
+                vs.append(self.edges[eid][1])
+            else:
+                vs.pop()
+                if es:
+                    trail.append(es.pop())
+
+        trail.reverse()
+        return trail
 
 
     def trail_decomposition(self):
