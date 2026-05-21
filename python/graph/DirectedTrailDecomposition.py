@@ -77,18 +77,22 @@ class DirectedTrailDecomposition:
         if not cycle:
             return []
 
-        has_dummy = False
-        for eid in cycle:
+        first_dummy = -1
+        for i, eid in enumerate(cycle):
             if eid >= dummy_start:
-                has_dummy = True
+                first_dummy = i
                 break
 
-        if not has_dummy:
+        if first_dummy == -1:
             return [cycle]
+
+        # 閉路は循環列なので、先頭/末尾をまたぐ実辺列を 1 本に保つため
+        # 最初のダミー辺の直後を先頭に回転してから分割する。
+        rot = cycle[first_dummy + 1 :] + cycle[:first_dummy]
 
         res = []
         cur = []
-        for eid in cycle:
+        for eid in rot:
             if eid >= dummy_start:
                 if cur:
                     res.append(cur)
