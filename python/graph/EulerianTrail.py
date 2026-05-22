@@ -6,7 +6,7 @@ Eulerian_trail_directed(n,edges): 有向
 Eulerian_trail_undirected(n,edges): 無向
 _find_trail: 内部関数
 
-トレイル分解などのより詳細なクエリは Trail decomp のほうを見よ
+トレイル分解などのより詳細なクエリは Directed/UndirectedTrailDecomposition  のほうを見よ
 """
 
 def _find_trail(g, start, base, m):
