@@ -109,7 +109,9 @@ class DirectedTrailDecomposition:
 
     def eulerian_trail(self):
         if len(self._trails) == 0:
-            return True, [], []
+            # 辺が 0 本のときは、長さ 0 のトレイルとして頂点 1 つを返す。
+            # (verify 問題では頂点列の長さが m+1 を満たす必要がある)
+            return True, [0] if self.n else [], []
         if len(self._trails) != 1:
             return False, [], []
 
@@ -121,7 +123,7 @@ class DirectedTrailDecomposition:
 
     def eulerian_circuit(self):
         if len(self._trails) == 0:
-            return True, [], []
+            return True, [0] if self.n else [], []
         if len(self._trails) != 1:
             return False, [], []
 
