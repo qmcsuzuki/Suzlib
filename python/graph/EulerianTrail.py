@@ -2,6 +2,7 @@
 
 """
 （頂点辞書順最小の）オイラー路を求める
+より詳細なクエリは Trail decomp のほうを見よ
 Eulerian_trail_directed(n,edges): 有向
 Eulerian_trail_undirected(n,edges): 無向
 _find_trail: 内部関数
