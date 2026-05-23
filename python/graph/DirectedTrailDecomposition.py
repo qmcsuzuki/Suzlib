@@ -195,3 +195,5 @@ class DirectedTrailDecomposition:
             v = self.edges[self._trails[(i + 1) % k][0]][0]
             add.append((u, v))
         return k, add
+
+# https://atcoder.jp/contests/arc220/submissions/76020362
