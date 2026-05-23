@@ -200,7 +200,7 @@ class LazySegmentTree:
             self.lazy[k] = self.compose(f, self.lazy[k])
 
     def push(self, k): #propagate と同じ
-        if self.lazy[k] is self.id_M: return
+        if self.lazy[k] == self.id_M: return
         self.data[2*k  ] = self.mapping(self.lazy[k], self.data[2*k])
         self.data[2*k+1] = self.mapping(self.lazy[k], self.data[2*k+1])
         if 2*k < self.N0:
