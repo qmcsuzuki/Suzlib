@@ -50,7 +50,7 @@ jobs:
         run: |
           echo "count=$(find .competitive-verifier/bundled/ -type f | wc -l)" >> $GITHUB_OUTPUT
       - name: Upload bundled
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         if: steps.test-bundled.outputs.count > 0
         with:
           name: Bundled-${{ runner.os }}
@@ -93,7 +93,7 @@ jobs:
           timeout: 1800
 
       - name: Upload result artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         with:
           name: Result-${{ runner.os }}-${{ matrix.index }}
           path: ${{runner.temp}}/result.json
@@ -155,7 +155,7 @@ jobs:
           destination: _site
       - name: Upload artifact
         id: upload-pages
-        uses: actions/upload-pages-artifact@v5
+        uses: actions/upload-pages-artifact@v4
         with:
           path: _site
 
