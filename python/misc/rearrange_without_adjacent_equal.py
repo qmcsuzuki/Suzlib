@@ -1,3 +1,4 @@
+# competitive-verifier: TITLE 隣接同値なし並べ替え
 def rearrange_without_adjacent_equal(seq):
     """
     seq を並べ替えて、隣接する 2 要素が異なるようにできるかを判定・構築

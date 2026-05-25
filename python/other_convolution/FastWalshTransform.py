@@ -1,3 +1,4 @@
+# competitive-verifier: TITLE 高速ウォルシュ変換（XOR畳み込み）
 """
 in place な高速Walsh変換
 xor畳み込みなどに用いる。

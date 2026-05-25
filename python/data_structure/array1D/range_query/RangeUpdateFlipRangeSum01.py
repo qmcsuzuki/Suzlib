@@ -1,3 +1,4 @@
+# competitive-verifier: TITLE 区間反転・区間和（01列）
 class RangeUpdateFlipRangeSum01:
     """
     01 列に対する range update / range xor (flip) / range sum

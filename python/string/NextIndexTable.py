@@ -1,3 +1,4 @@
+# competitive-verifier: TITLE 次出現位置テーブル
 """
 s を 1-indexed で見る
 nxt[i][j] = i+1 文字目以降に文字種 j の最初のindex
