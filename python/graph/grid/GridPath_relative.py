@@ -40,6 +40,21 @@ class GridPath:
     def relative_target(self):
         return self.target_i, self.target_j
 
+    def set_origin(self, i, j):
+        """
+        局所座標 (i, j) が新しい原点 (0, 0) になるように座標系を平行移動する。
+        盤面の向きや絶対位置は保ったまま、現在位置と target の局所座標を更新する。
+        """
+        self.ox += i * self.dx + j * self.rx
+        self.oy += i * self.dy + j * self.ry
+        self._map_local_points(lambda x, y: (x - i, y - j))
+
+    def set_origin_current(self):
+        """
+        現在位置を新しい原点 (0, 0) に設定する。
+        """
+        self.set_origin(self.cx, self.cy)
+
     def move_to(self, i, j):
         """
         現在の局所盤面で (i,j) へ 1 手で移動し、履歴に追加する。
