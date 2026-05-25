@@ -1,3 +1,4 @@
+# competitive-verifier: TITLE KMP法
 def prefix_function(s):
     n = len(s)
     table = [0]*(n+1)

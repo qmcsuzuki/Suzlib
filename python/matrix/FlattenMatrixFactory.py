@@ -1,3 +1,4 @@
+# competitive-verifier: TITLE 行列演算ファクトリ（平坦化）
 """
 1 次元化された有名な環上の行列について、（積演算 op, 単位行列）を返すファクトリ
 行列は row-major の 1 次元 tuple/list で持つ。

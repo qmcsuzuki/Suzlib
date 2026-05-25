@@ -1,3 +1,4 @@
+# competitive-verifier: TITLE 小さい値の部分和
 """
 subset sum を O(N max A) で解く (Pisinger)
 A: 値のリスト

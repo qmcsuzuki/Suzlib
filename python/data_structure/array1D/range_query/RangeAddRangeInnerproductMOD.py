@@ -1,3 +1,4 @@
+# competitive-verifier: TITLE 区間加算・区間内積 mod 998244353
 
 
 class RangeAddRangeInnerproductMOD(LazySegmentTree):

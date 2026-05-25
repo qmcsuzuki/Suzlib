@@ -1,3 +1,4 @@
+# competitive-verifier: TITLE 最小回転
 def minimum_rotation(s):
     a = 0
     b = 1

@@ -1,3 +1,4 @@
+# competitive-verifier: TITLE 区間加算・区間二乗和 mod 998244353
 class RangeAddRangeSquareMOD(LazySegmentTree):
     """
     区間加算区間二乗和を MOD で計算する遅延セグ木
