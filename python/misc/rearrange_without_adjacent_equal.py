@@ -1,11 +1,11 @@
-# competitive-verifier: TITLE 隣接同値なし並べ替え
+# competitive-verifier: TITLE 隣り合う値が異なるように並べ替える
 def rearrange_without_adjacent_equal(seq):
     """
     seq を並べ替えて、隣接する 2 要素が異なるようにできるかを判定・構築
-    返り値: True/False, List
+    返り値: List （不可能なら空リスト）
     """
     n = len(seq)
-    if n == 1: return True, seq[:]
+    if n == 1: return seq[:]
 
     cnt = {}
     for x in seq:
@@ -19,10 +19,9 @@ def rearrange_without_adjacent_equal(seq):
             max_c = c
 
     if max_c > (n + 1) // 2:
-        return False, []
+        return []
 
     ans = [seq[0]]*n
-
     pos = 0
 
     for _ in range(max_c):
@@ -38,4 +37,4 @@ def rearrange_without_adjacent_equal(seq):
             ans[pos] = x
             pos += 2
 
-    return True, ans
+    return ans
