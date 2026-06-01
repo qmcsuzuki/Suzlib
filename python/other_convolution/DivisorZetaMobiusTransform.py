@@ -1,8 +1,11 @@
+# competitive-verifier: TITLE 約数包除（large N）
+
+
 class DivisorTransform:
     """
     n の約数束上の zeta / mobius 変換。
-    lower: F(d) = sum_{c | d} f(c)
-    upper: F(d) = sum_{d | c | n} f(c)
+    lower: F(d) = sum_{c|d} f(c)
+    upper: F(d) = sum_{d|c|n} f(c)
     """
 
     def __init__(self, n, divs, primes):
