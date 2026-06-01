@@ -1,3 +1,5 @@
+# competitive-verifier: TITLE O(\sqrt N) 素因数分解
+
 """
 O(\sqrt N) 素因数分解
 input: N
