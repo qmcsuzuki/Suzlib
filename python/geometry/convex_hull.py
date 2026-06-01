@@ -7,7 +7,7 @@ points をソートするという副作用がある点に注意
 def convex_hull(points,need_sort=True):
     def cross(i,j,k):
         """
-        ベクトル ij と ベクトル ik の内積（正なら班時計周り）
+        ベクトル ij と ベクトル ik の外積（正なら反時計回り）
         """
         xi,yi = points[i]
         xj,yj = points[j]
@@ -15,6 +15,8 @@ def convex_hull(points,need_sort=True):
         return (xj-xi)*(yk-yj) - (yj-yi)*(xk-xj) 
 
     n = len(points)
+    if n <= 1:
+        return list(range(n))
     if need_sort: points.sort()
     lst = []
     for i in range(n):
@@ -27,21 +29,3 @@ def convex_hull(points,need_sort=True):
             lst.pop()
         lst.append(i)
     return lst[:-1]
-
-##########################################################################
-# https://judge.u-aizu.ac.jp/onlinejudge/review.jsp?rid=5498674
-##########################################################################
-
-import sys
-readline = sys.stdin.readline
-
-n = int(input())
-yx = []
-for _ in range(n):
-    x,y = map(int,input().split())
-    yx.append((y,x))
-lst = convex_hull(yx)
-print(len(lst))
-for i in lst:
-    y,x = yx[i]
-    print(x,y)

@@ -1,4 +1,7 @@
 # competitive-verifier: TITLE 区間反転・区間和（01列）
+
+from data_structure.array1D.LazySegmentTree import LazySegmentTree
+
 class RangeUpdateFlipRangeSum01:
     """
     01 列に対する range update / range xor (flip) / range sum
@@ -24,15 +27,15 @@ class RangeUpdateFlipRangeSum01:
         self.BASE = self.N + 1
 
         def mapping(action, packed):
-            if action == RangeUpdateXorRangeSum01.ID:
+            if action == RangeUpdateFlipRangeSum01.ID:
                 return packed
 
             one, length = divmod(packed, self.BASE)
 
-            if action == RangeUpdateXorRangeSum01.SET0:
+            if action == RangeUpdateFlipRangeSum01.SET0:
                 return length
 
-            if action == RangeUpdateXorRangeSum01.SET1:
+            if action == RangeUpdateFlipRangeSum01.SET1:
                 return length * self.BASE + length
 
             # action == FLIP
@@ -45,11 +48,11 @@ class RangeUpdateFlipRangeSum01:
             ID=0, SET0=1, SET1=2, FLIP=3 としているので、
             FLIP after old_action は old_action ^ 3 で書ける。
             """
-            if new_action == RangeUpdateXorRangeSum01.ID:
+            if new_action == RangeUpdateFlipRangeSum01.ID:
                 return old_action
-            if new_action < RangeUpdateXorRangeSum01.FLIP:
+            if new_action < RangeUpdateFlipRangeSum01.FLIP:
                 return new_action
-            return old_action ^ RangeUpdateXorRangeSum01.FLIP
+            return old_action ^ RangeUpdateFlipRangeSum01.FLIP
 
         array = [a * self.BASE + 1 for a in A]
 
@@ -58,16 +61,16 @@ class RangeUpdateFlipRangeSum01:
             0,
             mapping,
             compose,
-            RangeUpdateXorRangeSum01.ID,
+            RangeUpdateFlipRangeSum01.ID,
             self.N,
             array,
         )
 
     def range_update(self, l, r, v):
         if v == 0:
-            self.seg.apply(l, r, RangeUpdateXorRangeSum01.SET0)
+            self.seg.apply(l, r, RangeUpdateFlipRangeSum01.SET0)
         else:
-            self.seg.apply(l, r, RangeUpdateXorRangeSum01.SET1)
+            self.seg.apply(l, r, RangeUpdateFlipRangeSum01.SET1)
 
     def range_flip(self, l, r):
         self.seg.apply(l, r, 3)
