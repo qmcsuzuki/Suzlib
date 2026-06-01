@@ -1,7 +1,7 @@
-# competitive-verifier: TITLE 最小素因数による素因数分解
+# competitive-verifier: TITLE 最小素因数列挙と O(log N) 素因数分解
 
 """
-最小素因数の配列を返す
+最小素因数の配列 spf_list を返す
 """
 def Eratosthenes_spf_list(N):
     # i>=2 のとき spf_list[i] は i の最小素因数
@@ -25,7 +25,7 @@ def Eratosthenes_spf_list(N):
     return spf_list
 
 """
-素因数を（重複ありの）リストで返す
+素因数を（重複ありの）リスト [p1,p2,p3,...] で返す
 """
 def factorize(n):
     if n <= 1:
