@@ -1,4 +1,4 @@
-# competitive-verifier: TITLE 拡張ユークリッドの互除法
+# competitive-verifier: TITLE 拡張ユークリッドの互除法/1 変数 1 次方程式の解
 
 def extgcd(a,b):
     x1 = y0 = 0
