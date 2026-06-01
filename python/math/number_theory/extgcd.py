@@ -10,3 +10,11 @@ def extgcd(a,b):
         a,b = b, a - q*b
     return a, x0, y0
 
+def solve_linear_congruence(a: int, b: int, MOD: int) -> tuple[int, int]
+    """
+    ax = b (mod MOD) の解 x = r (mod m) を (r,m) で返す。解なしなら (0,0)
+    """
+    g, x, _ = extgcd(a, mod)
+    if b % g: return (0,0)
+    m0 = MOD // g
+    return (x * (b // g)) % m0, m0
