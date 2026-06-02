@@ -1,18 +1,22 @@
 # competitive-verifier: TITLE 約数包除（large N）
 
 
+from python.math.prime.divisors_and_prime_divisors import divisors_and_prime_divisors
+
 class DivisorTransform:
     """
     n の約数束上の zeta / mobius 変換。
     lower: F(d) = sum_{c|d} f(c)
     upper: F(d) = sum_{d|c|n} f(c)
     """
-
-    def __init__(self, n, divs, primes):
+    def __init__(self, n, divs=None, primes=None):
         self.n = n
-        self.divs = sorted(divs)
+        if divs is None and primes is None:
+            self.divs, self.primes = divisors_and_prime_divisors(n)
+        else:
+            self.divs = sorted(divs)
+            self.primes = list(primes)
         self.pos = {d: i for i, d in enumerate(self.divs)}
-        self.primes = list(primes)
 
         self.lower_edges = []
         self.upper_edges = []
