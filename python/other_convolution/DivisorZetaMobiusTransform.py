@@ -9,31 +9,13 @@ class DivisorTransform:
     lower: F(d) = sum_{c|d} f(c)
     upper: F(d) = sum_{d|c|n} f(c)
     """
-    def __init__(self, n, divs=None, primes=None):
+    def __init__(self, n: int, divs=None, primes=None):
         self.n = n
         if divs is None and primes is None:
             self.divs, self.primes = divisors_and_prime_divisors(n)
         else:
             self.divs = sorted(divs)
             self.primes = list(primes)
-        self.pos = {d: i for i, d in enumerate(self.divs)}
-
-        self.lower_edges = []
-        self.upper_edges = []
-
-        for p in self.primes:
-            lower = []
-            upper = []
-            for d in self.divs:
-                if d % p == 0:
-                    lower.append((self.pos[d], self.pos[d // p]))
-
-                dp = d * p
-                if self.n % dp == 0:
-                    upper.append((self.pos[d], self.pos[dp]))
-
-            self.lower_edges.append(lower)
-            self.upper_edges.append(upper)
 
     def zeta_lower(self, a: dict[int, int]) -> dict[int, int]:
         """F(d) = sum_{c | d} f(c)."""
