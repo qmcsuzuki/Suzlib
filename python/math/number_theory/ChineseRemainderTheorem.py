@@ -1,3 +1,6 @@
+# competitive-verifier: TITLE 中国剰余定理 (CRT)
+
+
 from math import gcd
 
 def crt(RMlist):
