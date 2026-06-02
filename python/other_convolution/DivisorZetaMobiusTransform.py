@@ -14,9 +14,9 @@ class DivisorTransform:
         if divs is None and primes is None:
             self.divs, self.primes = divisors_and_prime_divisors(n)
         else:
+            assert divs is not None and primes is not None
             self.divs = sorted(divs)
             self.primes = list(primes)
-        assert divs is not None and primes is not None
 
     def zeta_lower(self, a: dict[int, int]) -> dict[int, int]:
         """F(d) = sum_{c | d} f(c)."""
