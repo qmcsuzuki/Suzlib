@@ -120,6 +120,11 @@ def parse_python_file(path: Path) -> list[dict]:
     return items
 
 
+def markdown_text(text: str) -> str:
+    """Markdown 本文として出す文字を最低限エスケープする。"""
+    return text.replace("|", r"\|")
+
+
 def make_quick_reference(items: list[dict]) -> str:
     """抽出結果を Markdown の Quick reference ブロックにする。"""
     if not items:
@@ -129,13 +134,13 @@ def make_quick_reference(items: list[dict]) -> str:
     for item in items:
         lines.append(f"- `{item['sig']}`")
         if item["doc"]:
-            lines.append(f"  - {item['doc']}")
+            lines.append(f"  - {markdown_text(item['doc'])}")
 
         if item["kind"] == "class":
             for method in item["methods"]:
                 lines.append(f"  - `{method['sig']}`")
                 if method["doc"]:
-                    lines.append(f"    - {method['doc']}")
+                    lines.append(f"    - {markdown_text(method['doc'])}")
 
     lines.append("")
     return "\n".join(lines)
