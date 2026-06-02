@@ -35,46 +35,52 @@ class DivisorTransform:
             self.lower_edges.append(lower)
             self.upper_edges.append(upper)
 
-    def zeta_lower(self, a):
+    def zeta_lower(self, a: dict[int, int]) -> dict[int, int]:
         """F(d) = sum_{c | d} f(c)."""
-        a = a[:]
+        a = a.copy()
         self.zeta_lower_inplace(a)
         return a
 
-    def mobius_lower(self, a):
+    def mobius_lower(self, a: dict[int, int]) -> dict[int, int]:
         """zeta_lower の逆変換。"""
-        a = a[:]
+        a = a.copy()
         self.mobius_lower_inplace(a)
         return a
 
-    def zeta_upper(self, a):
+    def zeta_upper(self, a: dict[int, int]) -> dict[int, int]:
         """F(d) = sum_{d | c | n} f(c)."""
-        a = a[:]
+        a = a.copy()
         self.zeta_upper_inplace(a)
         return a
 
-    def mobius_upper(self, a):
+    def mobius_upper(self, a: dict[int, int]) -> dict[int, int]:
         """zeta_upper の逆変換。"""
-        a = a[:]
+        a = a.copy()
         self.mobius_upper_inplace(a)
         return a
 
-    def zeta_lower_inplace(self, a):
-        for edges in self.lower_edges:
-            for i, j in edges:
-                a[i] += a[j]
+    def zeta_lower_inplace(self, a: dict[int, int]) -> None:
+        for p in self.primes:
+            for d in self.divs:
+                if d % p == 0:
+                    a[d] += a[d // p]
 
-    def mobius_lower_inplace(self, a):
-        for edges in self.lower_edges:
-            for i, j in reversed(edges):
-                a[i] -= a[j]
+    def mobius_lower_inplace(self, a: dict[int, int]) -> None:
+        for p in self.primes:
+            for d in reversed(self.divs):
+                if d % p == 0:
+                    a[d] -= a[d // p]
 
-    def zeta_upper_inplace(self, a):
-        for edges in self.upper_edges:
-            for i, j in reversed(edges):
-                a[i] += a[j]
+    def zeta_upper_inplace(self, a: dict[int, int]) -> None:
+        for p in self.primes:
+            for d in reversed(self.divs):
+                dp = d * p
+                if self.n % dp == 0:
+                    a[d] += a[dp]
 
-    def mobius_upper_inplace(self, a):
-        for edges in self.upper_edges:
-            for i, j in edges:
-                a[i] -= a[j]
+    def mobius_upper_inplace(self, a: dict[int, int]) -> None:
+        for p in self.primes:
+            for d in self.divs:
+                dp = d * p
+                if self.n % dp == 0:
+                    a[d] -= a[dp]
