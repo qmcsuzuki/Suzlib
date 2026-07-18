@@ -16,6 +16,8 @@ class FenwickTreeDinamic: #0-indexed
         return s
     def query(self,l,r): #a_l + ... + a_r 閉区間
         return self.get_sum(r) - self.get_sum(l-1) 
+    def suffix_sum(self,l): #a_l + ... (端まで)
+        return self.get_sum(self.MAX-1) - self.get_sum(l-1)
     def add(self, i, x):
         i += 1
         while i <= self.MAX:

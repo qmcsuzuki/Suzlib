@@ -5,6 +5,7 @@
 
 - CircularMultisetSmallM: M が小さい場合。O(M) memory
 - CircularMultisetLargeM: M が大きい場合。追加され得る値の事前列挙が必要
+- CircularMultisetDynamicM: M が大きく、追加される値を事前列挙できない場合
 
 各操作は Fenwick 木と二分探索により O(log M) または O(log K)。
 """
@@ -12,6 +13,7 @@
 from bisect import bisect_left, bisect_right
 
 from python.data_structure.array1D.FenwickTree import FenwickTree
+from python.data_structure.array1D.FenwickTreeDinamic import FenwickTreeDinamic
 
 
 class _CircularMultisetBase:
@@ -89,3 +91,24 @@ class CircularMultisetLargeM(_CircularMultisetBase):
 
     def _count_greater(self, x):
         return self.cnt_bit.suffix_sum(bisect_right(self.values, x))
+
+
+class CircularMultisetDynamicM(_CircularMultisetBase):
+    """
+    M が大きく、追加される値を事前列挙できない場合の動的 Fenwick 木版。
+
+    使用メモリは作られた Fenwick 木のノード数、各操作 O(log M)。
+    """
+
+    def __init__(self, M, init=()):
+        self.cnt_bit = FenwickTreeDinamic(M)
+        super().__init__(M, init)
+
+    def _add_count(self, x, wt):
+        self.cnt_bit.add(x, wt)
+
+    def _count_less(self, x):
+        return self.cnt_bit.get_sum(x - 1)
+
+    def _count_greater(self, x):
+        return self.cnt_bit.suffix_sum(x + 1)
