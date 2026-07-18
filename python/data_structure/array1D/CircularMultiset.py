@@ -45,8 +45,7 @@ class _CircularMultisetBase:
     def sum_left(self, m):
         """m から各 x への左回りの距離 (m-x) mod M の総和を返す。"""
         assert 0 <= m < self.M
-        cnt_greater = self.cnt - self._count_le(m)
-        return m * self.cnt - self.total_sum + self.M * cnt_greater
+        return m * self.cnt - self.total_sum + self.M * self._count_greater(m)
 
 
 class CircularMultisetSmallM(_CircularMultisetBase):
@@ -62,8 +61,8 @@ class CircularMultisetSmallM(_CircularMultisetBase):
     def _count_less(self, x):
         return self.cnt_bit.prefix_sum(x)
 
-    def _count_le(self, x):
-        return self.cnt_bit.prefix_sum(x + 1)
+    def _count_greater(self, x):
+        return self.cnt_bit.suffix_sum(x + 1)
 
 
 class CircularMultisetLargeM(_CircularMultisetBase):
@@ -88,5 +87,5 @@ class CircularMultisetLargeM(_CircularMultisetBase):
     def _count_less(self, x):
         return self.cnt_bit.prefix_sum(bisect_left(self.values, x))
 
-    def _count_le(self, x):
-        return self.cnt_bit.prefix_sum(bisect_right(self.values, x))
+    def _count_greater(self, x):
+        return self.cnt_bit.suffix_sum(bisect_right(self.values, x))
