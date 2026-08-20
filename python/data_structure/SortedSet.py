@@ -3,7 +3,6 @@
 # Original repository license: The Unlicense
 # https://github.com/tatyam-prime/SortedSet/blob/main/LICENSE
 
-# https://github.com/tatyam-prime/SortedSet/blob/main/SortedSet.py
 import math
 from bisect import bisect_left, bisect_right
 from typing import Generic, Iterable, Iterator, TypeVar
@@ -154,3 +153,124 @@ class SortedSet(Generic[T]):
                 return ans + bisect_right(a, x)
             ans += len(a)
         return ans
+
+    def lower_bound_cursor(self, x: T) -> "SortedSetCursor[T]":
+        """Return the boundary just before the first element >= x.
+        Any modification to the set invalidates existing cursors.
+        """
+        for b, a in enumerate(self.a):
+            if a[-1] >= x:
+                return SortedSetCursor(self, b, bisect_left(a, x))
+        return SortedSetCursor(self, len(self.a), 0)
+
+    def upper_bound_cursor(self, x: T) -> "SortedSetCursor[T]":
+        """Return the boundary just before the first element > x.
+        Any modification to the set invalidates existing cursors.
+        """
+        for b, a in enumerate(self.a):
+            if a[-1] > x:
+                return SortedSetCursor(self, b, bisect_right(a, x))
+        return SortedSetCursor(self, len(self.a), 0)
+
+    def erase(self, first: "SortedSetCursor[T]", last: "SortedSetCursor[T]") -> int:
+        """Erase [first, last) and return the number of erased elements.
+        The cursors must belong to self and must not have been invalidated.
+        """
+        if first.s is not self or last.s is not self:
+            raise ValueError("cursor belongs to another SortedSet")
+        b1, i1 = first.b, first.i
+        b2, i2 = last.b, last.i
+        if (b1, i1) > (b2, i2):
+            raise ValueError("invalid cursor range")
+        if (b1, i1) == (b2, i2):
+            return 0
+
+        if b1 == b2:
+            a = self.a[b1]
+            n = i2 - i1
+            del a[i1:i2]
+            self.size -= n
+            if not a:
+                del self.a[b1]
+            return n
+
+        a = self.a
+        left = a[b1]
+        n = len(left) - i1
+        del left[i1:]
+
+        if b2 < len(a):
+            right = a[b2]
+            n += i2
+            del right[:i2]
+            for bucket in a[b1 + 1:b2]:
+                n += len(bucket)
+            keep = []
+            if left:
+                keep.append(left)
+            if right:
+                keep.append(right)
+            a[b1:b2 + 1] = keep
+        else:
+            for bucket in a[b1 + 1:]:
+                n += len(bucket)
+            a[b1:] = [left] if left else []
+
+        self.size -= n
+        return n
+
+
+class SortedSetCursor(Generic[T]):
+    """A cursor at a boundary between two elements of a SortedSet."""
+
+    __slots__ = ("s", "b", "i")
+
+    def __init__(self, s: SortedSet[T], b: int, i: int) -> None:
+        self.s = s
+        self.b = b
+        self.i = i
+
+    def copy(self) -> "SortedSetCursor[T]":
+        return SortedSetCursor(self.s, self.b, self.i)
+
+    def prev(self) -> T | None:
+        "Return the element immediately before the cursor without moving it."
+        a = self.s.a
+        if self.b == len(a):
+            return a[-1][-1] if a else None
+        if self.i:
+            return a[self.b][self.i - 1]
+        if self.b:
+            return a[self.b - 1][-1]
+
+    def next(self) -> T | None:
+        "Return the element immediately after the cursor without moving it."
+        if self.b == len(self.s.a):
+            return None
+        return self.s.a[self.b][self.i]
+
+    def move_prev(self) -> bool:
+        "Move one element to the left and return False if already at the beginning."
+        a = self.s.a
+        if not a or (self.b == 0 and self.i == 0):
+            return False
+        if self.b == len(a):
+            self.b -= 1
+            self.i = len(a[self.b]) - 1
+        elif self.i:
+            self.i -= 1
+        else:
+            self.b -= 1
+            self.i = len(a[self.b]) - 1
+        return True
+
+    def move_next(self) -> bool:
+        "Move one element to the right and return False if already at the end."
+        a = self.s.a
+        if self.b == len(a):
+            return False
+        self.i += 1
+        if self.i == len(a[self.b]):
+            self.b += 1
+            self.i = 0
+        return True
