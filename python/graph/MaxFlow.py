@@ -57,6 +57,13 @@ class MFGraph:
         """追加した全ての辺を、追加順に返す。"""
         return [self.get_edge(i) for i in range(len(self._to) >> 1)]
 
+    def residual_graph(self) -> list[list[int]]:
+        """正の残余容量を持つ辺からなる隣接リストを返す。"""
+        g = self._g
+        to = self._to
+        cap = self._cap
+        return [[to[i] for i in g[v] if cap[i] > 0] for v in range(self._n)]
+
     def change_edge(self, i: int, new_cap: int, new_flow: int) -> None:
         """i 番目の辺の容量と流量を変更する。"""
         assert 0 <= i < (len(self._to) >> 1)
