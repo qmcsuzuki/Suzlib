@@ -218,3 +218,39 @@ class MFGraph:
                         current_edge[v] += 1
                         continue
                     stack.append(to[i])
+                    edge_stack.append(reverse_i)
+                    break
+                else:
+                    stack.pop()
+                    if edge_stack:
+                        edge_stack.pop()
+                    level[v] = n
+            return 0
+
+        result = 0
+        while result < flow_limit:
+            if not bfs():
+                break
+            for v in range(n):
+                current_edge[v] = 0
+            while result < flow_limit:
+                f = dfs(flow_limit - result)
+                if f == 0:
+                    break
+                result += f
+        return result
+
+    def min_cut(self, s: int) -> list[bool]:
+        """残余グラフ上で s から到達可能な頂点を返す。"""
+        assert 0 <= s < self._n
+        visited = [False] * self._n
+        visited[s] = True
+        stack = [s]
+        while stack:
+            v = stack.pop()
+            for i in self._g[v]:
+                u = self._to[i]
+                if self._cap[i] > 0 and not visited[u]:
+                    visited[u] = True
+                    stack.append(u)
+        return visited
