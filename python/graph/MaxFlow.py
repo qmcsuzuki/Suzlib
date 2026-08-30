@@ -64,6 +64,90 @@ class MFGraph:
         cap = self._cap
         return [[to[i] for i in g[v] if cap[i] > 0] for v in range(self._n)]
 
+    def path_decomposition(self, s: int, t: int) -> list[tuple[int, list[int]]]:
+        """現在の実行可能な s-t フローを (流量, 辺番号列) の和に分解する。
+
+        閉路上の循環流は返さず、グラフの状態は変更しない。
+        """
+        n = self._n
+        assert 0 <= s < n
+        assert 0 <= t < n
+        assert s != t
+
+        to = self._to
+        cap = self._cap
+        m = len(to) >> 1
+        remain = [0] * m
+        graph = [[] for _ in range(n)]
+        balance = [0] * n
+        for edge_id in range(m):
+            i = edge_id << 1
+            f = cap[i ^ 1]
+            remain[edge_id] = f
+            if f == 0:
+                continue
+            src = to[i ^ 1]
+            dst = to[i]
+            graph[src].append(edge_id)
+            balance[src] -= f
+            balance[dst] += f
+
+        for v in range(n):
+            if v != s and v != t:
+                assert balance[v] == 0
+        assert balance[s] <= 0
+        assert balance[t] == -balance[s]
+        flow_value = -balance[s]
+
+        current_edge = [0] * n
+        position = [-1] * n
+        result: list[tuple[int, list[int]]] = []
+        decomposed = 0
+        while decomposed < flow_value:
+            vertices = [s]
+            path: list[int] = []
+            position[s] = 0
+
+            while vertices[-1] != t:
+                v = vertices[-1]
+                while (
+                    current_edge[v] < len(graph[v])
+                    and remain[graph[v][current_edge[v]]] == 0
+                ):
+                    current_edge[v] += 1
+                assert current_edge[v] < len(graph[v])
+
+                edge_id = graph[v][current_edge[v]]
+                u = to[edge_id << 1]
+                path.append(edge_id)
+                if position[u] == -1:
+                    position[u] = len(vertices)
+                    vertices.append(u)
+                    continue
+
+                # 閉路の流量を除いて単純なパスに戻す。
+                cycle_start = position[u]
+                cycle = path[cycle_start:]
+                f = min(remain[edge_id] for edge_id in cycle)
+                for edge_id in cycle:
+                    remain[edge_id] -= f
+                for x in vertices[cycle_start + 1 :]:
+                    position[x] = -1
+                del vertices[cycle_start + 1 :]
+                del path[cycle_start:]
+
+            f = min(remain[edge_id] for edge_id in path)
+            if decomposed + f > flow_value:
+                f = flow_value - decomposed
+            for edge_id in path:
+                remain[edge_id] -= f
+            result.append((f, path.copy()))
+            decomposed += f
+            for v in vertices:
+                position[v] = -1
+
+        return result
+
     def change_edge(self, i: int, new_cap: int, new_flow: int) -> None:
         """i 番目の辺の容量と流量を変更する。"""
         assert 0 <= i < (len(self._to) >> 1)
@@ -134,39 +218,3 @@ class MFGraph:
                         current_edge[v] += 1
                         continue
                     stack.append(to[i])
-                    edge_stack.append(reverse_i)
-                    break
-                else:
-                    stack.pop()
-                    if edge_stack:
-                        edge_stack.pop()
-                    level[v] = n
-            return 0
-
-        result = 0
-        while result < flow_limit:
-            if not bfs():
-                break
-            for v in range(n):
-                current_edge[v] = 0
-            while result < flow_limit:
-                f = dfs(flow_limit - result)
-                if f == 0:
-                    break
-                result += f
-        return result
-
-    def min_cut(self, s: int) -> list[bool]:
-        """残余グラフ上で s から到達可能な頂点を返す。"""
-        assert 0 <= s < self._n
-        visited = [False] * self._n
-        visited[s] = True
-        stack = [s]
-        while stack:
-            v = stack.pop()
-            for i in self._g[v]:
-                u = self._to[i]
-                if self._cap[i] > 0 and not visited[u]:
-                    visited[u] = True
-                    stack.append(u)
-        return visited
