@@ -54,6 +54,7 @@ class BipartiteMatching:
         current_edge = [0] * self.n_left
 
         def bfs() -> int:
+            """未マッチ左頂点から BFS し、最短増大路の長さを返す。"""
             queue: list[int] = []
             for left in range(self.n_left):
                 if mate_left[left] == -1:
@@ -81,6 +82,7 @@ class BipartiteMatching:
 
         # 再帰を避け、左頂点と選んだ右頂点をスタックに積む。
         def dfs(start: int, shortest: int) -> bool:
+            """BFS 層に沿って最短増大路を1本探し、見つかれば反転する。"""
             left = start
             left_stack: list[int] = []
             right_stack: list[int] = []
@@ -241,6 +243,7 @@ class BipartiteMatching:
         return self.mate_left.copy(), self.mate_right.copy()
 
     def _reachable_sets(self) -> tuple[list[bool], list[bool]]:
+        """未マッチ左頂点から交互路で到達可能な左右の頂点集合を返す。"""
         self.solve()
         seen_left = [False] * self.n_left
         seen_right = [False] * self.n_right
@@ -308,6 +311,7 @@ class GeneralBipartiteMatching:
         self._solved = False
 
     def _bipartition(self) -> None:
+        """現在の辺集合を二部彩色し、各頂点の色を self.color に保存する。"""
         graph = [[] for _ in range(self.n)]
         for u, v in self.edges:
             graph[u].append(v)
@@ -333,6 +337,7 @@ class GeneralBipartiteMatching:
         self.color = color
 
     def _build_lr(self) -> None:
+        """二部彩色を左右に圧縮し、内部の BipartiteMatching を構築する。"""
         self._bipartition()
         self.fromL = [v for v in range(self.n) if self.color[v] == 0]
         self.fromR = [v for v in range(self.n) if self.color[v] == 1]
