@@ -85,14 +85,16 @@ class BipartiteMatching:
             while True:
                 i = current_edge[left]
                 adj = g[left]
+                n_adj = len(adj)
+                target = dist[left] + 1
 
-                while i < len(adj):
+                while i < n_adj:
                     right = adj[i]
                     i += 1
                     next_left = mate_right[right]
 
                     if next_left == -1:
-                        if dist[left] + 1 != shortest:
+                        if target != shortest:
                             continue
                         current_edge[left] = i
                         while True:
@@ -102,7 +104,7 @@ class BipartiteMatching:
                                 return True
                             left = left_stack.pop()
 
-                    if dist[next_left] == dist[left] + 1:
+                    if dist[next_left] == target:
                         current_edge[left] = i
                         left_stack.append(left)
                         left = next_left
@@ -312,7 +314,7 @@ class GeneralBipartiteMatching:
         for start in range(self.n):
             if color[start] != -1:
                 continue
-            color[start] = 0
+            color[start] = 1
             queue = [start]
             q_front = 0
             while q_front < len(queue):
