@@ -32,27 +32,22 @@ class DynamicBipartiteMatching:
         """辺 (x, y) を追加し、最大マッチング数が増えたかを返す。"""
         if not self._built:
             raise RuntimeError("call max_matching() first")
-        old = self.cnt
-        self._matching.add_edge(x, y)
-        self.cnt = self._matching.solve()
-        return self.cnt > old
+        updated = self._matching.increment_edge(x, y)
+        self.cnt = self._matching.size
+        return updated
 
     def increment_edges_from_left(self, x: int, ys: list[int]) -> bool:
         """一つの左頂点 x から複数の辺を追加し、サイズが増えたかを返す。"""
         if not self._built:
             raise RuntimeError("call max_matching() first")
-        old = self.cnt
-        for y in ys:
-            self._matching.add_edge(x, y)
-        self.cnt = self._matching.solve()
-        return self.cnt > old
+        updated = self._matching.increment_edges_from_left(x, ys)
+        self.cnt = self._matching.size
+        return updated
 
     def increment_edges_from_right(self, y: int, xs: list[int]) -> bool:
         """複数の左頂点から一つの右頂点 y へ辺を追加し、サイズが増えたかを返す。"""
         if not self._built:
             raise RuntimeError("call max_matching() first")
-        old = self.cnt
-        for x in xs:
-            self._matching.add_edge(x, y)
-        self.cnt = self._matching.solve()
-        return self.cnt > old
+        updated = self._matching.increment_edges_from_right(y, xs)
+        self.cnt = self._matching.size
+        return updated

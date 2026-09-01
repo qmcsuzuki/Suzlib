@@ -135,6 +135,100 @@ class BipartiteMatching:
         self._solved = True
         return self.size
 
+    def _augment_once(self) -> bool:
+        """全ての未マッチ左頂点から交互 BFS を1回だけ行い、増大路を1本だけ反転する。"""
+        g = self.g
+        mate_left = self.mate_left
+        mate_right = self.mate_right
+        n_left = self.n_left
+
+        queue: list[int] = []
+        parent = [-1] * n_left
+        seen = [False] * n_left
+        for left in range(n_left):
+            if mate_left[left] == -1:
+                seen[left] = True
+                queue.append(left)
+
+        q_front = 0
+        while q_front < len(queue):
+            left = queue[q_front]
+            q_front += 1
+            matched_right = mate_left[left]
+            for right in g[left]:
+                if right == matched_right:
+                    continue
+                next_left = mate_right[right]
+                if next_left == -1:
+                    while right != -1:
+                        mate_right[right] = left
+                        right, mate_left[left] = mate_left[left], right
+                        left = parent[left]
+                    self.size += 1
+                    return True
+                if not seen[next_left]:
+                    seen[next_left] = True
+                    parent[next_left] = left
+                    queue.append(next_left)
+        return False
+
+    def increment_edge(self, left: int, right: int) -> bool:
+        """最大マッチング構築後に辺を1本追加し、サイズが増えたかを返す。"""
+        if not self._solved:
+            raise RuntimeError("call solve() before increment_edge()")
+        assert 0 <= left < self.n_left
+        assert 0 <= right < self.n_right
+        self.g[left].append(right)
+
+        if self.size == min(self.n_left, self.n_right):
+            return False
+        if self.mate_left[left] == -1 and self.mate_right[right] == -1:
+            self.mate_left[left] = right
+            self.mate_right[right] = left
+            self.size += 1
+            return True
+        return self._augment_once()
+
+    def increment_edges_from_left(self, left: int, rights: list[int]) -> bool:
+        """最大マッチング構築後に一つの左頂点から複数辺を追加し、サイズが増えたかを返す。"""
+        if not self._solved:
+            raise RuntimeError("call solve() before increment_edges_from_left()")
+        assert 0 <= left < self.n_left
+        for right in rights:
+            assert 0 <= right < self.n_right
+        self.g[left].extend(rights)
+
+        if self.size == min(self.n_left, self.n_right):
+            return False
+        if self.mate_left[left] == -1:
+            for right in rights:
+                if self.mate_right[right] == -1:
+                    self.mate_left[left] = right
+                    self.mate_right[right] = left
+                    self.size += 1
+                    return True
+        return self._augment_once()
+
+    def increment_edges_from_right(self, right: int, lefts: list[int]) -> bool:
+        """最大マッチング構築後に一つの右頂点へ複数辺を追加し、サイズが増えたかを返す。"""
+        if not self._solved:
+            raise RuntimeError("call solve() before increment_edges_from_right()")
+        assert 0 <= right < self.n_right
+        for left in lefts:
+            assert 0 <= left < self.n_left
+            self.g[left].append(right)
+
+        if self.size == min(self.n_left, self.n_right):
+            return False
+        if self.mate_right[right] == -1:
+            for left in lefts:
+                if self.mate_left[left] == -1:
+                    self.mate_left[left] = right
+                    self.mate_right[right] = left
+                    self.size += 1
+                    return True
+        return self._augment_once()
+
     def matching_edges(self) -> list[tuple[int, int]]:
         """最大マッチングに使われる (左頂点, 右頂点) を返す。"""
         self.solve()
