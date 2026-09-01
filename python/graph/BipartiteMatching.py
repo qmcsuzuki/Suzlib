@@ -80,12 +80,11 @@ class BipartiteMatching:
                         queue.append(next_left)
             return shortest
 
-        # 再帰を避け、左頂点と選んだ右頂点をスタックに積む。
+        # 再帰を避け、左頂点をスタックに積む。
         def dfs(start: int, shortest: int) -> bool:
             """BFS 層に沿って最短増大路を1本探し、見つかれば反転する。"""
             left = start
             left_stack: list[int] = []
-            right_stack: list[int] = []
             while True:
                 i = current_edge[left]
                 adj = g[left]
@@ -99,19 +98,16 @@ class BipartiteMatching:
                         if dist[left] + 1 != shortest:
                             continue
                         current_edge[left] = i
-                        left_stack.append(left)
-                        right_stack.append(right)
-                        while left_stack:
-                            u = left_stack.pop()
-                            v = right_stack.pop()
-                            mate_left[u] = v
-                            mate_right[v] = u
-                        return True
+                        while True:
+                            mate_right[right] = left
+                            right, mate_left[left] = mate_left[left], right
+                            if right == -1:
+                                return True
+                            left = left_stack.pop()
 
                     if dist[next_left] == dist[left] + 1:
                         current_edge[left] = i
                         left_stack.append(left)
-                        right_stack.append(right)
                         left = next_left
                         break
                 else:
@@ -120,7 +116,6 @@ class BipartiteMatching:
                     if not left_stack:
                         return False
                     left = left_stack.pop()
-                    right_stack.pop()
 
         while True:
             shortest = bfs()
