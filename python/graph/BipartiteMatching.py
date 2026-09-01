@@ -28,9 +28,29 @@ class BipartiteMatching:
             return self.size
 
         n_left = self.n_left
+        n_right = self.n_right
         g = self.g
         mate_left = self.mate_left
         mate_right = self.mate_right
+
+        # 空のマッチングから始める初回は、Hopcroft--Karp の第1 phase と同値な
+        # deterministic greedy matching を直接行い、BFS 1回分を省く。
+        if self.size == 0:
+            for left in range(n_left):
+                for right in g[left]:
+                    if mate_right[right] == -1:
+                        mate_left[left] = right
+                        mate_right[right] = left
+                        self.size += 1
+                        break
+
+            if self.size == 0:
+                self._solved = True
+                return 0
+            if self.size == min(n_left, n_right):
+                self._solved = True
+                return self.size
+
         inf = n_left + 1
         dist = [inf] * n_left
         current_edge = [0] * n_left
