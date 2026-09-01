@@ -16,6 +16,7 @@ class BipartiteMatching:
         self._edge_shift = max(1, (n_right - 1).bit_length())
         self._edge_mask = (1 << self._edge_shift) - 1
         self._edges: list[int] = []
+        self._removed_edges: set[int] = set()
         self._solved = False
 
     def add_edge(self, left: int, right: int) -> int:
@@ -231,6 +232,28 @@ class BipartiteMatching:
                     return True
         return self._augment_once()
 
+    def remove_edge(self, edge_id: int) -> bool:
+        """最大マッチング構築後に辺番号 edge_id の辺を削除し、最大マッチング数が減ったかを返す。"""
+        if not self._solved:
+            raise RuntimeError("call solve() before remove_edge()")
+        assert 0 <= edge_id < len(self._edges)
+        if edge_id in self._removed_edges:
+            raise ValueError("edge is already removed")
+
+        edge = self._edges[edge_id]
+        left = edge >> self._edge_shift
+        right = edge & self._edge_mask
+        self._removed_edges.add(edge_id)
+        self.g[left].remove(right)
+
+        if self.mate_left[left] != right:
+            return False
+
+        self.mate_left[left] = -1
+        self.mate_right[right] = -1
+        self.size -= 1
+        return not self._augment_once()
+
     def matching_edges(self) -> list[tuple[int, int]]:
         """最大マッチングに使われる (左頂点, 右頂点) を返す。"""
         self.solve()
@@ -246,7 +269,10 @@ class BipartiteMatching:
         edge_for_left = [-1] * self.n_left
         shift = self._edge_shift
         mask = self._edge_mask
+        removed = self._removed_edges
         for edge_id, edge in enumerate(self._edges):
+            if edge_id in removed:
+                continue
             left = edge >> shift
             if edge_for_left[left] != -1:
                 continue
