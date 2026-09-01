@@ -13,14 +13,20 @@ class BipartiteMatching:
         self.mate_left = [-1] * n_left
         self.mate_right = [-1] * n_right
         self.size = 0
+        self._edge_shift = max(1, (n_right - 1).bit_length())
+        self._edge_mask = (1 << self._edge_shift) - 1
+        self._edges: list[int] = []
         self._solved = False
 
-    def add_edge(self, left: int, right: int) -> None:
-        """左頂点 left と右頂点 right を結ぶ辺を追加する。solve 後も追加できる。"""
+    def add_edge(self, left: int, right: int) -> int:
+        """左頂点 left と右頂点 right を結ぶ辺を追加し、辺番号を返す。solve 後も追加できる。"""
         assert 0 <= left < self.n_left
         assert 0 <= right < self.n_right
+        edge_id = len(self._edges)
+        self._edges.append((left << self._edge_shift) | right)
         self.g[left].append(right)
         self._solved = False
+        return edge_id
 
     def solve(self) -> int:
         """現在のグラフの最大マッチング数を返す。"""
@@ -170,6 +176,7 @@ class BipartiteMatching:
             raise RuntimeError("call solve() before increment_edge()")
         assert 0 <= left < self.n_left
         assert 0 <= right < self.n_right
+        self._edges.append((left << self._edge_shift) | right)
         self.g[left].append(right)
 
         if self.size == min(self.n_left, self.n_right):
@@ -188,6 +195,8 @@ class BipartiteMatching:
         assert 0 <= left < self.n_left
         for right in rights:
             assert 0 <= right < self.n_right
+        base = left << self._edge_shift
+        self._edges.extend(base | right for right in rights)
         self.g[left].extend(rights)
 
         if self.size == min(self.n_left, self.n_right):
@@ -208,6 +217,7 @@ class BipartiteMatching:
         assert 0 <= right < self.n_right
         for left in lefts:
             assert 0 <= left < self.n_left
+            self._edges.append((left << self._edge_shift) | right)
             self.g[left].append(right)
 
         if self.size == min(self.n_left, self.n_right):
@@ -229,6 +239,21 @@ class BipartiteMatching:
             for left, right in enumerate(self.mate_left)
             if right != -1
         ]
+
+    def matching_edge_ids(self) -> list[int]:
+        """最大マッチングに対応する入力辺番号を返す。多重辺では最初の辺を選ぶ。"""
+        self.solve()
+        edge_for_left = [-1] * self.n_left
+        shift = self._edge_shift
+        mask = self._edge_mask
+        for edge_id, edge in enumerate(self._edges):
+            left = edge >> shift
+            if edge_for_left[left] != -1:
+                continue
+            right = edge & mask
+            if self.mate_left[left] == right:
+                edge_for_left[left] = edge_id
+        return [edge_id for edge_id in edge_for_left if edge_id != -1]
 
     def mates(self) -> tuple[list[int], list[int]]:
         """左から右、右から左への対応をそれぞれ返す。未対応は -1。"""
@@ -257,7 +282,7 @@ class BipartiteMatching:
                 seen_right[right] = True
                 next_left = self.mate_right[right]
                 if next_left != -1 and not seen_left[next_left]:
-                    seen_left[next_left] = True
+                    seen_left[left] = True
                     queue.append(next_left)
         return seen_left, seen_right
 
@@ -296,12 +321,14 @@ class GeneralBipartiteMatching:
         self._matching: BipartiteMatching | None = None
         self._solved = False
 
-    def add_edge(self, u: int, v: int) -> None:
-        """頂点 u, v を結ぶ辺を追加する。solve 後は彩色を含めて再構築する。"""
+    def add_edge(self, u: int, v: int) -> int:
+        """頂点 u, v を結ぶ辺を追加し、辺番号を返す。solve 後は彩色を含めて再構築する。"""
         assert 0 <= u < self.n
         assert 0 <= v < self.n
+        edge_id = len(self.edges)
         self.edges.append((u, v))
         self._solved = False
+        return edge_id
 
     def _bipartition(self) -> None:
         """現在の辺集合を二部彩色し、各頂点の色を self.color に保存する。"""
@@ -342,14 +369,21 @@ class GeneralBipartiteMatching:
             self.toR[v] = right
 
         X2Y = [[] for _ in range(len(self.fromL))]
+        matching = BipartiteMatching(len(self.fromL), len(self.fromR))
+        packed_edges: list[int] = []
+        shift = matching._edge_shift
         for u, v in self.edges:
             if self.color[u] == 0:
-                X2Y[self.toL[u]].append(self.toR[v])
+                left = self.toL[u]
+                right = self.toR[v]
             else:
-                X2Y[self.toL[v]].append(self.toR[u])
+                left = self.toL[v]
+                right = self.toR[u]
+            X2Y[left].append(right)
+            packed_edges.append((left << shift) | right)
 
-        matching = BipartiteMatching(len(self.fromL), len(self.fromR))
         matching.g = X2Y
+        matching._edges = packed_edges
         self._matching = matching
         self.X2Y = X2Y
 
@@ -381,6 +415,12 @@ class GeneralBipartiteMatching:
             for left, right in enumerate(self.mateL)
             if right != -1
         ]
+
+    def matching_edge_ids(self) -> list[int]:
+        """最大マッチングに対応する入力辺番号を返す。多重辺では最初の辺を選ぶ。"""
+        self.solve()
+        assert self._matching is not None
+        return self._matching.matching_edge_ids()
 
     def mates(self) -> list[int]:
         """各頂点の対応先を返す。未対応は -1。"""
