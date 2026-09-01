@@ -27,8 +27,6 @@ class BipartiteMatching:
         if self._solved:
             return self.size
 
-        n_left = self.n_left
-        n_right = self.n_right
         g = self.g
         mate_left = self.mate_left
         mate_right = self.mate_right
@@ -36,7 +34,7 @@ class BipartiteMatching:
         # 空のマッチングから始める初回は、Hopcroft--Karp の第1 phase と同値な
         # deterministic greedy matching を直接行い、BFS 1回分を省く。
         if self.size == 0:
-            for left in range(n_left):
+            for left in range(self.n_left):
                 for right in g[left]:
                     if mate_right[right] == -1:
                         mate_left[left] = right
@@ -47,17 +45,17 @@ class BipartiteMatching:
             if self.size == 0:
                 self._solved = True
                 return 0
-            if self.size == min(n_left, n_right):
+            if self.size == min(self.n_left, self.n_right):
                 self._solved = True
                 return self.size
 
-        inf = n_left + 1
-        dist = [inf] * n_left
-        current_edge = [0] * n_left
+        inf = self.n_left + 1
+        dist = [inf] * self.n_left
+        current_edge = [0] * self.n_left
 
         def bfs() -> int:
             queue: list[int] = []
-            for left in range(n_left):
+            for left in range(self.n_left):
                 if mate_left[left] == -1:
                     dist[left] = 0
                     queue.append(left)
@@ -126,9 +124,9 @@ class BipartiteMatching:
             shortest = bfs()
             if shortest == inf:
                 break
-            for left in range(n_left):
+            for left in range(self.n_left):
                 current_edge[left] = 0
-            for left in range(n_left):
+            for left in range(self.n_left):
                 if mate_left[left] == -1 and dfs(left, shortest):
                     self.size += 1
 
@@ -140,12 +138,11 @@ class BipartiteMatching:
         g = self.g
         mate_left = self.mate_left
         mate_right = self.mate_right
-        n_left = self.n_left
 
         queue: list[int] = []
-        parent = [-1] * n_left
-        seen = [False] * n_left
-        for left in range(n_left):
+        parent = [-1] * self.n_left
+        seen = [False] * self.n_left
+        for left in range(self.n_left):
             if mate_left[left] == -1:
                 seen[left] = True
                 queue.append(left)
