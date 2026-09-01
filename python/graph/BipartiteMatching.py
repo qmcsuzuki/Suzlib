@@ -51,7 +51,7 @@ class BipartiteMatching:
 
         inf = self.n_left + 1
         dist = [inf] * self.n_left
-        current_edge = [0] * self.n_left
+        current_edge: list[int] = []
 
         def bfs() -> int:
             """未マッチ左頂点から BFS し、最短増大路の長さを返す。"""
@@ -63,22 +63,19 @@ class BipartiteMatching:
                 else:
                     dist[left] = inf
 
-            shortest = inf
             q_front = 0
             while q_front < len(queue):
                 left = queue[q_front]
                 q_front += 1
                 next_dist = dist[left] + 1
-                if next_dist > shortest:
-                    continue
                 for right in g[left]:
                     next_left = mate_right[right]
                     if next_left == -1:
-                        shortest = next_dist
-                    elif dist[next_left] == inf:
+                        return next_dist
+                    if dist[next_left] == inf:
                         dist[next_left] = next_dist
                         queue.append(next_left)
-            return shortest
+            return inf
 
         # 再帰を避け、左頂点をスタックに積む。
         def dfs(start: int, shortest: int) -> bool:
@@ -121,8 +118,7 @@ class BipartiteMatching:
             shortest = bfs()
             if shortest == inf:
                 break
-            for left in range(self.n_left):
-                current_edge[left] = 0
+            current_edge = [0] * self.n_left
             for left in range(self.n_left):
                 if mate_left[left] == -1 and dfs(left, shortest):
                     self.size += 1
