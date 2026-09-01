@@ -63,34 +63,44 @@ class BipartiteMatching:
 
         # 再帰を避け、左頂点と選んだ右頂点をスタックに積む。
         def dfs(start: int, shortest: int) -> bool:
-            left_stack = [start]
+            left = start
+            left_stack: list[int] = []
             right_stack: list[int] = []
-            while left_stack:
-                left = left_stack[-1]
-                while current_edge[left] < len(g[left]):
-                    right = g[left][current_edge[left]]
-                    current_edge[left] += 1
+            while True:
+                i = current_edge[left]
+                adj = g[left]
+
+                while i < len(adj):
+                    right = adj[i]
+                    i += 1
                     next_left = mate_right[right]
+
                     if next_left == -1:
                         if dist[left] + 1 != shortest:
                             continue
+                        current_edge[left] = i
+                        left_stack.append(left)
                         right_stack.append(right)
-                        for i in range(len(left_stack)):
-                            u = left_stack[i]
-                            v = right_stack[i]
+                        while left_stack:
+                            u = left_stack.pop()
+                            v = right_stack.pop()
                             mate_left[u] = v
                             mate_right[v] = u
                         return True
+
                     if dist[next_left] == dist[left] + 1:
-                        left_stack.append(next_left)
+                        current_edge[left] = i
+                        left_stack.append(left)
                         right_stack.append(right)
+                        left = next_left
                         break
                 else:
+                    current_edge[left] = i
                     dist[left] = inf
-                    left_stack.pop()
-                    if right_stack:
-                        right_stack.pop()
-            return False
+                    if not left_stack:
+                        return False
+                    left = left_stack.pop()
+                    right_stack.pop()
 
         while True:
             shortest = bfs()
@@ -222,14 +232,17 @@ class GeneralBipartiteMatching:
         for right, v in enumerate(self.fromR):
             self.toR[v] = right
 
-        matching = BipartiteMatching(len(self.fromL), len(self.fromR))
+        X2Y = [[] for _ in range(len(self.fromL))]
         for u, v in self.edges:
             if self.color[u] == 0:
-                matching.add_edge(self.toL[u], self.toR[v])
+                X2Y[self.toL[u]].append(self.toR[v])
             else:
-                matching.add_edge(self.toL[v], self.toR[u])
+                X2Y[self.toL[v]].append(self.toR[u])
+
+        matching = BipartiteMatching(len(self.fromL), len(self.fromR))
+        matching.g = X2Y
         self._matching = matching
-        self.X2Y = matching.g
+        self.X2Y = X2Y
 
     def solve(self) -> int:
         """現在のグラフの最大マッチング数を返す。非二部グラフなら ValueError。"""
