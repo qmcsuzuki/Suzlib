@@ -282,7 +282,7 @@ class BipartiteMatching:
                 seen_right[right] = True
                 next_left = self.mate_right[right]
                 if next_left != -1 and not seen_left[next_left]:
-                    seen_left[left] = True
+                    seen_left[next_left] = True
                     queue.append(next_left)
         return seen_left, seen_right
 
