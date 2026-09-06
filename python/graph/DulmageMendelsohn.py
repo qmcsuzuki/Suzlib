@@ -27,6 +27,7 @@ class DulmageMendelsohn:
     SINK = 2
 
     def __init__(self, matching: BipartiteMatching) -> None:
+        """最大マッチングから容量 1, inf, 1 の残余グラフを作り、DM 分解を求める。"""
         matching.solve()
 
         self.n_left = matching.n_left
