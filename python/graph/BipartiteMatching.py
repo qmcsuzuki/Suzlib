@@ -29,6 +29,21 @@ class BipartiteMatching:
         self._solved = False
         return edge_id
 
+    def edge_count(self) -> int:
+        """これまでに発行した辺番号の個数を返す。削除済み辺も数える。"""
+        return len(self._edges)
+
+    def edges(self) -> list[tuple[int, int, int]]:
+        """現在存在する辺を (edge_id, left, right) で返す。"""
+        shift = self._edge_shift
+        mask = self._edge_mask
+        removed = self._removed_edges
+        return [
+            (edge_id, edge >> shift, edge & mask)
+            for edge_id, edge in enumerate(self._edges)
+            if edge_id not in removed
+        ]
+
     def solve(self) -> int:
         """現在のグラフの最大マッチング数を返す。"""
         if self._solved:
