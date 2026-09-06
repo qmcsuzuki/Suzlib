@@ -1,8 +1,10 @@
 # competitive-verifier: TITLE 最大二部マッチング
 
+from math import isqrt
+
 
 class BipartiteMatching:
-    """左右の頂点集合を明示した Hopcroft--Karp 法。計算量は O(E sqrt(V))。"""
+    """Kuhn 法を前処理に用いた Hopcroft--Karp 法。計算量は O(E sqrt(V))。"""
 
     def __init__(self, n_left: int, n_right: int) -> None:
         assert 0 <= n_left
@@ -68,6 +70,57 @@ class BipartiteMatching:
                 self._solved = True
                 return 0
             if self.size == min(self.n_left, self.n_right):
+                self._solved = True
+                return self.size
+
+        def kuhn_phase() -> int:
+            """全未マッチ左頂点から交互森を伸ばし、増大路を貪欲に反転する。"""
+            parent = [-1] * self.n_left
+            root = [-1] * self.n_left
+            queue: list[int] = []
+
+            for left in range(self.n_left):
+                if mate_left[left] == -1:
+                    parent[left] = -2
+                    root[left] = left
+                    queue.append(left)
+
+            added = 0
+            q_front = 0
+            while q_front < len(queue):
+                left = queue[q_front]
+                q_front += 1
+
+                # この根から既に増大したなら、残りの交互木は探索しない。
+                if mate_left[root[left]] != -1:
+                    continue
+
+                matched_right = mate_left[left]
+                for right in g[left]:
+                    if right == matched_right:
+                        continue
+                    next_left = mate_right[right]
+
+                    if next_left == -1:
+                        while left >= 0:
+                            mate_right[right] = left
+                            right, mate_left[left] = mate_left[left], right
+                            left = parent[left]
+                        added += 1
+                        break
+
+                    if parent[next_left] == -1:
+                        parent[next_left] = left
+                        root[next_left] = root[left]
+                        queue.append(next_left)
+
+            return added
+
+        # Kuhn 型の交互森を先に回す。各 phase は O(E) で、最大 O(sqrt(V)) 回。
+        for _ in range(isqrt(min(self.n_left, self.n_right)) + 1):
+            added = kuhn_phase()
+            self.size += added
+            if added == 0 or self.size == min(self.n_left, self.n_right):
                 self._solved = True
                 return self.size
 
