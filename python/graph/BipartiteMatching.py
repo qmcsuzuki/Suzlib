@@ -1,6 +1,6 @@
 # competitive-verifier: TITLE 最大二部マッチング
 
-from math import isqrt
+from random import shuffle
 
 
 class BipartiteMatching:
@@ -55,8 +55,13 @@ class BipartiteMatching:
         mate_left = self.mate_left
         mate_right = self.mate_right
 
+        # Kuhn 法が入力順に依存しすぎないよう、各左頂点の隣接順をランダム化する。
+        for adj in g:
+            if len(adj) > 1:
+                shuffle(adj)
+
         # 空のマッチングから始める初回は、Hopcroft--Karp の第1 phase と同値な
-        # deterministic greedy matching を直接行い、BFS 1回分を省く。
+        # greedy matching を直接行い、BFS 1回分を省く。
         if self.size == 0:
             for left in range(self.n_left):
                 for right in g[left]:
@@ -116,8 +121,8 @@ class BipartiteMatching:
 
             return added
 
-        # Kuhn 型の交互森を先に回す。各 phase は O(E) で、最大 O(sqrt(V)) 回。
-        for _ in range(isqrt(min(self.n_left, self.n_right)) + 1):
+        # Kuhn 型の交互森を先に最大 128 phase 回す。
+        for _ in range(128):
             added = kuhn_phase()
             self.size += added
             if added == 0 or self.size == min(self.n_left, self.n_right):
