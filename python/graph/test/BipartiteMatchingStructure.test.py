@@ -20,8 +20,17 @@ def main() -> None:
         assert structure.edge_status[edge_id] != structure.NEVER
 
     dm = DulmageMendelsohn(matching)
+    assert dm.groups == [dm.V0] + dm.blocks + [dm.Vinf]
+    assert dm.s_comp == 0
+    assert dm.t_comp == len(dm.groups) - 1
+    assert len(dm.comp) == L + R
+    assert len(dm.dag) == len(dm.groups)
     assert dm.state[dm.s_comp] == dm.SOURCE
     assert dm.state[dm.t_comp] == dm.SINK
+    for v in dm.V0:
+        assert dm.comp[v] == dm.s_comp
+    for v in dm.Vinf:
+        assert dm.comp[v] == dm.t_comp
 
     ans = matching.matching_edges()
     print(len(ans))
