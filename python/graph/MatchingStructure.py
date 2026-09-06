@@ -19,6 +19,7 @@ class MatchingStructure:
     ALWAYS = 2
 
     def __init__(self, matching: BipartiteMatching) -> None:
+        """最大マッチングから容量 1 の残余グラフを作り、辺・頂点の使用状況を分類する。"""
         matching.solve()
 
         self.n_left = matching.n_left
