@@ -7,16 +7,19 @@ from python.graph.SCC import find_SCC
 class DulmageMendelsohn:
     """
     二部マッチングを容量 1, inf, 1 の s-t フローに読み替え、
-    全最小カットの構造を SCC と縮約 DAG で表す。
+    全最小カットの構造から Dulmage--Mendelsohn 分解を求める。
 
     頂点番号は左 0..n_left-1、右 n_left..n_left+n_right-1、
     その後に s, t を置く。
 
-    各 SCC の state は
-      SOURCE: 全ての最小カットで source 側
-      FREE  : 最小カットによって source / sink のどちらにもなり得る
-      SINK  : 全ての最小カットで sink 側
-    を表す。
+    DM 分解は
+      V0     : s から残余路で到達可能な固定領域
+      blocks : V0, Vinf の外側にある SCC
+      Vinf   : t へ残余路で到達可能な固定領域
+    からなる。
+
+    groups = [V0] + blocks + [Vinf] とし、comp, dag もこの番号を使う。
+    残余グラフ自体の細かい SCC は scc_groups, scc_comp, scc_dag に残す。
     """
 
     SOURCE = 0
@@ -28,7 +31,8 @@ class DulmageMendelsohn:
 
         self.n_left = matching.n_left
         self.n_right = matching.n_right
-        self.s = self.n_left + self.n_right
+        self.n = self.n_left + self.n_right
+        self.s = self.n
         self.t = self.s + 1
 
         self.edges = matching.edges()
@@ -61,35 +65,33 @@ class DulmageMendelsohn:
                 g[self.t].append(r)
 
         self.residual_graph = g
-        self.groups, self.comp, self.dag = find_SCC(g)
+        self.scc_groups, self.scc_comp, self.scc_dag = find_SCC(g)
 
-        k = len(self.groups)
-        s_comp = self.comp[self.s]
-        t_comp = self.comp[self.t]
-        self.s_comp = s_comp
-        self.t_comp = t_comp
+        k_scc = len(self.scc_groups)
+        s_scc = self.scc_comp[self.s]
+        t_scc = self.scc_comp[self.t]
 
         # 最大流後なので s から t への残余路はない。
-        assert s_comp != t_comp
+        assert s_scc != t_scc
 
-        source_reachable = [False] * k
-        stack = [s_comp]
-        source_reachable[s_comp] = True
+        source_reachable = [False] * k_scc
+        stack = [s_scc]
+        source_reachable[s_scc] = True
         while stack:
             c = stack.pop()
-            for d in self.dag[c]:
+            for d in self.scc_dag[c]:
                 if not source_reachable[d]:
                     source_reachable[d] = True
                     stack.append(d)
 
-        rev = [[] for _ in range(k)]
-        for c in range(k):
-            for d in self.dag[c]:
+        rev = [[] for _ in range(k_scc)]
+        for c in range(k_scc):
+            for d in self.scc_dag[c]:
                 rev[d].append(c)
 
-        sink_reachable = [False] * k
-        stack = [t_comp]
-        sink_reachable[t_comp] = True
+        sink_reachable = [False] * k_scc
+        stack = [t_scc]
+        sink_reachable[t_scc] = True
         while stack:
             c = stack.pop()
             for d in rev[c]:
@@ -97,13 +99,56 @@ class DulmageMendelsohn:
                     sink_reachable[d] = True
                     stack.append(d)
 
-        self.state = [self.FREE] * k
-        for c in range(k):
+        scc_state = [self.FREE] * k_scc
+        for c in range(k_scc):
             if source_reachable[c]:
-                self.state[c] = self.SOURCE
+                scc_state[c] = self.SOURCE
             elif sink_reachable[c]:
-                self.state[c] = self.SINK
+                scc_state[c] = self.SINK
+        self.scc_state = scc_state
 
+        # V0, Vinf は固定領域全体として一つにまとめ、自由領域だけ SCC を保つ。
+        free_scc = [c for c in range(k_scc) if scc_state[c] == self.FREE]
+        free_id = [-1] * k_scc
+        for i, c in enumerate(free_scc):
+            free_id[c] = i
+
+        self.V0 = [v for v in range(self.n) if scc_state[self.scc_comp[v]] == self.SOURCE]
+        self.blocks = [
+            [v for v in self.scc_groups[c] if v < self.n]
+            for c in free_scc
+        ]
+        self.Vinf = [v for v in range(self.n) if scc_state[self.scc_comp[v]] == self.SINK]
+
+        k = len(self.blocks)
+        self.groups = [self.V0] + self.blocks + [self.Vinf]
+        self.s_comp = 0
+        self.t_comp = k + 1
+
+        dm_of_scc = [-1] * k_scc
+        for c in range(k_scc):
+            if scc_state[c] == self.SOURCE:
+                dm_of_scc[c] = self.s_comp
+            elif scc_state[c] == self.SINK:
+                dm_of_scc[c] = self.t_comp
+            else:
+                dm_of_scc[c] = 1 + free_id[c]
+
+        self.comp = [dm_of_scc[self.scc_comp[v]] for v in range(self.n)]
+
+        # V0 と Vinf をそれぞれ一頂点に縮約した DM の DAG。
+        dag = [[] for _ in range(k + 2)]
+        seen = [set() for _ in range(k + 2)]
+        for c in range(k_scc):
+            a = dm_of_scc[c]
+            for d in self.scc_dag[c]:
+                b = dm_of_scc[d]
+                if a != b and b not in seen[a]:
+                    seen[a].add(b)
+                    dag[a].append(b)
+        self.dag = dag
+
+        self.state = [self.SOURCE] + [self.FREE] * k + [self.SINK]
         self.left_state = [self.state[self.comp[left]] for left in range(self.n_left)]
         self.right_state = [
             self.state[self.comp[self.n_left + right]]
