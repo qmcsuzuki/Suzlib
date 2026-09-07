@@ -1,4 +1,5 @@
 # competitive-verifier: PROBLEM https://judge.yosupo.jp/problem/bipartitematching
+# benchmark: sorted packed edges + comprehension grouping
 
 from bisect import bisect_left
 
