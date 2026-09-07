@@ -1,5 +1,5 @@
 # competitive-verifier: PROBLEM https://judge.yosupo.jp/problem/bipartitematching
-# benchmark: sorted packed edges + linear scan grouping
+# benchmark: sorted packed edges + linear scan grouping (rerun)
 
 from python.graph.BipartiteMatching import BipartiteMatching
 
