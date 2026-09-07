@@ -1,8 +1,11 @@
 # competitive-verifier: PROBLEM https://judge.yosupo.jp/problem/bipartitematching
 
 from python.graph.BipartiteMatching import BipartiteMatching
-from python.graph.DulmageMendelsohn import DulmageMendelsohn
-from python.graph.MatchingStructure import MatchingStructure
+from python.graph.BipartiteMatchingStructure import (
+    NEVER,
+    DulmageMendelsohn,
+    matching_structure,
+)
 
 
 def main() -> None:
@@ -14,10 +17,12 @@ def main() -> None:
 
     matching.solve()
 
-    structure = MatchingStructure(matching)
-    assert len(structure.edge_status) == M
+    edge_status, left_status, right_status = matching_structure(matching)
+    assert len(edge_status) == M
+    assert len(left_status) == L
+    assert len(right_status) == R
     for edge_id in matching.matching_edge_ids():
-        assert structure.edge_status[edge_id] != structure.NEVER
+        assert edge_status[edge_id] != NEVER
 
     dm = DulmageMendelsohn(matching)
     assert dm.groups == [dm.V0] + dm.blocks + [dm.Vinf]
