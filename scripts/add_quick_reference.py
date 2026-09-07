@@ -14,15 +14,9 @@ BEGIN = "<!-- BEGIN QUICK REFERENCE -->"
 END = "<!-- END QUICK REFERENCE -->"
 
 
-def first_line(doc: str | None) -> str:
-    """docstring の最初の非空行を返す。"""
-    if not doc:
-        return ""
-    for line in doc.strip().splitlines():
-        line = line.strip()
-        if line:
-            return line
-    return ""
+def docstring_text(doc: str | None) -> str:
+    """docstring 全体を返す。"""
+    return doc.strip() if doc else ""
 
 
 def _expr(node: ast.AST | None) -> str:
@@ -72,7 +66,7 @@ def parse_python_file(path: Path) -> list[dict]:
         return []
 
     items = []
-    module_doc = first_line(ast.get_docstring(tree))
+    module_doc = docstring_text(ast.get_docstring(tree))
 
     for node in tree.body:
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
@@ -81,7 +75,7 @@ def parse_python_file(path: Path) -> list[dict]:
                     {
                         "kind": "function",
                         "sig": signature(node),
-                        "doc": first_line(ast.get_docstring(node)),
+                        "doc": docstring_text(ast.get_docstring(node)),
                     }
                 )
         elif isinstance(node, ast.ClassDef):
@@ -106,11 +100,11 @@ def parse_python_file(path: Path) -> list[dict]:
                 {
                     "kind": "class",
                     "sig": class_sig,
-                    "doc": first_line(ast.get_docstring(node)) or module_doc,
+                    "doc": docstring_text(ast.get_docstring(node)) or module_doc,
                     "methods": [
                         {
                             "sig": signature(method),
-                            "doc": first_line(ast.get_docstring(method)),
+                            "doc": docstring_text(ast.get_docstring(method)),
                         }
                         for method in methods
                     ],
@@ -125,6 +119,21 @@ def markdown_text(text: str) -> str:
     return text.replace("|", r"\|")
 
 
+def append_doc(lines: list[str], doc: str, indent: str) -> None:
+    """複数行 docstring を Markdown の箇条書きとして追加する。"""
+    doc_lines = doc.splitlines()
+    if not doc_lines:
+        return
+
+    lines.append(f"{indent}- {markdown_text(doc_lines[0])}")
+    continuation = indent + "  "
+    for line in doc_lines[1:]:
+        if line:
+            lines.append(continuation + markdown_text(line))
+        else:
+            lines.append(continuation)
+
+
 def make_quick_reference(items: list[dict]) -> str:
     """抽出結果を Markdown の Quick reference ブロックにする。"""
     if not items:
@@ -134,13 +143,13 @@ def make_quick_reference(items: list[dict]) -> str:
     for item in items:
         lines.append(f"- `{item['sig']}`")
         if item["doc"]:
-            lines.append(f"  - {markdown_text(item['doc'])}")
+            append_doc(lines, item["doc"], "  ")
 
         if item["kind"] == "class":
             for method in item["methods"]:
                 lines.append(f"  - `{method['sig']}`")
                 if method["doc"]:
-                    lines.append(f"    - {markdown_text(method['doc'])}")
+                    append_doc(lines, method["doc"], "    ")
 
     lines.append("")
     return "\n".join(lines)
