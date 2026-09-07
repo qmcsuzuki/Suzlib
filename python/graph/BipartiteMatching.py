@@ -60,11 +60,19 @@ class BipartiteMatching:
             if len(adj) > 1:
                 shuffle(adj)
 
+        # solve 中の辺走査は CSR に固める。self.g は動的更新用にそのまま保持する。
+        start = [0]
+        to: list[int] = []
+        for adj in g:
+            to.extend(adj)
+            start.append(len(to))
+
         # 空のマッチングから始める初回は、Hopcroft--Karp の第1 phase と同値な
         # greedy matching を直接行い、BFS 1回分を省く。
         if self.size == 0:
             for left in range(self.n_left):
-                for right in g[left]:
+                for i in range(start[left], start[left + 1]):
+                    right = to[i]
                     if mate_right[right] == -1:
                         mate_left[left] = right
                         mate_right[right] = left
@@ -101,7 +109,8 @@ class BipartiteMatching:
                     continue
 
                 matched_right = mate_left[left]
-                for right in g[left]:
+                for i in range(start[left], start[left + 1]):
+                    right = to[i]
                     if right == matched_right:
                         continue
                     next_left = mate_right[right]
@@ -148,7 +157,8 @@ class BipartiteMatching:
                 left = queue[q_front]
                 q_front += 1
                 next_dist = dist[left] + 1
-                for right in g[left]:
+                for i in range(start[left], start[left + 1]):
+                    right = to[i]
                     next_left = mate_right[right]
                     if next_left == -1:
                         return next_dist
@@ -158,18 +168,17 @@ class BipartiteMatching:
             return inf
 
         # 再帰を避け、左頂点をスタックに積む。
-        def dfs(start: int, shortest: int) -> bool:
+        def dfs(start_left: int, shortest: int) -> bool:
             """BFS 層に沿って最短増大路を1本探し、見つかれば反転する。"""
-            left = start
+            left = start_left
             left_stack: list[int] = []
             while True:
                 i = current_edge[left]
-                adj = g[left]
-                n_adj = len(adj)
+                end = start[left + 1]
                 target = dist[left] + 1
 
-                while i < n_adj:
-                    right = adj[i]
+                while i < end:
+                    right = to[i]
                     i += 1
                     next_left = mate_right[right]
 
@@ -200,7 +209,7 @@ class BipartiteMatching:
             shortest = bfs()
             if shortest == inf:
                 break
-            current_edge = [0] * self.n_left
+            current_edge = start[:-1]
             for left in range(self.n_left):
                 if mate_left[left] == -1 and dfs(left, shortest):
                     self.size += 1
