@@ -114,24 +114,9 @@ def parse_python_file(path: Path) -> list[dict]:
     return items
 
 
-def markdown_text(text: str) -> str:
-    """Markdown 本文として出す文字を最低限エスケープする。"""
-    return text.replace("|", r"\|")
-
-
 def append_doc(lines: list[str], doc: str, indent: str) -> None:
-    """複数行 docstring を Markdown の箇条書きとして追加する。"""
-    doc_lines = doc.splitlines()
-    if not doc_lines:
-        return
-
-    lines.append(f"{indent}- {markdown_text(doc_lines[0])}")
-    continuation = indent + "  "
-    for line in doc_lines[1:]:
-        if line:
-            lines.append(continuation + markdown_text(line))
-        else:
-            lines.append(continuation)
+    """docstring を再整形せず Markdown にそのまま追加する。"""
+    lines.append(f"{indent}- {doc}")
 
 
 def make_quick_reference(items: list[dict]) -> str:
