@@ -4,7 +4,7 @@ from random import shuffle
 
 
 class BipartiteMatching:
-    """Kuhn 法を前処理に用いた Hopcroft--Karp 法。計算量は O(E sqrt(V))。"""
+    """Kuhn 法を前処理に用いた Hopcroft--Karp 法。計算量は O((V + E) sqrt(V))。"""
 
     def __init__(self, n_left: int, n_right: int) -> None:
         assert 0 <= n_left
@@ -46,6 +46,112 @@ class BipartiteMatching:
             if edge_id not in removed
         ]
 
+    def _degree_greedy(self) -> int:
+        """低次数頂点を優先して初期マッチングを構成する。"""
+        g = self.g
+        mate_left = self.mate_left
+        mate_right = self.mate_right
+        n_left = self.n_left
+        n_right = self.n_right
+
+        reverse = [[] for _ in range(n_right)]
+        degree_left = [len(adj) for adj in g]
+        degree_right = [0] * n_right
+        for left, adj in enumerate(g):
+            for right in adj:
+                reverse[right].append(left)
+                degree_right[right] += 1
+
+        leaves = [left for left in range(n_left) if degree_left[left] == 1]
+        leaves += [n_left + right for right in range(n_right) if degree_right[right] == 1]
+        twos = [left for left in range(n_left) if degree_left[left] == 2]
+        twos += [n_left + right for right in range(n_right) if degree_right[right] == 2]
+
+        added = 0
+        scan = 0
+        while True:
+            while leaves:
+                v = leaves[-1]
+                degree = degree_left[v] if v < n_left else degree_right[v - n_left]
+                if degree == 1:
+                    break
+                leaves.pop()
+
+            if leaves:
+                v = leaves.pop()
+                if v < n_left:
+                    left = v
+                    right = -1
+                    for w in g[left]:
+                        if degree_right[w]:
+                            right = w
+                            break
+                else:
+                    right = v - n_left
+                    left = -1
+                    for w in reverse[right]:
+                        if degree_left[w]:
+                            left = w
+                            break
+            else:
+                while scan < n_left and degree_left[scan] == 0:
+                    scan += 1
+                if scan == n_left:
+                    break
+
+                while twos:
+                    v = twos[-1]
+                    degree = degree_left[v] if v < n_left else degree_right[v - n_left]
+                    if degree == 2:
+                        break
+                    twos.pop()
+                v = twos.pop() if twos else scan
+
+                if v < n_left:
+                    left = v
+                    right = -1
+                    best = len(self._edges) + 1
+                    for w in g[left]:
+                        degree = degree_right[w]
+                        if 0 < degree < best:
+                            right = w
+                            best = degree
+                else:
+                    right = v - n_left
+                    left = -1
+                    best = len(self._edges) + 1
+                    for w in reverse[right]:
+                        degree = degree_left[w]
+                        if 0 < degree < best:
+                            left = w
+                            best = degree
+
+            if left == -1 or right == -1:
+                continue
+
+            mate_left[left] = right
+            mate_right[right] = left
+            added += 1
+            degree_left[left] = 0
+            degree_right[right] = 0
+
+            for w in g[left]:
+                if degree_right[w]:
+                    degree_right[w] -= 1
+                    if degree_right[w] == 1:
+                        leaves.append(n_left + w)
+                    elif degree_right[w] == 2:
+                        twos.append(n_left + w)
+            for w in reverse[right]:
+                if degree_left[w]:
+                    degree_left[w] -= 1
+                    if degree_left[w] == 1:
+                        leaves.append(w)
+                    elif degree_left[w] == 2:
+                        twos.append(w)
+
+        return added
+
     def solve(self) -> int:
         """現在のグラフの最大マッチング数を返す。"""
         if self._solved:
@@ -60,110 +166,8 @@ class BipartiteMatching:
             if len(adj) > 1:
                 shuffle(adj)
 
-        def degree_greedy() -> int:
-            """低次数頂点を優先して初期マッチングを構成する。"""
-            n_left = self.n_left
-            n_right = self.n_right
-            reverse = [[] for _ in range(n_right)]
-            degree_left = [len(adj) for adj in g]
-            degree_right = [0] * n_right
-            for left, adj in enumerate(g):
-                for right in adj:
-                    reverse[right].append(left)
-                    degree_right[right] += 1
-
-            leaves = [left for left in range(n_left) if degree_left[left] == 1]
-            leaves += [n_left + right for right in range(n_right) if degree_right[right] == 1]
-            twos = [left for left in range(n_left) if degree_left[left] == 2]
-            twos += [n_left + right for right in range(n_right) if degree_right[right] == 2]
-
-            added = 0
-            scan = 0
-            while True:
-                while leaves:
-                    v = leaves[-1]
-                    degree = degree_left[v] if v < n_left else degree_right[v - n_left]
-                    if degree == 1:
-                        break
-                    leaves.pop()
-
-                if leaves:
-                    v = leaves.pop()
-                    if v < n_left:
-                        left = v
-                        right = -1
-                        for w in g[left]:
-                            if degree_right[w]:
-                                right = w
-                                break
-                    else:
-                        right = v - n_left
-                        left = -1
-                        for w in reverse[right]:
-                            if degree_left[w]:
-                                left = w
-                                break
-                else:
-                    while scan < n_left and degree_left[scan] == 0:
-                        scan += 1
-                    if scan == n_left:
-                        break
-
-                    while twos:
-                        v = twos[-1]
-                        degree = degree_left[v] if v < n_left else degree_right[v - n_left]
-                        if degree == 2:
-                            break
-                        twos.pop()
-                    v = twos.pop() if twos else scan
-
-                    if v < n_left:
-                        left = v
-                        right = -1
-                        best = len(self._edges) + 1
-                        for w in g[left]:
-                            degree = degree_right[w]
-                            if 0 < degree < best:
-                                right = w
-                                best = degree
-                    else:
-                        right = v - n_left
-                        left = -1
-                        best = len(self._edges) + 1
-                        for w in reverse[right]:
-                            degree = degree_left[w]
-                            if 0 < degree < best:
-                                left = w
-                                best = degree
-
-                if left == -1 or right == -1:
-                    continue
-
-                mate_left[left] = right
-                mate_right[right] = left
-                added += 1
-                degree_left[left] = 0
-                degree_right[right] = 0
-
-                for w in g[left]:
-                    if degree_right[w]:
-                        degree_right[w] -= 1
-                        if degree_right[w] == 1:
-                            leaves.append(n_left + w)
-                        elif degree_right[w] == 2:
-                            twos.append(n_left + w)
-                for w in reverse[right]:
-                    if degree_left[w]:
-                        degree_left[w] -= 1
-                        if degree_left[w] == 1:
-                            leaves.append(w)
-                        elif degree_left[w] == 2:
-                            twos.append(w)
-
-            return added
-
         if self.size == 0:
-            self.size = degree_greedy()
+            self.size = self._degree_greedy()
 
             if self.size == 0:
                 self._solved = True
