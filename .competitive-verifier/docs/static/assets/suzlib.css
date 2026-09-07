@@ -1,5 +1,9 @@
 /* suzlib.css: orderedlist theme – remove huge middle gap */
 
+#quick-reference + ul li {
+  margin-bottom: 1em;
+}
+
 @media screen and (min-width: 900px) {
   .wrapper {
     width: 96% !important;
