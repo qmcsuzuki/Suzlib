@@ -28,6 +28,18 @@ def check(matching: BipartiteMatching, edges: list[tuple[int, int] | None]) -> N
     assert len(used_left) == matching.size
 
 
+def test_add_edge_after_solve() -> None:
+    matching = BipartiteMatching(2, 2)
+    matching.add_edge(0, 0)
+    matching.solve()
+    try:
+        matching.add_edge(1, 1)
+    except RuntimeError:
+        pass
+    else:
+        assert False
+
+
 def test_increment_edge(rng: Random, n_left: int, n_right: int) -> None:
     matching = BipartiteMatching(n_left, n_right)
     matching.solve()
@@ -103,6 +115,7 @@ def test_remove_edge(rng: Random, n_left: int, n_right: int) -> None:
 
 
 if __name__ == "__main__":
+    test_add_edge_after_solve()
     rng = Random(0)
     for n_left in range(1, 8):
         for n_right in range(1, 8):
