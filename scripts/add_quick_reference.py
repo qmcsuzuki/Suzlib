@@ -116,9 +116,9 @@ def parse_python_file(path: Path) -> list[dict]:
 
 
 def append_doc(lines: list[str], doc: str, indent: str) -> None:
-    """docstring の文字・改行・空白をそのまま表示する。"""
+    """docstring を箇条書きにせず、その項目の説明文として表示する。"""
     text = html.escape(doc).replace("\n", "&#10;")
-    lines.append(f'{indent}- <span style="white-space: pre-wrap">{text}</span>')
+    lines.append(f'{indent}<div style="white-space: pre-wrap">{text}</div>')
 
 
 def make_quick_reference(items: list[dict]) -> str:
