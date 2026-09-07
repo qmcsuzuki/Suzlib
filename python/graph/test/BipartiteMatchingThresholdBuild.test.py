@@ -1,5 +1,5 @@
 # competitive-verifier: PROBLEM https://judge.yosupo.jp/problem/bipartitematching
-# benchmark: sorted packed edges + threshold linear grouping
+# benchmark: sorted packed edges + threshold linear grouping (rerun)
 
 from python.graph.BipartiteMatching import BipartiteMatching
 
