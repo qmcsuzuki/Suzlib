@@ -11,7 +11,7 @@ class BipartiteMatching:
         assert 0 <= n_right
         self.n_left = n_left
         self.n_right = n_right
-        self.g: list[list[int]] = [[] for _ in range(n_left)]
+        self.g: list[list[int]] | None = None
         self.mate_left = [-1] * n_left
         self.mate_right = [-1] * n_right
         self.size = 0
@@ -19,7 +19,9 @@ class BipartiteMatching:
         self._edge_mask = (1 << self._edge_shift) - 1
         self._edges: list[int] = []
         self._removed_edges: set[int] = set()
-        self._adj_built = False
+        self._start: list[int] = []
+        self._to: list[int] = []
+        self._csr_built = False
         self._solved = False
 
     def add_edge(self, left: int, right: int) -> int:
@@ -28,8 +30,9 @@ class BipartiteMatching:
         assert 0 <= right < self.n_right
         edge_id = len(self._edges)
         self._edges.append((left << self._edge_shift) | right)
-        if self._adj_built:
+        if self.g is not None:
             self.g[left].append(right)
+        self._csr_built = False
         self._solved = False
         return edge_id
 
@@ -48,42 +51,78 @@ class BipartiteMatching:
             if edge_id not in removed
         ]
 
-    def _build_adjacency(self) -> None:
-        """初回 solve 時に packed edge を sort し、左頂点ごとの隣接リストを構築する。"""
-        if self._adj_built:
+    def _build_csr(self) -> None:
+        """現在の辺を左頂点ごとの CSR に O(V+E) でまとめる。"""
+        if self._csr_built:
             return
-        edges = sorted(self._edges)
+
+        removed = self._removed_edges
+        if removed:
+            edges = [
+                edge
+                for edge_id, edge in enumerate(self._edges)
+                if edge_id not in removed
+            ]
+        else:
+            edges = self._edges.copy()
+        shuffle(edges)
+
         shift = self._edge_shift
         mask = self._edge_mask
         start = [0] * (self.n_left + 1)
-        i = 0
-        m = len(edges)
+        for edge in edges:
+            start[(edge >> shift) + 1] += 1
         for left in range(self.n_left):
-            threshold = (left + 1) << shift
-            while i < m and edges[i] < threshold:
-                i += 1
-            start[left + 1] = i
+            start[left + 1] += start[left]
+
+        to = [0] * len(edges)
+        pos = start[:-1].copy()
+        for edge in edges:
+            left = edge >> shift
+            to[pos[left]] = edge & mask
+            pos[left] += 1
+
+        self._start = start
+        self._to = to
+        self._csr_built = True
+
+    def _materialize_adjacency(self) -> None:
+        """更新操作のため、必要になった時だけ可変な隣接リストを生成する。"""
+        if self.g is not None:
+            return
+        self._build_csr()
+        start = self._start
+        to = self._to
         self.g = [
-            [edge & mask for edge in edges[start[left]:start[left + 1]]]
+            to[start[left]:start[left + 1]]
             for left in range(self.n_left)
         ]
-        self._adj_built = True
 
     def _degree_greedy(self) -> int:
-        """低次数頂点を優先して初期マッチングを構成する。"""
-        g = self.g
+        """左右両側の CSR を用いて低次数頂点を優先した初期マッチングを構成する。"""
+        start = self._start
+        to = self._to
         mate_left = self.mate_left
         mate_right = self.mate_right
         n_left = self.n_left
         n_right = self.n_right
 
-        reverse = [[] for _ in range(n_right)]
-        degree_left = [len(adj) for adj in g]
-        degree_right = [0] * n_right
-        for left, adj in enumerate(g):
-            for right in adj:
-                reverse[right].append(left)
-                degree_right[right] += 1
+        rstart = [0] * (n_right + 1)
+        for right in to:
+            rstart[right + 1] += 1
+        for right in range(n_right):
+            rstart[right + 1] += rstart[right]
+
+        rto = [0] * len(to)
+        pos = rstart[:-1].copy()
+        for left in range(n_left):
+            for i in range(start[left], start[left + 1]):
+                right = to[i]
+                rto[pos[right]] = left
+                pos[right] += 1
+
+        degree_left = [start[left + 1] - start[left] for left in range(n_left)]
+        degree_right = [rstart[right + 1] - rstart[right] for right in range(n_right)]
 
         leaves = [left for left in range(n_left) if degree_left[left] == 1]
         leaves += [n_left + right for right in range(n_right) if degree_right[right] == 1]
@@ -92,6 +131,7 @@ class BipartiteMatching:
 
         added = 0
         scan = 0
+        m = len(to)
         while True:
             while leaves:
                 v = leaves[-1]
@@ -105,14 +145,16 @@ class BipartiteMatching:
                 if v < n_left:
                     left = v
                     right = -1
-                    for w in g[left]:
+                    for i in range(start[left], start[left + 1]):
+                        w = to[i]
                         if degree_right[w]:
                             right = w
                             break
                 else:
                     right = v - n_left
                     left = -1
-                    for w in reverse[right]:
+                    for i in range(rstart[right], rstart[right + 1]):
+                        w = rto[i]
                         if degree_left[w]:
                             left = w
                             break
@@ -133,8 +175,9 @@ class BipartiteMatching:
                 if v < n_left:
                     left = v
                     right = -1
-                    best = len(self._edges) + 1
-                    for w in g[left]:
+                    best = m + 1
+                    for i in range(start[left], start[left + 1]):
+                        w = to[i]
                         degree = degree_right[w]
                         if 0 < degree < best:
                             right = w
@@ -142,8 +185,9 @@ class BipartiteMatching:
                 else:
                     right = v - n_left
                     left = -1
-                    best = len(self._edges) + 1
-                    for w in reverse[right]:
+                    best = m + 1
+                    for i in range(rstart[right], rstart[right + 1]):
+                        w = rto[i]
                         degree = degree_left[w]
                         if 0 < degree < best:
                             left = w
@@ -158,14 +202,16 @@ class BipartiteMatching:
             degree_left[left] = 0
             degree_right[right] = 0
 
-            for w in g[left]:
+            for i in range(start[left], start[left + 1]):
+                w = to[i]
                 if degree_right[w]:
                     degree_right[w] -= 1
                     if degree_right[w] == 1:
                         leaves.append(n_left + w)
                     elif degree_right[w] == 2:
                         twos.append(n_left + w)
-            for w in reverse[right]:
+            for i in range(rstart[right], rstart[right + 1]):
+                w = rto[i]
                 if degree_left[w]:
                     degree_left[w] -= 1
                     if degree_left[w] == 1:
@@ -180,15 +226,11 @@ class BipartiteMatching:
         if self._solved:
             return self.size
 
-        self._build_adjacency()
-        g = self.g
+        self._build_csr()
+        start = self._start
+        to = self._to
         mate_left = self.mate_left
         mate_right = self.mate_right
-
-        # Kuhn 法が入力順に依存しすぎないよう、各左頂点の隣接順をランダム化する。
-        for adj in g:
-            if len(adj) > 1:
-                shuffle(adj)
 
         if self.size == 0:
             self.size = self._degree_greedy()
@@ -218,12 +260,12 @@ class BipartiteMatching:
                 left = queue[q_front]
                 q_front += 1
 
-                # この根から既に増大したなら、残りの交互木は探索しない。
                 if mate_left[root[left]] != -1:
                     continue
 
                 matched_right = mate_left[left]
-                for right in g[left]:
+                for i in range(start[left], start[left + 1]):
+                    right = to[i]
                     if right == matched_right:
                         continue
                     next_left = mate_right[right]
@@ -243,7 +285,6 @@ class BipartiteMatching:
 
             return added
 
-        # Kuhn 型の交互森を先に最大 128 phase 回す。
         for _ in range(128):
             added = kuhn_phase()
             self.size += added
@@ -270,7 +311,8 @@ class BipartiteMatching:
                 left = queue[q_front]
                 q_front += 1
                 next_dist = dist[left] + 1
-                for right in g[left]:
+                for i in range(start[left], start[left + 1]):
+                    right = to[i]
                     next_left = mate_right[right]
                     if next_left == -1:
                         return next_dist
@@ -279,19 +321,17 @@ class BipartiteMatching:
                         queue.append(next_left)
             return inf
 
-        # 再帰を避け、左頂点をスタックに積む。
-        def dfs(start: int, shortest: int) -> bool:
+        def dfs(start_left: int, shortest: int) -> bool:
             """BFS 層に沿って最短増大路を1本探し、見つかれば反転する。"""
-            left = start
+            left = start_left
             left_stack: list[int] = []
             while True:
                 i = current_edge[left]
-                adj = g[left]
-                n_adj = len(adj)
+                end = start[left + 1]
                 target = dist[left] + 1
 
-                while i < n_adj:
-                    right = adj[i]
+                while i < end:
+                    right = to[i]
                     i += 1
                     next_left = mate_right[right]
 
@@ -322,7 +362,7 @@ class BipartiteMatching:
             shortest = bfs()
             if shortest == inf:
                 break
-            current_edge = [0] * self.n_left
+            current_edge = start[:-1].copy()
             for left in range(self.n_left):
                 if mate_left[left] == -1 and dfs(left, shortest):
                     self.size += 1
@@ -332,6 +372,8 @@ class BipartiteMatching:
 
     def _augment_once(self) -> bool:
         """全ての未マッチ左頂点から交互 BFS を1回だけ行い、増大路を1本だけ反転する。"""
+        self._materialize_adjacency()
+        assert self.g is not None
         g = self.g
         mate_left = self.mate_left
         mate_right = self.mate_right
@@ -372,8 +414,11 @@ class BipartiteMatching:
             raise RuntimeError("call solve() before increment_edge()")
         assert 0 <= left < self.n_left
         assert 0 <= right < self.n_right
+        self._materialize_adjacency()
+        assert self.g is not None
         self._edges.append((left << self._edge_shift) | right)
         self.g[left].append(right)
+        self._csr_built = False
 
         if self.size == min(self.n_left, self.n_right):
             return False
@@ -391,9 +436,12 @@ class BipartiteMatching:
         assert 0 <= left < self.n_left
         for right in rights:
             assert 0 <= right < self.n_right
+        self._materialize_adjacency()
+        assert self.g is not None
         base = left << self._edge_shift
         self._edges.extend(base | right for right in rights)
         self.g[left].extend(rights)
+        self._csr_built = False
 
         if self.size == min(self.n_left, self.n_right):
             return False
@@ -413,8 +461,12 @@ class BipartiteMatching:
         assert 0 <= right < self.n_right
         for left in lefts:
             assert 0 <= left < self.n_left
+        self._materialize_adjacency()
+        assert self.g is not None
+        for left in lefts:
             self._edges.append((left << self._edge_shift) | right)
             self.g[left].append(right)
+        self._csr_built = False
 
         if self.size == min(self.n_left, self.n_right):
             return False
@@ -435,11 +487,14 @@ class BipartiteMatching:
         if edge_id in self._removed_edges:
             raise ValueError("edge is already removed")
 
+        self._materialize_adjacency()
+        assert self.g is not None
         edge = self._edges[edge_id]
         left = edge >> self._edge_shift
         right = edge & self._edge_mask
         self._removed_edges.add(edge_id)
         self.g[left].remove(right)
+        self._csr_built = False
 
         if self.mate_left[left] != right:
             return False
@@ -484,6 +539,9 @@ class BipartiteMatching:
     def _reachable_sets(self) -> tuple[list[bool], list[bool]]:
         """未マッチ左頂点から交互路で到達可能な左右の頂点集合を返す。"""
         self.solve()
+        self._build_csr()
+        start = self._start
+        to = self._to
         seen_left = [False] * self.n_left
         seen_right = [False] * self.n_right
         queue: list[int] = []
@@ -497,7 +555,8 @@ class BipartiteMatching:
             left = queue[q_front]
             q_front += 1
             matched_right = self.mate_left[left]
-            for right in self.g[left]:
+            for i in range(start[left], start[left + 1]):
+                right = to[i]
                 if right == matched_right or seen_right[right]:
                     continue
                 seen_right[right] = True
@@ -603,9 +662,7 @@ class GeneralBipartiteMatching:
             X2Y[left].append(right)
             packed_edges.append((left << shift) | right)
 
-        matching.g = X2Y
         matching._edges = packed_edges
-        matching._adj_built = True
         self._matching = matching
         self.X2Y = X2Y
 
