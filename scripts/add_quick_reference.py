@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import ast
+import html
 import os
 import re
 from pathlib import Path
@@ -115,8 +116,9 @@ def parse_python_file(path: Path) -> list[dict]:
 
 
 def append_doc(lines: list[str], doc: str, indent: str) -> None:
-    """docstring を再整形せず Markdown にそのまま追加する。"""
-    lines.append(f"{indent}- {doc}")
+    """docstring の文字・改行・空白をそのまま表示する。"""
+    text = html.escape(doc).replace("\n", "&#10;")
+    lines.append(f'{indent}- <span style="white-space: pre-wrap">{text}</span>')
 
 
 def make_quick_reference(items: list[dict]) -> str:
