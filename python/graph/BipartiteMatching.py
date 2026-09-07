@@ -1,5 +1,6 @@
 # competitive-verifier: TITLE 最大二部マッチング
 
+from bisect import bisect_left
 from random import shuffle
 
 
@@ -19,6 +20,7 @@ class BipartiteMatching:
         self._edge_mask = (1 << self._edge_shift) - 1
         self._edges: list[int] = []
         self._removed_edges: set[int] = set()
+        self._adj_built = False
         self._solved = False
 
     def add_edge(self, left: int, right: int) -> int:
@@ -27,7 +29,8 @@ class BipartiteMatching:
         assert 0 <= right < self.n_right
         edge_id = len(self._edges)
         self._edges.append((left << self._edge_shift) | right)
-        self.g[left].append(right)
+        if self._adj_built:
+            self.g[left].append(right)
         self._solved = False
         return edge_id
 
@@ -45,6 +48,23 @@ class BipartiteMatching:
             for edge_id, edge in enumerate(self._edges)
             if edge_id not in removed
         ]
+
+    def _build_adjacency(self) -> None:
+        """初回 solve 時に packed edge を sort し、左頂点ごとの隣接リストを構築する。"""
+        if self._adj_built:
+            return
+        edges = sorted(self._edges)
+        shift = self._edge_shift
+        mask = self._edge_mask
+        start = [
+            bisect_left(edges, left << shift)
+            for left in range(self.n_left + 1)
+        ]
+        self.g = [
+            [edge & mask for edge in edges[start[left]:start[left + 1]]]
+            for left in range(self.n_left)
+        ]
+        self._adj_built = True
 
     def _degree_greedy(self) -> int:
         """低次数頂点を優先して初期マッチングを構成する。"""
@@ -157,6 +177,7 @@ class BipartiteMatching:
         if self._solved:
             return self.size
 
+        self._build_adjacency()
         g = self.g
         mate_left = self.mate_left
         mate_right = self.mate_right
@@ -581,6 +602,7 @@ class GeneralBipartiteMatching:
 
         matching.g = X2Y
         matching._edges = packed_edges
+        matching._adj_built = True
         self._matching = matching
         self.X2Y = X2Y
 
