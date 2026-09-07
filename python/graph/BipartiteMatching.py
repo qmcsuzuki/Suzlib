@@ -25,15 +25,13 @@ class BipartiteMatching:
         self._solved = False
 
     def add_edge(self, left: int, right: int) -> int:
-        """左頂点 left と右頂点 right を結ぶ辺を追加し、辺番号を返す。solve 後も追加できる。"""
+        """solve 前に左頂点 left と右頂点 right を結ぶ辺を追加し、辺番号を返す。"""
+        if self._solved:
+            raise RuntimeError("call add_edge() before solve()")
         assert 0 <= left < self.n_left
         assert 0 <= right < self.n_right
         edge_id = len(self._edges)
         self._edges.append((left << self._edge_shift) | right)
-        if self.g is not None:
-            self.g[left].append(right)
-        self._csr_built = False
-        self._solved = False
         return edge_id
 
     def edge_count(self) -> int:
