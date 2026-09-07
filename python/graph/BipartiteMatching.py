@@ -19,7 +19,6 @@ class BipartiteMatching:
         self._edge_mask = (1 << self._edge_shift) - 1
         self._edges: list[int] = []
         self._removed_edges: set[int] = set()
-        self._graph_built = False
         self._solved = False
 
     def add_edge(self, left: int, right: int) -> int:
@@ -28,8 +27,7 @@ class BipartiteMatching:
         assert 0 <= right < self.n_right
         edge_id = len(self._edges)
         self._edges.append((left << self._edge_shift) | right)
-        if self._graph_built:
-            self.g[left].append(right)
+        self.g[left].append(right)
         self._solved = False
         return edge_id
 
@@ -47,18 +45,6 @@ class BipartiteMatching:
             for edge_id, edge in enumerate(self._edges)
             if edge_id not in removed
         ]
-
-    def _build_graph(self) -> None:
-        """初回 solve まで保留した辺から隣接リストを構築する。"""
-        if self._graph_built:
-            return
-        g = [[] for _ in range(self.n_left)]
-        shift = self._edge_shift
-        mask = self._edge_mask
-        for edge in self._edges:
-            g[edge >> shift].append(edge & mask)
-        self.g = g
-        self._graph_built = True
 
     def _degree_greedy(self) -> int:
         """低次数頂点を優先して初期マッチングを構成する。"""
@@ -171,7 +157,6 @@ class BipartiteMatching:
         if self._solved:
             return self.size
 
-        self._build_graph()
         g = self.g
         mate_left = self.mate_left
         mate_right = self.mate_right
@@ -596,7 +581,6 @@ class GeneralBipartiteMatching:
 
         matching.g = X2Y
         matching._edges = packed_edges
-        matching._graph_built = True
         self._matching = matching
         self.X2Y = X2Y
 
