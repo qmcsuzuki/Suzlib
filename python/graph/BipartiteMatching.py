@@ -1,6 +1,5 @@
 # competitive-verifier: TITLE 最大二部マッチング
 
-from bisect import bisect_left
 from random import shuffle
 
 
@@ -56,10 +55,14 @@ class BipartiteMatching:
         edges = sorted(self._edges)
         shift = self._edge_shift
         mask = self._edge_mask
-        start = [
-            bisect_left(edges, left << shift)
-            for left in range(self.n_left + 1)
-        ]
+        start = [0] * (self.n_left + 1)
+        i = 0
+        m = len(edges)
+        for left in range(self.n_left):
+            threshold = (left + 1) << shift
+            while i < m and edges[i] < threshold:
+                i += 1
+            start[left + 1] = i
         self.g = [
             [edge & mask for edge in edges[start[left]:start[left + 1]]]
             for left in range(self.n_left)
