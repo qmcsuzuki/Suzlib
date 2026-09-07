@@ -133,10 +133,14 @@ def make_quick_reference(items: list[dict]) -> str:
             append_doc(lines, item["doc"], "  ")
 
         if item["kind"] == "class":
+            lines.append("")
             for method in item["methods"]:
                 lines.append(f"  - `{method['sig']}`")
                 if method["doc"]:
                     append_doc(lines, method["doc"], "    ")
+                lines.append("")
+        else:
+            lines.append("")
 
     lines.append("")
     return "\n".join(lines)
