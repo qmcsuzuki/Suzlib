@@ -7,7 +7,9 @@ Binary indexed tree (Fenwick tree)
 n=0 も可。空区間の和と bisect の返り値は 0（更新可能な添字はない）
 """
 class FenwickTree:
+    """一点加算と半開区間の和を管理する Fenwick 木。"""
     def __init__(self, n, init=None):
+        """n 要素の Fenwick 木を、初期値列または零で構築する。"""
         assert n >= 0
         self.size = n
         self.longest_interval = 1<<(n.bit_length()-1) if n else 0

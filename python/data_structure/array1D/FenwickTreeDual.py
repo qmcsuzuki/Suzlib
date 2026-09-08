@@ -1,7 +1,9 @@
 # competitive-verifier: TITLE Fenwick Tree Dual（区間加算・一点取得）
 
 class FenwickTreeDual:
+    """区間への加算と各点の値の取得を行う双対 Fenwick 木。"""
     def __init__(self, n: int, init=None):
+        """n 要素の初期値列または零から双対 Fenwick 木を構築する。"""
         self.n = n
         if init is None:
             self.data = [0]*n
@@ -39,6 +41,7 @@ class FenwickTreeDual:
         return s
     
     def all_get(self):
+        """遅延された更新を反映した全要素をリストで返す。"""
         res = self.data[::]
         for i in range(self.n)[::-1]:
             if (ii := i + ((i+1) & -(i+1))) < self.n:

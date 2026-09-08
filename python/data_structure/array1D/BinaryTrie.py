@@ -34,15 +34,19 @@ class BinaryTrie:
         return len(self.size) - 1
 
     def _ch0(self, v):
+        """指定ノードの 0 側の子の番号を返す。"""
         return self.child[v] & self.MASK
 
     def _ch1(self, v):
+        """指定ノードの 1 側の子の番号を返す。"""
         return self.child[v] >> self.SHIFT
 
     def _set_ch0(self, v, nv):
+        """指定ノードの 0 側の子の番号を更新する。"""
         self.child[v] = (self.child[v] & (~self.MASK)) | nv
 
     def _set_ch1(self, v, nv):
+        """指定ノードの 1 側の子の番号を更新する。"""
         self.child[v] = (self.child[v] & self.MASK) | (nv << self.SHIFT)
 
     def add(self, x, k=1):

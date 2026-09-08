@@ -7,10 +7,13 @@ class RangeAddRangeSquareMOD(LazySegmentTree):
     (0乗,1乗,2乗) の和を持って計算
     """
     def __init__(self, N, array1D=None):
+        """初期列の値・二乗・区間長を保持する遅延セグメント木を構築する。"""
         def op_X(X,Y):
+            """左右の区間の集約値を合成する。"""
             return((X[0]+Y[0])%MOD, (X[1]+Y[1])%MOD, (X[2]+Y[2])%MOD)
 
         def mapping(v,X):
+            """更新作用を区間の集約値に適用する。"""
             a,b,c = X
             return (a, (b+v*a)%MOD, (c+(2*b+v*a)%MOD*v)%MOD)
 

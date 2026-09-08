@@ -24,6 +24,7 @@ class LeftRightMinMax:
     - 空区間は e を返す
     """
     def __init__(self, init, min_or_max=min, e=None):
+        """初期列について左右からの累積極値を前計算する。"""
         n = len(init)
         if e is None:
             if min_or_max is min:

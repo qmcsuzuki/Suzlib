@@ -1,8 +1,10 @@
 # competitive-verifier: TITLE セグメント木 (Segment Tree)
 
 class SegmentTree:
+    """一点更新とモノイドの区間積を管理するセグメント木。"""
     # seg = SegmentTree(N,op,e,init=None)
     def __init__(self, N, op, e, init=None):
+        """演算 op と単位元 e を設定し、N 要素の区間積を構築する。"""
         self.op_M = op
         self.e_M = e
         self.N = N
@@ -16,6 +18,7 @@ class SegmentTree:
 
     # a_k の値を x に更新
     def update(self,k,x):
+        """指定した添字の値を上書きし、祖先の区間積を更新する。"""
         k += self.N0
         self.data[k] = x
         while k > 1:
@@ -24,6 +27,7 @@ class SegmentTree:
 
     # 区間[L,R)をopでまとめる
     def prod(self,L,R):
+        """半開区間 [L,R) の要素を左から順に集約した積を返す。"""
         L += self.N0; R += self.N0
         sl = sr = self.e_M
         while L < R:
@@ -35,19 +39,24 @@ class SegmentTree:
         return self.op_M(sl,sr)
 
     def all_prod(self):
+        """全要素を演算で集約した値を返す。"""
         return self.data[1]
 
     def __getitem__(self, k): #k番目の値を取得。
+        """指定した添字またはキーに対応する値を返す。"""
         return self.data[k+self.N0]
     
     def all_elements(self):
+        """葉に格納された全要素をリストで返す。"""
         return self.data[self.N0:self.N0+self.N]
 
     def __str__(self):
+        """現在の内容を表示用文字列に変換する。"""
         v = 2**len(self.data).bit_length() - len(self.data)
         return self._visualize_binarytree(self.data + [self.e_M]*v, self.op_M, self.e_M)
         
     def _visualize_binarytree(self, A, op, v):
+        """内部配列を二分木の層ごとに整形した文字列を返す。"""
         h = len(A).bit_length() - 1 # height of tree
         assert len(A) == 1<<h
         is_min = (op == min and isinstance(v,int))
@@ -63,6 +72,7 @@ class SegmentTree:
     f(e_M) = True でないと壊れる
     """
     def max_right(self,l,f):
+        """左端を固定し、区間積が単調な判定を満たす最大の右端を返す。"""
         if l == self.N: return self.N;
         l += self.N0
         sm = self.e_M
@@ -91,6 +101,7 @@ class SegmentTree:
     f(e_M) = True でないと壊れる
     """
     def min_left(self,r,f):
+        """右端を固定し、区間積が単調な判定を満たす最小の左端を返す。"""
         if r == 0: return 0
         r += self.N0
         sm = self.e_M

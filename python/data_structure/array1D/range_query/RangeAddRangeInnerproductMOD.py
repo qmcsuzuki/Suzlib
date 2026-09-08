@@ -14,6 +14,7 @@ class RangeAddRangeInnerproductMOD(LazySegmentTree):
     M = 1<<30
 
     def __init__(self,N,A=None,B=None,W=None):
+        """二つの初期列と重みから、区間内積を保持する遅延セグメント木を構築する。"""
         self.e_X = (0,0); self.id_M = 0
         self.N = N
         self.log = (N-1).bit_length()
@@ -33,6 +34,7 @@ class RangeAddRangeInnerproductMOD(LazySegmentTree):
         for i in range(self.N0-1,0,-1): self.update(i)
 
     def op_X(self,X,Y):
+        """左右の区間の集約値を合成する。"""
         rx,wx = divmod(X[0],self.M)
         ax,bx = divmod(X[1],self.M)
         ry,wy = divmod(Y[0],self.M)
@@ -42,6 +44,7 @@ class RangeAddRangeInnerproductMOD(LazySegmentTree):
         return (rw,ab)
 
     def mapping(self,xy,X):
+        """更新作用を区間の集約値に適用する。"""
         r,w = divmod(X[0],self.M)
         a,b = divmod(X[1],self.M)
         p,q = divmod(xy,self.M)
@@ -51,6 +54,7 @@ class RangeAddRangeInnerproductMOD(LazySegmentTree):
         return (r*self.M+w, a*self.M+b)
 
     def compose(self,X,Y):
+        """二つの更新作用を適用順に従って合成する。"""
         x0,x1 = divmod(X,self.M)
         y0,y1 = divmod(Y,self.M)
         return (x0+y0)%self.MOD*self.M + (x1+y1)%self.MOD

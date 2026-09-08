@@ -1,7 +1,9 @@
 # competitive-verifier: TITLE 静的等差数列加算（最後に各点の値を求める）
 
 class StaticSegmentAdd:
+    """区間への等差数列加算を蓄積し、最後に全要素を復元する。"""
     def __init__(self, n):
+        """n 要素の零列に対する等差数列加算を蓄積する差分配列を用意する。"""
         self.n = n
         self.data = [0]*(n+2)
         

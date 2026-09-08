@@ -9,7 +9,9 @@
 
 from collections import deque
 class SlidingWindowMinimum:
+    """両端が単調に進む区間の最小値を単調キューで求める。"""
     def __init__(self,a):
+        """元の配列を参照し、最小値を追跡する空の単調キューを用意する。"""
         self.data = a
         self.R = 0
         self.q = deque() # (idx,val)
@@ -17,6 +19,7 @@ class SlidingWindowMinimum:
     # 半開区間 [l,r) の最小値を求める。
     # クエリの両端は広義単調増加
     def query(self,l,r):
+        """両端が単調に進む非空の半開区間 [l,r) の最小値を返す。"""
         for i in range(self.R,r):
             while self.q and self.q[-1][1] > self.data[i]:
                 self.q.pop()
@@ -28,7 +31,9 @@ class SlidingWindowMinimum:
 
 from collections import deque
 class SlidingWindowMaximum:
+    """両端が単調に進む区間の最大値を単調キューで求める。"""
     def __init__(self,a):
+        """元の配列を参照し、最大値を追跡する空の単調キューを用意する。"""
         self.data = a
         self.R = 0
         self.q = deque() # (idx,val)
@@ -36,6 +41,7 @@ class SlidingWindowMaximum:
     # 半開区間 [l,r) の最大値を求める。
     # クエリの両端は広義単調増加
     def query(self,l,r):
+        """両端が単調に進む非空の半開区間 [l,r) の最大値を返す。"""
         for i in range(self.R,r):
             while self.q and self.q[-1][1] < self.data[i]:
                 self.q.pop()

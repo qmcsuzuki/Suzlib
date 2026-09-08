@@ -17,7 +17,9 @@ from python.data_structure.array1D.FenwickTreeDinamic import FenwickTreeDinamic
 
 
 class _CircularMultisetBase:
+    """円周上の多重集合の要素数・値の総和と回転方向別の距離和を管理する基底クラス。"""
     def __init__(self, M, init):
+        """周期 M と初期要素を設定し、要素数と総和を初期化する。"""
         assert M > 0
         self.M = M
         self.cnt = 0
@@ -26,6 +28,7 @@ class _CircularMultisetBase:
             self.add(x)
 
     def __len__(self):
+        """格納されている要素の個数を返す。"""
         return self.cnt
 
     def add(self, x, wt=1):
@@ -54,16 +57,20 @@ class CircularMultisetSmallM(_CircularMultisetBase):
     """M が小さい場合の実装。使用メモリ O(M)、各操作 O(log M)。"""
 
     def __init__(self, M, init=()):
+        """値域全体の Fenwick 木を用意し、周期 M の初期要素を登録する。"""
         self.cnt_bit = FenwickTree(M)
         super().__init__(M, init)
 
     def _add_count(self, x, wt):
+        """指定した値の個数を wt だけ増減する。"""
         self.cnt_bit.add(x, wt)
 
     def _count_less(self, x):
+        """指定した値より小さい要素の個数を返す。"""
         return self.cnt_bit.prefix_sum(x)
 
     def _count_greater(self, x):
+        """指定した値より大きい要素の個数を返す。"""
         return self.cnt_bit.suffix_sum(x + 1)
 
 
@@ -76,20 +83,24 @@ class CircularMultisetLargeM(_CircularMultisetBase):
     """
 
     def __init__(self, M, values, init=()):
+        """候補値 values を圧縮し、周期 M の初期要素を登録する。"""
         self.values = sorted(set(values))
         assert all(0 <= x < M for x in self.values)
         self.cnt_bit = FenwickTree(max(1, len(self.values)))
         super().__init__(M, init)
 
     def _add_count(self, x, wt):
+        """指定した値の個数を wt だけ増減する。"""
         i = bisect_left(self.values, x)
         assert i < len(self.values) and self.values[i] == x
         self.cnt_bit.add(i, wt)
 
     def _count_less(self, x):
+        """指定した値より小さい要素の個数を返す。"""
         return self.cnt_bit.prefix_sum(bisect_left(self.values, x))
 
     def _count_greater(self, x):
+        """指定した値より大きい要素の個数を返す。"""
         return self.cnt_bit.suffix_sum(bisect_right(self.values, x))
 
 
@@ -101,14 +112,18 @@ class CircularMultisetDynamicM(_CircularMultisetBase):
     """
 
     def __init__(self, M, init=()):
+        """動的 Fenwick 木を用意し、周期 M の初期要素を登録する。"""
         self.cnt_bit = FenwickTreeDinamic(M)
         super().__init__(M, init)
 
     def _add_count(self, x, wt):
+        """指定した値の個数を wt だけ増減する。"""
         self.cnt_bit.add(x, wt)
 
     def _count_less(self, x):
+        """指定した値より小さい要素の個数を返す。"""
         return self.cnt_bit.get_sum(x - 1)
 
     def _count_greater(self, x):
+        """指定した値より大きい要素の個数を返す。"""
         return self.cnt_bit.suffix_sum(x + 1)

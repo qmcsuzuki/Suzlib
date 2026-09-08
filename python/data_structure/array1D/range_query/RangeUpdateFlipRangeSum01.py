@@ -23,10 +23,12 @@ class RangeUpdateFlipRangeSum01:
     FLIP = 3
 
     def __init__(self, A):
+        """0/1 列 A から区間更新・反転・和取得用の遅延セグメント木を構築する。"""
         self.N = len(A)
         self.BASE = self.N + 1
 
         def mapping(action, packed):
+            """更新作用を区間の集約値に適用する。"""
             if action == RangeUpdateFlipRangeSum01.ID:
                 return packed
 
@@ -67,19 +69,24 @@ class RangeUpdateFlipRangeSum01:
         )
 
     def range_update(self, l, r, v):
+        """半開区間 [l,r) の各要素を指定した 0 または 1 に置き換える。"""
         if v == 0:
             self.seg.apply(l, r, RangeUpdateFlipRangeSum01.SET0)
         else:
             self.seg.apply(l, r, RangeUpdateFlipRangeSum01.SET1)
 
     def range_flip(self, l, r):
+        """半開区間 [l,r) の各要素の 0 と 1 を反転する。"""
         self.seg.apply(l, r, 3)
 
     def range_sum(self, l, r):
+        """半開区間 [l,r) の要素和を返す。"""
         return self.seg.prod(l, r) // self.BASE
 
     def all_sum(self):
+        """全要素の和を返す。"""
         return self.seg.all_prod() // self.BASE
 
     def point_get(self, p):
+        """指定した位置の値を返す。"""
         return self.seg.point_get(p) // self.BASE

@@ -11,7 +11,9 @@
 """
 
 class FenwickTreeGeneral:
+    """可換モノイドの一点更新と区間集約を管理する Fenwick 木。"""
     def __init__(self, n, op, e, inv=None, init=None):
+        """可換演算 op と単位元 e を設定し、n 要素の初期値を線形時間で構築する。"""
         assert n >= 0
         self.size = n
         self.longest_interval = 1<<(n.bit_length()-1) if n else 0

@@ -11,6 +11,7 @@ Cartesian tree を構築。最小値で列を分割する（同じ値は左を�
 """
 
 def Cartesian_tree_DFSsearch(A, calc):
+    """最小値のデカルト木で各頂点の区間と親を確定し、calc(i,l,r,p) を呼ぶ。"""
     if not A: return # avoid empty list
     n = len(A)
     A.append(min(A)-1) # 番兵
@@ -46,6 +47,7 @@ def Cartesian_tree_DFSsearch(A, calc):
 頂点 i の親は P[i] で、開区間 (L[i],R[i]) を管理する、という情報を返す
 """
 def Cartesian_tree_full(A):
+    """最小値のデカルト木の各頂点が覆う開区間の両端と親の配列を返す。"""
     n = len(A)
     L = [-1]*n # vertex i cover open interval (L[i], R[i])
     R = [n]*n 
@@ -64,6 +66,7 @@ def Cartesian_tree_full(A):
 
 # 親だけを返すシンプルな Cartesian tree
 def Cartesian_tree_simple(A):
+    """最小値のデカルト木の親配列を返し、同値では左側を優先する。"""
     par = [-1]*len(A)
     for i,Ai in enumerate(A):
         cur = i-1

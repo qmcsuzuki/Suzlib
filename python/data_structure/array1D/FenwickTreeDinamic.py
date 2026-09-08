@@ -4,10 +4,13 @@
 n: とりうる値の最大値
 """
 class FenwickTreeDinamic: #0-indexed
+    """必要なノードだけを辞書に格納する動的 Fenwick 木。"""
     def __init__(self, n):
+        """値域の最大添字 n を扱える大きさと空のノード辞書を用意する。"""
         self.tree = {}
         self.MAX = 1<<(n+1).bit_length()
     def get_sum(self, i): #a_0 + ... + a_{i} #閉区間
+        """閉区間 [0,i] の要素和を返す。"""
         s = 0; i += 1
         while i > 0:
             if i in self.tree:
@@ -15,10 +18,13 @@ class FenwickTreeDinamic: #0-indexed
             i -= i & -i
         return s
     def query(self,l,r): #a_l + ... + a_r 閉区間
+        """閉区間 [l,r] の要素和を返す。"""
         return self.get_sum(r) - self.get_sum(l-1) 
     def suffix_sum(self,l): #a_l + ... (端まで)
+        """添字 l 以降の要素和を返す。"""
         return self.get_sum(self.MAX-1) - self.get_sum(l-1)
     def add(self, i, x):
+        """位置 i の値に x を加える。"""
         i += 1
         while i <= self.MAX:
             if i in self.tree:
@@ -27,6 +33,7 @@ class FenwickTreeDinamic: #0-indexed
                 self.tree[i] = x
             i += i & -i
     def bisect_left(self,w):
+        """累積和が単調なとき、w 以上となる最初の添字を探索する。"""
         #和が w 以上になる最小の index
         #w が存在しない場合 -1 を返す
         if w <= 0: return 0
@@ -41,6 +48,7 @@ class FenwickTreeDinamic: #0-indexed
         return x if x!=self.MAX-1 else -1
 
     def bisect_left_key(self,w,key):
+        """key を適用した累積和が単調なとき、w 以上となる最初の添字を探索する。"""
         #key(get_sum(i)) が w 以上になる最小の index
         #存在しない場合 -1 を返す
         x,k,s = 0,self.MAX,0

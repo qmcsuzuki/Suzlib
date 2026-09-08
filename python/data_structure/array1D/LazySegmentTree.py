@@ -32,8 +32,10 @@ ID_M = None #Noneではなく、範囲外の数にすると速くなる
 """
 
 class LazySegmentTree:
+    """区間作用と区間積を遅延伝播で管理するセグメント木。"""
     #seg = LazySegmentTree(op_X, e_X, mapping, composision_of_Aut_X, id_of_Aut_X, N, array=None):
     def __init__(self, op_X, e_X, mapping, composision_of_Aut_X, id_of_Aut_X, N, array=None):
+        """集約演算・区間作用・作用の合成を設定し、N 要素の遅延セグメント木を構築する。"""
         #  それぞれ  Xの演算, 単位元, f(x), f\circ g,             Xの恒等変換
         # M が X に作用する
         #__slots__ = ["op_X",  "e_X",  "mapping","compose","id_M","N","log","N0","data","lazy"]
@@ -50,12 +52,14 @@ class LazySegmentTree:
 
     # デバッグ用出力
     def __str__(self):
+        """現在の内容を表示用文字列に変換する。"""
         s = self._visualize_binarytree(self.lazy, self.e_X).split("\n")
         t = self._visualize_binarytree(self.data, self.e_X).split("\n")
         return "\n".join(s + t)
 
     # 1点更新
     def point_set(self, p, x):
+        """指定した位置の値を上書きする。"""
         p += self.N0
         for i in range(self.log, 0,-1):
             self.push(p>>i)
@@ -65,6 +69,7 @@ class LazySegmentTree:
  
     # 1点取得
     def point_get(self, p):
+        """指定した位置の値を返す。"""
         p += self.N0
         for i in range(self.log, 0, -1):
             self.push(p>>i)
@@ -72,6 +77,7 @@ class LazySegmentTree:
  
     # 半開区間[L,R)をopでまとめる
     def prod(self, l, r):
+        """遅延作用を反映し、半開区間 [l,r) の積を返す。"""
         if l == r: return self.e_X
         l += self.N0
         r += self.N0
@@ -94,10 +100,13 @@ class LazySegmentTree:
         return self.op_X(sml, smr)
  
     # 全体をopでまとめる
-    def all_prod(self): return self.data[1]
+    def all_prod(self):
+        """全要素を演算で集約した値を返す。"""
+        return self.data[1]
  
     # 1点作用
     def apply_point(self, p, f):
+        """指定した一点に作用 f を適用する。"""
         p += self.N0
         for i in range(self.log, 0, -1):
             self.push(p>>i)
@@ -107,6 +116,7 @@ class LazySegmentTree:
  
     # 区間作用
     def apply(self, l, r, f):
+        """半開区間 [l,r) の各要素に作用 f を適用する。"""
         if l == r: return
         l += self.N0
         r += self.N0
@@ -142,6 +152,7 @@ class LazySegmentTree:
     f(e_M) = True でないと壊れる
     """
     def max_right(self, l, g):
+        """左端を固定し、区間積が単調な判定を満たす最大の右端を返す。"""
         if l == self.N: return self.N
         l += self.N0
         for i in range(self.log, 0, -1): self.push(l>>i)
@@ -170,6 +181,7 @@ class LazySegmentTree:
     f(e_M) = True でないと壊れる
     """
     def min_left(self, r, g):
+        """右端を固定し、区間積が単調な判定を満たす最小の左端を返す。"""
         if r == 0: return 0
         r += self.N0
         for i in range(self.log, 0, -1): self.push((r-1)>>i)
@@ -192,14 +204,17 @@ class LazySegmentTree:
         
     # 以下内部関数
     def update(self, k):
+        """指定ノードの区間積を左右の子から再計算する。"""
         self.data[k] = self.op_X(self.data[2*k], self.data[2*k+1])
     
     def all_apply(self, k, f):
+        """指定ノードの値と遅延作用に f を反映する。"""
         self.data[k] = self.mapping(f, self.data[k])
         if k < self.N0:
             self.lazy[k] = self.compose(f, self.lazy[k])
 
     def push(self, k): #propagate と同じ
+        """指定ノードの遅延作用を左右の子に伝えて解除する。"""
         if self.lazy[k] == self.id_M: return
         self.data[2*k  ] = self.mapping(self.lazy[k], self.data[2*k])
         self.data[2*k+1] = self.mapping(self.lazy[k], self.data[2*k+1])
@@ -209,6 +224,7 @@ class LazySegmentTree:
         self.lazy[k] = self.id_M
 
     def _visualize_binarytree(self, A, v=1<<60):
+        """内部配列を二分木の層ごとに整形した文字列を返す。"""
         h = len(A).bit_length() - 1 # height of tree
         assert len(A) == 1<<h
         if h == 0: return ""

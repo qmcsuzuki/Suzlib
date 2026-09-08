@@ -2,7 +2,9 @@
 
 
 class StaticRangeSum:
+    """累積和によって静的な半開区間の和を求める。"""
     def __init__(self, init):
+        """初期列の末尾に零を置き、右からの累積和を構築する。"""
         acc = self.acc = list(init)
         acc.append(0)
         for i in range(len(acc)-2)[::-1]: # 右から累積和

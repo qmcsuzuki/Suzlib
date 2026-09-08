@@ -7,6 +7,7 @@ R[i]: A[r] <= A[i] かつ r > i なる最小の r （存在しないなら len(A
 # 不変条件: ループ終了時、\cdots A[L[L[r]]] < A[L[r]]  < A[r] で、右側の nearest smaller が未決定はこれらだけ
 """
 def nearest_smaller(A):
+    """左側で値が厳密に小さい直近の添字と、右側で値が以下となる直近の添字の配列を返す。"""
     n = len(A)
     L = [-1]*n # nearest (strictly) smaller (left)
     R = [n]*n # nearest (non-strictly) smaller (right)
