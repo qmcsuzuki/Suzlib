@@ -9,6 +9,7 @@ i.e., g^n = 1 (mod p) となる n の最小値は p-1
 """
 @lru_cache(maxsize=None)
 def primitive_root(p):
+    """奇素数 p に対する原始根を一つ返す。"""
     assert p%2
     lst = prime_factorize(p-1)
     for g in range(2,p):
@@ -24,6 +25,7 @@ p^e の原始根 g を求める
 i.e., g^n = 1 (mod p^e) となる n の最小値は (p-1)p^{e-1}
 """
 def primitive_power_root(p,e):
+    """奇素数 p の正整数乗 p^e に対する原始根を一つ返す。"""
     assert e >= 1
     g = primitive_root(p)
     if e == 1:

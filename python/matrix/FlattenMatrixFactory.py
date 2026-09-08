@@ -13,6 +13,7 @@ def make_minplus_matrix(K, INF):
     E = tuple(0 if i == j else INF for i in range(K) for j in range(K))
 
     def op(A, B):
+        """平坦化した二行列の min-plus 積を返す。"""
         C = [INF] * (K * K)
         for i in range(K):
             iK = i * K
@@ -42,6 +43,7 @@ def make_maxplus_matrix(K, NEG_INF):
     E = tuple(0 if i == j else NEG_INF for i in range(K) for j in range(K))
 
     def op(A, B):
+        """平坦化した二行列の max-plus 積を返す。"""
         C = [NEG_INF] * (K * K)
         for i in range(K):
             iK = i * K
@@ -71,6 +73,7 @@ def make_usual_matrix(K):
     E = tuple(1 if i == j else 0 for i in range(K) for j in range(K))
 
     def op(A, B):
+        """平坦化した二行列の通常の行列積を返す。"""
         C = [0] * (K * K)
         for i in range(K):
             iK = i * K
@@ -95,6 +98,7 @@ def make_MODint_matrix(K):
     E = tuple(1 if i == j else 0 for i in range(K) for j in range(K))
 
     def op(A, B):
+        """平坦化した二行列の行列積を指定した法で求める。"""
         mod = MOD
         C = [0] * (K * K)
         for i in range(K):
@@ -122,6 +126,7 @@ def make_bool_matrix(K):
     E = tuple(i == j for i in range(K) for j in range(K))
 
     def op(A, B):
+        """平坦化した二行列の論理和・論理積による行列積を返す。"""
         C = [False] * (K * K)
         for i in range(K):
             iK = i * K
@@ -147,6 +152,7 @@ def make_maxmin_matrix(K, NEG_INF, INF):
     E = tuple(INF if i == j else NEG_INF for i in range(K) for j in range(K))
 
     def op(A, B):
+        """平坦化した二行列の max-min 積を返す。"""
         C = [NEG_INF] * (K * K)
         for i in range(K):
             iK = i * K
@@ -176,6 +182,7 @@ def make_minmax_matrix(K, INF, NEG_INF):
     E = tuple(NEG_INF if i == j else INF for i in range(K) for j in range(K))
 
     def op(A, B):
+        """平坦化した二行列の min-max 積を返す。"""
         C = [INF] * (K * K)
         for i in range(K):
             iK = i * K

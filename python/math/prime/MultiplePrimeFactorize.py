@@ -4,6 +4,7 @@
 最小素因数の配列 spf_list を返す。時間 O(N log log N)、空間 O(N)。
 """
 def Eratosthenes_spf_list(N):
+    """N 以下の各整数の最小素因数を配列で返し、0 と 1 には 0 を格納する。"""
     # i>=2 のとき spf_list[i] は i の最小素因数
     # 0,1 については便宜上 0 を入れる
     N += 1
@@ -31,6 +32,7 @@ spf_list=Eratosthenes_spf_list(N) を渡せば、1 <= n <= N の各呼び出し�
 n <= 1 は従来どおり [] を返す。
 """
 def factorize(n, spf_list=None):
+    """最小素因数表を利用して素因数を重複付きリストで返し、表の省略時は前計算も行う。"""
     if n <= 1:
         return []
     if spf_list is None:

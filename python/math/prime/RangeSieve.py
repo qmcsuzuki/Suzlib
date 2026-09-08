@@ -7,6 +7,7 @@ from python.math.prime.Eratosthenes import Eratosthenes
 L 以上 R 以下の数が素数かどうかを offset 付きの配列で返す
 """
 def RangeSieve(L,R):
+    """篩に使う小素数のリストと閉区間 [L,R] の素数判定配列を返す。"""
     assert 0 <= L <= R
     Eratosthenes_prime_lst = Eratosthenes(int(R**0.5)+1)
     is_prime = [1]*(R-L+1)

@@ -3,6 +3,7 @@
 from python.math.number_theory.extgcd import extgcd
 
 def count_integer_points_of_queen_moves(a,b,c,x_min,x_max,y_min,y_max):
+    """8 方向の直線 ax+by=c 上で、指定した半開長方形内にある格子点を数える。"""
     # find number of (ax + by = c, x_min <= x < x_max, y_min <= y < y_max)
     # 範囲が range のように半開区間になっている点に注意
     # ここで (a,b) は 8 方向を表す （つまり {-1,0,1}^2 から (0,0) を除いたもの）

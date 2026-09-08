@@ -7,6 +7,7 @@ output: [[p1,e1],[p2,e2],...] の形で素因数分解する。
         N=1なら空のリストを返す
 """
 def prime_factorize(N):
+    """正整数を素因数と指数の組のリストに分解する。"""
     assert N != 0, "zero"
     exponent = 0
     while N%2 == 0:

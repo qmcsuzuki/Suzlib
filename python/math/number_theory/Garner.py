@@ -3,7 +3,9 @@
 from math import gcd
 
 def Garner(a,m,already_coprime=True,permit0=True):
+    """連立合同式の解を大域変数 MOD で還元して返し、不整合なら -1 を返す。"""
     def compute(i,M): # c[0] + c[1]m[0] + c[2]m[0]m[1] + ... c[i-1]m[0]...m[i-2] mod M を返す
+        """確定した混合基数係数 c[0:i] の値を法 M で評価する。"""
         v = c[i-1]
         for j in range(i-2,-1,-1):
             v = (v*m[j] + c[j])%M
@@ -31,6 +33,7 @@ def Garner(a,m,already_coprime=True,permit0=True):
         return v
 
 def Garner_coprimize(a,m):
+    """連立合同式を同値な互いに素の法へ破壊的に変換し、整合性を 0/1 で返す。"""
     n = len(a)
     for i in range(1,n):
         for j in range(i):

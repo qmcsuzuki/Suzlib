@@ -5,6 +5,7 @@
 #N=10**6で0.1secほど
 """
 def Eratosthenes(N): #N以下の素数のリストを返す
+    """N 以下の素数を昇順のリストで返す。"""
     if N < 2:
         return []
     N+=1
@@ -19,6 +20,7 @@ def Eratosthenes(N): #N以下の素数のリストを返す
 is_prime_list を返すバージョン
 """
 def Eratosthenes_is_prime_list(N): #N以下の素数のリストを返す
+    """0 から N までの各整数が素数かを示す真偽値配列を返す。"""
     #iが素数のときis_prime_list[i]=1，それ以外は0
     if N < 2:
         return [False] * (N + 1)
