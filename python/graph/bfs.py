@@ -1,6 +1,7 @@
 ﻿# competitive-verifier: TITLE 幅優先探索 (BFS)
 
 def bfs(g,start):
+    """始点から幅優先探索し、訪問順と未到達を -1 とする距離配列を返す。"""
     n = len(g)
     #prev = [-1]*n
     bfs_order = [start]
@@ -18,6 +19,7 @@ def bfs(g,start):
 
 
 def BFSmulti(g,starts):
+    """複数始点から幅優先探索し、訪問順と最寄りの始点からの距離配列を返す。"""
     n = len(g)
     bfs_order = []
     dist = [-1]*n

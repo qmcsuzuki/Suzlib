@@ -3,6 +3,7 @@
 from python.data_structure.unionfind.UnionFind import UnionFind
 
 def LargeGridUF(H,W,blocks):
+    """障害物で分割された各行の空き区間を併合し、UnionFind と区間位置表を返す。"""
     UF = UnionFind(H+len(blocks))
     M = 1<<20
     MM = M*2
@@ -43,6 +44,7 @@ def LargeGridUF(H,W,blocks):
 
 from bisect import bisect_left
 def get_blockid(i,j):
+    """大域変数 blockpos を使い、空きマス (i,j) の区間番号を返す。"""
     M = 1<<20
     lst = blockpos[i]
     idx = bisect_left(lst,(j+1)*M) - 1

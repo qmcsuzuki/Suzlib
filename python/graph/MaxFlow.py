@@ -15,12 +15,14 @@ class MFGraph:
     """Dinic法による最大流。計算量は一般に O(V^2 E)。"""
 
     class Edge(NamedTuple):
+        """最大流グラフの辺の始点・終点・容量・流量を保持する。"""
         src: int
         dst: int
         cap: int
         flow: int
 
     def __init__(self, n: int) -> None:
+        """n 頂点の辺のない残余グラフを初期化する。"""
         assert 0 <= n
         self._n = n
         self._g: list[list[int]] = [[] for _ in range(n)]
@@ -175,6 +177,7 @@ class MFGraph:
         level = [n] * n
 
         def bfs() -> bool:
+            """残余グラフのレベルを幅優先探索で設定し、終点に到達できるかを返す。"""
             for v in range(n):
                 level[v] = n
             level[s] = 0
@@ -196,6 +199,7 @@ class MFGraph:
 
         # t からレベルグラフを逆向きにたどることで再帰を避ける。
         def dfs(limit: int) -> int:
+            """レベルグラフを終点から逆にたどり、上限 limit まで増加させた流量を返す。"""
             stack = [t]
             edge_stack: list[int] = []
             while stack:

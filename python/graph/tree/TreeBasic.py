@@ -66,6 +66,7 @@ def get_size(order, par, wt=None):
 
 #DFS 順と親配列から各頂点の深さを返す
 def get_depth(order, par): 
+    """DFS 順と親配列から各頂点の深さの配列を返す。"""
     # 返り値: depth: 深さ配列（根は order[0]）
     depth = [0] * len(par)
     for v in order:

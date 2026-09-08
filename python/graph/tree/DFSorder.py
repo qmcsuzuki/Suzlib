@@ -10,6 +10,7 @@ return
 
 """
 def DFSorder(g,root):
+    """根付き木の DFS 順・各頂点の訪問位置・部分木サイズを返す。"""
     n = len(g)
     par = [-1]*n
     ls = [0]*n

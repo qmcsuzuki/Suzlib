@@ -9,6 +9,7 @@ start: 始点
 
 from heapq import *
 def dijkstra(g,start):
+    """非負重みの隣接リストから単一始点の最短距離配列を求める。"""
     n = len(g)
     INF = 1<<61
     dist = [INF]*n

@@ -3,7 +3,9 @@
 from python.data_structure.unionfind.UnionFind import UnionFind
 
 class bipartite:
+    """辺や同色制約の追加に対応し、二部性と色の関係を管理する。"""
     def __init__(self, n):
+        """n 頂点の二部性を管理する補助 UnionFind と成分数を初期化する。"""
         self.n = n
         self.UF = UnionFind(2 * n)
         self.is_bipartite = True
@@ -12,6 +14,7 @@ class bipartite:
         self.orig_vertex_count = [1] * n + [0] * n
 
     def _merge(self, x, y):
+        """補助 UnionFind の二集合を併合し、元の頂点数も合算する。"""
         x, y = self.UF.leader(x), self.UF.leader(y)
         if x == y:
             return -1
@@ -23,9 +26,11 @@ class bipartite:
         return x
 
     def is_connected(self, u, v):
+        """二頂点が同じ連結成分に属するかを返す。"""
         return self.UF.issame(u, v) or self.UF.issame(u, v + self.n)
 
     def component_is_bipartite(self, v):
+        """指定頂点の成分で二部性に矛盾がないかを返す。"""
         return not self.UF.issame(v, v + self.n)
 
     def connected_color_relation(self, u, v):
@@ -40,6 +45,7 @@ class bipartite:
         return 1 if self.UF.issame(u, v) else -1
 
     def add_edge(self, u, v):
+        """二頂点を異色にする辺を追加し、二部性と成分数を更新する。"""
         # 元のグラフの連結成分数の更新
         if not self.is_connected(u, v):
             self.num_conn_comp -= 1
@@ -52,6 +58,7 @@ class bipartite:
             self.is_bipartite = False
 
     def add_same(self, u, v):
+        """二頂点を同色にする制約を追加し、整合性と成分数を更新する。"""
         # 元のグラフの連結成分数の更新
         if not self.is_connected(u, v):
             self.num_conn_comp -= 1
@@ -105,4 +112,5 @@ class bipartite:
         return res
 
     def number_of_connected_component(self):
+        """現在の連結成分数を返す。"""
         return self.num_conn_comp

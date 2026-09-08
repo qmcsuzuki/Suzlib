@@ -17,6 +17,7 @@ class GridPath:
     """
 
     def __init__(self, h, w, start=(0, 0), target=(0, 0)):
+        """盤面の大きさ・始点・目標を設定し、局所座標系と移動履歴を初期化する。"""
         self.h = h
         self.w = w
 
@@ -29,15 +30,18 @@ class GridPath:
         self.history = [(self.cx, self.cy)] # 移動したマスの履歴
 
     def abs_pos(self, i, j): # 絶対位置
+        """局所座標 (i,j) を絶対座標に変換して返す。"""
         return (
             self.ox + i * self.dx + j * self.rx,
             self.oy + i * self.dy + j * self.ry,
         )
 
     def relative_current_pos(self): # （相対の）現在位置
+        """現在位置を局所座標で返す。"""
         return self.cx, self.cy
 
     def relative_target(self):
+        """目標位置を局所座標で返す。"""
         return self.target_i, self.target_j
 
     def set_origin(self, i, j):
@@ -64,19 +68,37 @@ class GridPath:
         self.history.append(self.abs_pos(i, j))
 
     def move(self, di, dj):
+        """局所座標で (di,dj) だけ移動し、絶対座標の履歴に追加する。"""
         self.move_to(self.cx + di, self.cy + dj)
 
-    def up(self): self.move(-1, 0)
-    def down(self): self.move(1, 0)
-    def left(self): self.move(0, -1)
-    def right(self): self.move(0, 1)
+    def up(self):
+        """局所座標で上へ 1 マス移動し、履歴に追加する。"""
+        self.move(-1, 0)
+    def down(self):
+        """局所座標で下へ 1 マス移動し、履歴に追加する。"""
+        self.move(1, 0)
+    def left(self):
+        """局所座標で左へ 1 マス移動し、履歴に追加する。"""
+        self.move(0, -1)
+    def right(self):
+        """局所座標で右へ 1 マス移動し、履歴に追加する。"""
+        self.move(0, 1)
 
-    def upleft(self): self.move(-1, -1)
-    def upright(self): self.move(-1, 1)
-    def downleft(self): self.move(1, -1)
-    def downright(self): self.move(1, 1)
+    def upleft(self):
+        """局所座標で左上へ 1 マス移動し、履歴に追加する。"""
+        self.move(-1, -1)
+    def upright(self):
+        """局所座標で右上へ 1 マス移動し、履歴に追加する。"""
+        self.move(-1, 1)
+    def downleft(self):
+        """局所座標で左下へ 1 マス移動し、履歴に追加する。"""
+        self.move(1, -1)
+    def downright(self):
+        """局所座標で右下へ 1 マス移動し、履歴に追加する。"""
+        self.move(1, 1)
 
     def _map_local_points(self, f):
+        """現在位置と目標位置の局所座標に変換 f を適用する。"""
         self.cx, self.cy = f(self.cx, self.cy)
         self.target_i, self.target_j = f(self.target_i, self.target_j)
 

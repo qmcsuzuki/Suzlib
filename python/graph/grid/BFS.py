@@ -11,6 +11,7 @@ return:
 
 from collections import deque
 def BFS_grid(board, H, W, start_list):
+    """壁を # とする盤面で、多始点の最短距離と始点へ戻る方向の配列を返す。"""
     dist = [[-1]*W for _ in range(H)]
     nxt = [[-1]*W for _ in range(H)] # nxt の方向は dx,dy の方向 0,1,2,3 で記述
     q = deque()

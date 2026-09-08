@@ -3,7 +3,9 @@
 from collections import deque
 
 def diameter(g):
+    """木の直径の両端・中心を挟む二頂点・直径の長さを返す。"""
     def bfs(start):  # start からの最遠頂点（の1つ）と dist を返す
+        """始点から最も遠い頂点の一つと距離配列を返す。"""
         dist = [-1] * len(g)
         q = deque([start])
         dist[start] = 0

@@ -1,7 +1,9 @@
 # competitive-verifier: TITLE 無向トレイル分解、オイラーパス (undirected Eulerian path/circuit)
 
 class UndirectedTrailDecomposition:
+    """無向多重グラフの辺を最小本数のトレイルに分解する。"""
     def __init__(self, n, edges, lexicographically_min=False):
+        """無向辺列と次数を保存し、最小本数のトレイル分解を構成する。"""
         self.n = n
         self.edges = list(edges)
         self.m = len(edges)
@@ -90,6 +92,7 @@ class UndirectedTrailDecomposition:
         return trails
 
     def _discard_used(self, g, used, v):
+        """隣接辺列の末尾から使用済みの辺を取り除く。"""
         while g[v] and used[g[v][-1][0]]:
             g[v].pop()
 
@@ -152,9 +155,11 @@ class UndirectedTrailDecomposition:
         return res
 
     def trail_decomposition(self):
+        """全辺を重複なく覆う最小本数のトレイルを返す。"""
         return self._trails
 
     def eulerian_trail(self):
+        """オイラートレイルの存在判定・頂点列・辺番号列を返す。"""
         if len(self._trails) == 0:
             # 辺が 0 本のときは、長さ 0 のトレイルとして頂点 1 つを返す。
             # (verify 問題では頂点列の長さが m+1 を満たす必要がある)
@@ -169,6 +174,7 @@ class UndirectedTrailDecomposition:
         return True, vs, tr
 
     def eulerian_circuit(self):
+        """オイラー閉路の存在判定・頂点列・辺番号列を返す。"""
         if len(self._trails) == 0:
             return True, [0] if self.n else [], []
         if len(self._trails) != 1:
@@ -184,6 +190,7 @@ class UndirectedTrailDecomposition:
         return True, vs, tr
 
     def min_add_to_euler_path(self):
+        """オイラートレイルを作る最小追加辺数と追加する辺のリストを返す。"""
         k = len(self._trails)
         if k == 0:
             return 0, []
@@ -196,6 +203,7 @@ class UndirectedTrailDecomposition:
         return k - 1, add
 
     def min_add_to_euler_circuit(self):
+        """オイラー閉路を作る最小追加辺数と追加する辺のリストを返す。"""
         k = len(self._trails)
         if k == 0:
             return 0, []

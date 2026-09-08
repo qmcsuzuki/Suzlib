@@ -13,6 +13,7 @@ class BipartiteMatching:
     """
 
     def __init__(self, n_left: int, n_right: int) -> None:
+        """左右の頂点数を設定し、辺のない二部グラフと空のマッチングを作る。"""
         assert 0 <= n_left
         assert 0 <= n_right
         self.n_left = n_left
@@ -589,6 +590,7 @@ class GeneralBipartiteMatching:
     """頂点を一つの整数空間で与え、自動で二部彩色する最大二部マッチング。"""
 
     def __init__(self, n: int) -> None:
+        """n 頂点の空の辺列と、未彩色・未マッチの状態を初期化する。"""
         assert 0 <= n
         self.n = n
         self.edges: list[tuple[int, int]] = []

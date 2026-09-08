@@ -7,6 +7,7 @@ INF_inner の値に注意
 """
 
 def Bellman_Ford(g,start):
+    """始点からの最短距離を返し、未到達を INF、負閉路の影響下を -INF とする。"""
     INF_inner = INF # INF はグローバルに設定する
     n = len(g)
     dist = [INF_inner]*n

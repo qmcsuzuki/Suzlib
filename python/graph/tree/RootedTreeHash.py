@@ -5,6 +5,7 @@
 根付き木の各部分木の完全ハッシュ関数を求める（同型が判定できる）
 """
 def rooted_tree_hash(g,root,par=None,dfs_order=None):
+    """指定した根に関する各部分木を、同型なものが同じ番号になるよう分類する。"""
     n = len(g)
     if par is None or dfs_order is None:
         st = [root]

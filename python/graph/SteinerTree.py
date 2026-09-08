@@ -1,16 +1,20 @@
 # competitive-verifier: TITLE Steiner木
 
 class SteinerTree:
+    """少数の指定頂点を結ぶ最小シュタイナー木の重みを部分集合 DP で求める。"""
     def __init__(self,n):
+        """n 頂点の辺のない重み付き無向グラフを作る。"""
         self.n = n
         self.g = [[] for _ in range(n)]
     
     def add_edge(self,u,v,c):
+        """非負重み c の無向辺 u-v を追加する。"""
         assert c >= 0
         self.g[u].append((v,c))
         self.g[v].append((u,c))
     
     def solve(self,nodes):
+        """指定頂点集合を結ぶ最小シュタイナー木の総重みを求める。"""
         INF = 1<<60
         g = self.g
         n = self.n
