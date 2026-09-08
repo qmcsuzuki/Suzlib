@@ -3,6 +3,7 @@ MOD61 = (1<<61)-1
 
 # a * b % MOD61 を計算
 def mul_mod61(a, b):
+    """二整数の積を法 2^61-1 で求める。"""
     au, ad = divmod(a, 1<<31)
     bu, bd = divmod(b, 1<<31)
     midu, midd = divmod(ad * bu + au * bd, 1<<30)
@@ -12,12 +13,14 @@ def mul_mod61(a, b):
     return x if x < MOD61 else x - MOD61
 
 class RollingHash61:
+    """法 2^61-1 のローリングハッシュで部分列の比較・連結を行う。"""
     MOD = MOD61
     BASE = 911382323 # 必要なら乱数にする
     powers = [1]
     
     @classmethod
     def _ensure_power(cls, n):
+        """共有する基数の累乗表を n 乗まで拡張する。"""
         L = len(cls.powers)
         if L > n: return
         powers = cls.powers
@@ -27,6 +30,7 @@ class RollingHash61:
             powers[i] = mul_mod61(powers[i - 1], cls.BASE)
 
     def __init__(self, s):
+        """文字列・bytes・整数列から接頭辞ハッシュと基数の累乗表を構築する。"""
         # 文字列・bytes・小さい非負整数列を想定
         if type(s) == str:
             S = list(map(ord, s))
@@ -43,16 +47,19 @@ class RollingHash61:
             h[i + 1] = v if v < MOD61 else v - MOD61
 
     def get(self, l, r):
+        """半開区間 [l,r) の部分列のハッシュ値を返す。"""
         # hash(S[l:r]) の値を返す
         x = self.h[r] - mul_mod61(self.h[l], self.powers[r - l])
         return x if x >= 0 else x + MOD61
     
     def is_same(self, l1, r1, other, l2, r2):
+        """二つの部分列の長さとハッシュ値が一致するかを返す。"""
         # 文字列の一致判定
         return r1 - l1 == r2 - l2 and self.get(l1, r1) == other.get(l2, r2)
 
     # Longest Common Prefix: 先頭何文字が同じ？その数を返す
     def common_prefix_length(self, l1, r1, other, l2, r2):
+        """二つの部分列の最長共通接頭辞の長さをハッシュで二分探索する。"""
         ok = 0
         ng = min(r1 - l1, r2 - l2) + 1
         while ng - ok > 1:
@@ -65,6 +72,7 @@ class RollingHash61:
 
     # Longest Common Prefix: 末尾何文字が同じ？その数を返す
     def common_suffix_length(self, l1, r1, other, l2, r2):
+        """二つの部分列の最長共通接尾辞の長さをハッシュで二分探索する。"""
         ok = 0
         ng = min(r1 - l1, r2 - l2) + 1
         while ng - ok > 1:
@@ -81,6 +89,7 @@ class RollingHash61:
     #    0 : S1[l1:r1] == S2[l2:r2]
     #    1 : S1[l1:r1] >  S2[l2:r2]
     def compare(self, l1, r1, other, l2, r2):
+        """二つの部分列の辞書順比較結果を -1・0・1 で返す。"""
         L = self.common_prefix_length(l1, r1, other, l2, r2)
 
         n1 = r1 - l1
@@ -95,6 +104,7 @@ class RollingHash61:
 
     @classmethod
     def concat_hash(cls, ha, hb, lb):
+        """後半の長さ lb を用いて、二つのハッシュ値を連結する。"""
         # ハッシュ値単体の結合（la は使わない）
         # hash(A B) = hash(A) * BASE^|B| + hash(B)
         cls._ensure_power(lb)
@@ -103,6 +113,7 @@ class RollingHash61:
 
     @classmethod
     def concat_pairs(cls, a, b):
+        """二つのハッシュ値と長さの組を連結した組を返す。"""
         ha, la = a
         hb, lb = b
         return (cls.concat_hash(ha, hb, lb), la + lb)

@@ -1,5 +1,6 @@
 # competitive-verifier: TITLE KMP法
 def prefix_function(s):
+    """各接頭辞に対する KMP の失敗遷移表を、先頭を -1 として返す。"""
     n = len(s)
     table = [0]*(n+1)
     j = table[0] = -1

@@ -5,6 +5,7 @@
 """
 
 def run_length_encoding(S):
+    """連続して等しい要素を、値と出現回数の組にまとめる。"""
     if not S: return []
     prev = S[0]
     cnt = 0

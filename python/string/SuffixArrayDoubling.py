@@ -44,6 +44,7 @@ def suffix_array_functional_graph(nexts: list[int], labels: list[int]) -> tuple[
     L = 1
 
     def counting_sort(order: list[int], key: list[int], R: int) -> list[int]:
+        """0 以上 R 未満の key[v] に従って頂点番号列を安定に計数ソートする。"""
         # key[v] in [0, R) で、order をカウントソート
         cnt = [0] * R
         for v in order:

@@ -1,5 +1,6 @@
 # competitive-verifier: TITLE 最小回転
 def minimum_rotation(s):
+    """循環シフトのうち辞書順最小となる列を返す。"""
     a = 0
     b = 1
     n = len(s)
