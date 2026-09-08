@@ -13,7 +13,7 @@ def rooted_tree_hash(g,root,par=None,dfs_order=None):
         while st:
             dfs_order.append(v := st.pop())
             for c in g[v]:
-                if v == par[c]: continue
+                if c == par[v]: continue
                 st.append(c)
                 par[c] = v
 

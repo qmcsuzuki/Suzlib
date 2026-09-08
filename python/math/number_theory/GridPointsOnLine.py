@@ -8,7 +8,7 @@ def count_integer_points_of_queen_moves(a,b,c,x_min,x_max,y_min,y_max):
     # ここで (a,b) は 8 方向を表す （つまり {-1,0,1}^2 から (0,0) を除いたもの）
     if a == 0:
         assert b != 0
-        return x_max-x_min if y_min <= c < y_max else 0
+        return x_max-x_min if y_min <= c//b < y_max else 0
     elif b == 0:
         return y_max-y_min if x_min <= c//a < x_max else 0
     if a == -1:
@@ -23,7 +23,8 @@ def count_integer_points_of_queen_moves(a,b,c,x_min,x_max,y_min,y_max):
 def grid_points_on_line(a,b,c,x_min,x_max,y_min,y_max):
     """
     consider (ax + by = c, x_min <= x <= x_max, y_min <= y <= y_max)
-    return (L,R,x0,y0) where set is [(x0+t*b,y_0-t*a) for t in range(L,R)]
+    return (L,R,x0,y0) where set is [(x0+t*b,y0-t*a) for t in range(L,R)]
+    上の a,b は入力を gcd(|a|,|b|) で割り、b > 0 になるよう符号を揃えたもの。
     (if no solution, then return 0,0,x0,y0)
     The number of solution is R-L
     """    

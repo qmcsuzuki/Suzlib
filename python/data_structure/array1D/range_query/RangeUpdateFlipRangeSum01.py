@@ -1,6 +1,6 @@
 # competitive-verifier: TITLE 区間反転・区間和（01列）
 
-from data_structure.array1D.LazySegmentTree import LazySegmentTree
+from python.data_structure.array1D.LazySegmentTree import LazySegmentTree
 
 class RangeUpdateFlipRangeSum01:
     """

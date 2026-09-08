@@ -14,7 +14,7 @@ class SWAG:
             self.q = deque(init)
             self.L = len(init)
             for i in reversed(init):
-                self.accL.append(self.op_M(i, self.acc[-1]))
+                self.accL.append(self.op_M(i, self.accL[-1]))
 
     def __len__(self):
         return self.L + self.R

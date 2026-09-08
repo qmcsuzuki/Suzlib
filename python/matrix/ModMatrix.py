@@ -29,7 +29,7 @@ class ModMatrixBase:
     def __getitem__(self, key) -> int:#: tuple[int, int]) -> int:
         return self.matrix[key]
 
-    def __setitem__(self, indices) -> int: #: tuple[int, int], value: int) -> None:
+    def __setitem__(self, indices, value) -> None:
         self.matrix[indices[0]][indices[1]] = value
 
     def __add__(self, other):
@@ -68,14 +68,15 @@ class ModMatrixBase:
     def __imul__(self, other):
         assert self.m == other.n
         self.matrix = self._matmul_list(self.matrix, other.matrix)
+        self.m = other.m
         return self
 
     def times_const(self, k: int):
-        res = self.__class__(self.n, other.m)
+        res = self.__class__(self.n, self.m)
         A = res.matrix
         for i,Ai in enumerate(A):
             for j in range(self.m):
-                Ai[j] = Ai[j] * k % self.MOD
+                Ai[j] = self.matrix[i][j] * k % self.MOD
         return res
 
     def __pow__(self, k: int):

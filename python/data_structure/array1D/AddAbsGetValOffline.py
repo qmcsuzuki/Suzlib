@@ -1,6 +1,6 @@
-﻿# competitive-verifier: TITLE 絶対値関数の和 (AddAbsGetVal)
+# competitive-verifier: TITLE 絶対値関数の和 (AddAbsGetVal)
 
-from python.data_structure.array1D.Fenwicktree import Fenwicktree
+from python.data_structure.array1D.FenwickTree import FenwickTree
 from bisect import bisect_left
 class AddAbsGetValOffline:
     def __init__(self,sa,za):

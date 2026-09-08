@@ -1,5 +1,7 @@
 # competitive-verifier: TITLE 区間加算・区間内積 mod 998244353
 
+from python.data_structure.array1D.LazySegmentTree import LazySegmentTree
+
 
 class RangeAddRangeInnerproductMOD(LazySegmentTree):
     """
@@ -25,7 +27,7 @@ class RangeAddRangeInnerproductMOD(LazySegmentTree):
             assert len(A)==N
             array = [(A[i]*B[i]%self.MOD*self.M + W[i]%self.MOD,  A[i]%self.MOD*self.M + B[i]%self.MOD) for i in range(N)]
         else:
-            array = [(W[i]%self.MOD,0)]
+            array = [(W[i]%self.MOD,0) for i in range(N)]
 
         self.data[self.N0:self.N0+self.N] = array
         for i in range(self.N0-1,0,-1): self.update(i)

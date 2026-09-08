@@ -82,7 +82,7 @@ class SegmentTreeDual:
         h = len(A).bit_length() - 1 # height of tree
         assert len(A) == 1<<h
         is_min = (op == min and isinstance(v,int))
-        S = ["INF" if is_min and x >= v else str(x) for x in A] # large value is displayed "INF"
+        S = ["INF" if is_min and isinstance(x,int) and x >= v else str(x) for x in A] # large value is displayed "INF"
         layers = [S[1<<i:2<<i] for i in range(h)] # layer of tree
         W = max(2+(max(map(len,lst)))<<i for i,lst in enumerate(layers)) # width of displayed tree
         return "".join("".join(f"{T:^{W>>i}}" for T in lst) + "\n" for i,lst in enumerate(layers))

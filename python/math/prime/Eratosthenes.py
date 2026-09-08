@@ -5,6 +5,8 @@
 #N=10**6で0.1secほど
 """
 def Eratosthenes(N): #N以下の素数のリストを返す
+    if N < 2:
+        return []
     N+=1
     is_prime_list = [True]*N
     m = int(N**0.5)+1
@@ -18,6 +20,8 @@ is_prime_list を返すバージョン
 """
 def Eratosthenes_is_prime_list(N): #N以下の素数のリストを返す
     #iが素数のときis_prime_list[i]=1，それ以外は0
+    if N < 2:
+        return [False] * (N + 1)
     N+=1
     is_prime_list = [True]*N
     is_prime_list[0], is_prime_list[1] = False, False

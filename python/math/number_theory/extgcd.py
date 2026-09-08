@@ -12,7 +12,7 @@ def extgcd(a,b):
         x0,x1 = x1, x0 - q*x1
         y0,y1 = y1, y0 - q*y1
         a,b = b, a - q*b
-    return a, x0, y0
+    return (a, x0, y0) if a >= 0 else (-a, -x0, -y0)
 
 def solve_linear_congruence(a: int, b: int, MOD: int) -> tuple[int, int]:
     """

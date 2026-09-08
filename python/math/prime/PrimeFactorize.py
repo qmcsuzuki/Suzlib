@@ -7,6 +7,7 @@ output: [[p1,e1],[p2,e2],...] の形で素因数分解する。
         N=1なら空のリストを返す
 """
 def prime_factorize(N):
+    assert N != 0, "zero"
     exponent = 0
     while N%2 == 0:
         exponent += 1
@@ -23,5 +24,4 @@ def prime_factorize(N):
             N //= i
         factorization.append([i,exponent])
     if N!= 1: factorization.append([N,1])
-    assert N != 0, "zero"
     return factorization

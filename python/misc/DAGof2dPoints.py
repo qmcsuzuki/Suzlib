@@ -43,7 +43,11 @@ def DAGof2dPoints(points, x_reverse, y_reverse):
     for i,point in enumerate(points):
         X[i] = (point[0]<<20) + i
         Y[i] = (point[1]<<20) + i
-    X.sort(reverse=x_reverse)
+    # x が等しい点も、y の条件を満たす向きに並べる。
+    X.sort(key=lambda v: (
+        -(v>>20) if x_reverse else v>>20,
+        -(Y[v&((1<<20)-1)]>>20) if y_reverse else Y[v&((1<<20)-1)]>>20,
+    ))
     
     g = [[] for _ in range(n)]
     solveDC(0,n)

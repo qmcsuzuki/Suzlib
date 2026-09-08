@@ -1,5 +1,8 @@
 # competitive-verifier: TITLE 原始根
 
+from functools import lru_cache
+from python.math.prime.PrimeFactorize import prime_factorize
+
 """
 奇素数 p の原始根 g を求める
 i.e., g^n = 1 (mod p) となる n の最小値は p-1

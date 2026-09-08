@@ -28,6 +28,9 @@ def check_case(initial, coeffs):
 
 
 def main():
+    for n in range(10):
+        assert LinearRecurrence.fps_nth_term([1], [1], n) == (1 if n == 0 else 0)
+        assert LinearRecurrence.fps_nth_term([], [1, -1], n) == 0
     cases = [
         ([4, 5, 6, 7], [-1, 0, -2, 3]),
         ([1, 3], [0, -2]),

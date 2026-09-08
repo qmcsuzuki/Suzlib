@@ -1,3 +1,5 @@
+# competitive-verifier: TITLE Garner 法
+
 from math import gcd
 
 def Garner(a,m,already_coprime=True,permit0=True):
@@ -22,7 +24,7 @@ def Garner(a,m,already_coprime=True,permit0=True):
         v = c[n-1]
         for i in range(n-2,-1,-1):
             v = (v*m[i] + c[i])%MOD
-        return v
+        return v % MOD
     else:
         v = 1
         for mi in m: v = v*mi%MOD

@@ -14,6 +14,7 @@ class FloydWarshall:
         self.D[i][j] = min(self.D[i][j],v)
 
     def build(self):
+        n = len(self.D)
         assert not self.built
         self.built = True
         for k in range(n):
@@ -27,6 +28,7 @@ class FloydWarshall:
     
     # O(N^2)
     def construct_edge_undirected(self,a,b,v):
+        n = len(self.D)
         assert self.built
         if v >= self.D[a][b]: return
         self.D[a][b] = self.D[b][a] = v
@@ -37,6 +39,7 @@ class FloydWarshall:
                                   self.D[i][b]+v+self.D[a][j])
     
     def construct_edge_directed(self,a,b,v):
+        n = len(self.D)
         if v >= self.D[a][b]: return
         self.D[a][b] = v
         for i in range(n):

@@ -1,4 +1,6 @@
 # competitive-verifier: TITLE 区間加算・区間二乗和 mod 998244353
+
+from python.data_structure.array1D.LazySegmentTree import LazySegmentTree
 class RangeAddRangeSquareMOD(LazySegmentTree):
     """
     区間加算区間二乗和を MOD で計算する遅延セグ木

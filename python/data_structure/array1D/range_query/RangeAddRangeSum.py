@@ -1,5 +1,7 @@
 # competitive-verifier: TITLE 区間加算・区間和 (Range Add Range Sum)
 
+from python.data_structure.array1D.FenwickTree import FenwickTree
+
 class RangeAddRangeSum():
     def __init__(self, n, init=None):
         if init is not None:

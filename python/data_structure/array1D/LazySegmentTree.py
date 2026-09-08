@@ -211,6 +211,7 @@ class LazySegmentTree:
     def _visualize_binarytree(self, A, v=1<<60):
         h = len(A).bit_length() - 1 # height of tree
         assert len(A) == 1<<h
+        if h == 0: return ""
         S = ["INF" if isinstance(v,int) and isinstance(x,int) and x >= v else str(x) for x in A] # large value is displayed "INF"
         layers = [S[1<<i:2<<i] for i in range(h)] # layer of tree
         W = max(2+(max(map(len,lst)))<<i for i,lst in enumerate(layers)) # width of displayed tree

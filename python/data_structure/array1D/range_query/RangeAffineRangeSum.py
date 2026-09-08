@@ -1,6 +1,6 @@
 # competitive-verifier: TITLE 区間アフィン変換・区間和 mod 998244353
 
-from data_structure.array1D.LazySegmentTree import LazySegmentTree
+from python.data_structure.array1D.LazySegmentTree import LazySegmentTree
 
 class RangeAffineRangeSumMOD998244353(LazySegmentTree):
     """

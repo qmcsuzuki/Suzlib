@@ -45,7 +45,7 @@ class DeletableHeapq:
 class DeletableHeapqInt(DeletableHeapq):
     def __init__(self, initial = None):
         super().__init__(initial)
-        self.sum = 0 if initial is None else sum(initial)
+        self.sum = sum(self.q)
 
     def heappop(self):
         self.propagate()

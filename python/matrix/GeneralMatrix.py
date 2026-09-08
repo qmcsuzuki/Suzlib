@@ -34,13 +34,13 @@ class GeneralMatrix:
     def __getitem__(self, key) -> int:#: tuple[int, int]) -> int:
         return self.matrix[key]
 
-    def __setitem__(self, indices) -> int: #: tuple[int, int], value: int) -> None:
+    def __setitem__(self, indices, value) -> None:
         self.matrix[indices[0]][indices[1]] = value
 
     def __add__(self, other):
         assert self.n == other.n and self.m == other.m
         B,C = self.matrix, other.matrix
-        res = [[(B[i][j] + C[i][j]) % self.MOD for j in range(self.m)] for i in range(self.n)]
+        res = [[self.add(B[i][j], C[i][j]) for j in range(self.m)] for i in range(self.n)]
         return self.__class__(self.n, self.m, res, False)
 
     def _matmul_list(self,B,C):
@@ -59,9 +59,11 @@ class GeneralMatrix:
     def __imul__(self, other):
         assert self.m == other.n
         self.matrix = self._matmul_list(self.matrix, other.matrix)
+        self.m = other.m
         return self
 
     def __pow__(self, k: int):
+        n = self.n
         res = [[self.one if i==j else self.zero for i in range(n)] for j in range(n)]
         tmp = self.matrix
         while k:

@@ -1,5 +1,7 @@
 # competitive-verifier: TITLE 区間加算・一点取得
 
+from python.data_structure.array1D.FenwickTree import FenwickTree
+
 class RangeAddPointGet(FenwickTree):
     def __init__(self, n, init=None):
         if init is not None:

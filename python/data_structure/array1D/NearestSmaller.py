@@ -2,7 +2,7 @@
 
 """
 L[i]: A[l] < A[i] かつ l < i なる最大の l（存在しないなら -1）
-R[i]: A[r] >= A[i] かつ r > i なる最小の r （存在しないなら len(A)）
+R[i]: A[r] <= A[i] かつ r > i なる最小の r （存在しないなら len(A)）
 左、右で不等号にイコールが入るかどうかが異なることに注意
 # 不変条件: ループ終了時、\cdots A[L[L[r]]] < A[L[r]]  < A[r] で、右側の nearest smaller が未決定はこれらだけ
 """
@@ -22,7 +22,7 @@ def nearest_smaller(A):
 def nearest_larger(A):
     """
     L[i]: A[l] > A[i] かつ l < i なる最大の l（存在しないなら -1）
-    R[i]: A[r] <= A[i] かつ r > i なる最小の r （存在しないなら len(A)）
+    R[i]: A[r] >= A[i] かつ r > i なる最小の r （存在しないなら len(A)）
     左、右で不等号にイコールが入るかどうかが異なることに注意
     nearest_smaller を利用して実装する
     """

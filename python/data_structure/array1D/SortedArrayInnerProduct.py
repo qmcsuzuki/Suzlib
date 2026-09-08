@@ -9,7 +9,7 @@ S を常にソートされている配列（昇順・降順は事前に指定）
 
 座標圧縮をするなら za に圧縮を指定
 """
-from FenwickTree import FenwickTree
+from python.data_structure.array1D.FenwickTree import FenwickTree
 
 class SortedArrayInnerProduct():
     def __init__(self,a,b,Maxvalue,reverse=0,za=None,init=None):
@@ -46,7 +46,7 @@ class SortedArrayInnerProduct():
         self.val -= r1+r2
 
     def insert_before_zaatu(self,x): # x は座標圧縮前
-        idx = za[x]
+        idx = self.za[x]
         r1 = (self.op_cnt(idx)*self.a + self.b)*x
         r2 = (self.op_sum(idx)*self.a)
         self.val += r1+r2
@@ -54,7 +54,7 @@ class SortedArrayInnerProduct():
         self.fsum.add(idx,x)
 
     def remove_before_zaatu(self,x): # x は座標圧縮前
-        idx = za[x]
+        idx = self.za[x]
         self.fcnt.add(idx,-1)
         self.fsum.add(idx,-x)
         r1 = (self.op_cnt(idx)*self.a + self.b)*x

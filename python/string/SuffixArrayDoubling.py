@@ -25,6 +25,8 @@ def suffix_array_functional_graph(nexts: list[int], labels: list[int]) -> tuple[
     if n == 0:
         return [], []
     assert len(labels) == n
+    if n == 1:
+        return [0], [0]
 
     # 初期状態でのラベルのランク付け
     mx = max(labels)

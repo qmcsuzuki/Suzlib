@@ -47,7 +47,7 @@ def fps_nth_term(f,g,N):
         f = polymul(f,h)[N%2:N+1:2]
         g = polymul(g,h)[:N+1:2]
         N //= 2
-    return f[0]*pow(g[0],MOD-2,MOD)%MOD
+    return f[0]*pow(g[0],MOD-2,MOD)%MOD if f else 0
 
 # a[0],...,a[L-1] とL次特性多項式 g が与えられているL項間漸化式の第N項
 def rec_nth_term(a,g,N):

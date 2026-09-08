@@ -1,5 +1,7 @@
 # competitive-verifier: TITLE 区間エラトステネスの篩
 
+from python.math.prime.Eratosthenes import Eratosthenes
+
 """
 区間篩: R-L および \sqrt(R) が十分小さいとき、
 L 以上 R 以下の数が素数かどうかを offset 付きの配列で返す

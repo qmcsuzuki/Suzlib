@@ -38,6 +38,7 @@ def inversion_general(a):
 移りあえないなら -1
 """
 def inversion_distance(A,B):
+    if len(A) != len(B): return -1
     from collections import defaultdict
     d = defaultdict(list)
     for i,bi in enumerate(B):
