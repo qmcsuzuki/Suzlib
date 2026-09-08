@@ -1,7 +1,9 @@
 # competitive-verifier: TITLE 2次元Fenwick Tree Dual（一般）
 
 class FenwickTreeDualGeneral2D:
+    """可換演算による原点側の長方形への作用と一点取得を行う。"""
     def __init__(self, h: int, w: int, op, e_M):
+        """可換演算と単位元を設定し、h 行 w 列の双対 Fenwick 木を用意する。"""
         self.h = h
         self.w = w
         self.op = op
@@ -34,7 +36,9 @@ class FenwickTreeDualGeneral2D:
 suffix_add のみを扱えるバージョン
 """
 class FenwickTreeDualGeneral2DSuffix:
+    """可換演算による右下方向の長方形への作用と一点取得を行う。"""
     def __init__(self, h: int, w: int, op, e_M):
+        """上下左右を反転して利用する h 行 w 列の双対 Fenwick 木を用意する。"""
         self.h = h
         self.w = w
         self.BIT = FenwickTreeDualGeneral2D(h,w,op,e_M)

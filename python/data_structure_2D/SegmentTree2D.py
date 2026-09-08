@@ -3,6 +3,7 @@
 class SegmentTree2D:
     """ seg = SegmentTree2D(N,M,op,e,init=None) """
     def __init__(self, N,M, op, e, init=None):
+        """演算と単位元を設定し、N 行 M 列の初期値から二次元セグメント木を構築する。"""
         self.op = op
         self.e = e
         self.N = N
@@ -23,6 +24,7 @@ class SegmentTree2D:
 
     # a_k の値を x に更新
     def update(self,i,j,x):
+        """位置 (i,j) の値を x に置き換え、関連する区間積を更新する。"""
         self.data[i+self.N0][j+self.M0] = x
         data_ii = self.data[i+self.N0]
         jj = (j+self.M0)>>1
@@ -39,6 +41,7 @@ class SegmentTree2D:
     
     # 区間[L1,R1)*[L2,R2)をopでまとめる
     def prod(self,L1,R1,L2,R2):
+        """半開長方形 [L1,R1) × [L2,R2) の積を返す。"""
         L1 += self.N0; R1 += self.N0
         L2 += self.M0; R2 += self.M0
         sl = sr = self.e
@@ -54,6 +57,7 @@ class SegmentTree2D:
 
     # 区間 seg[i]*[L-self.M0,R2-self.M0)をopでまとめる
     def _prod_fixed(self,i,L,R):
+        """行方向のノードを固定し、列方向の内部添字区間 [L,R) の積を返す。"""
         sl = sr = self.e
         data_i = self.data[i]
         while L < R:
@@ -67,7 +71,9 @@ class SegmentTree2D:
         return self.op(sl,sr)
 
     def all_prod(self):
+        """全要素を演算で集約した値を返す。"""
         return self.data[1][1]
 
     def get(self, i,j): #k番目の値を取得。
+        """位置 (i,j) に格納された値を返す。"""
         return self.data[i+self.N0][j+self.M0]

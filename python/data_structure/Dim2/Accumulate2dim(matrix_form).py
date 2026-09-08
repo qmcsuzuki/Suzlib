@@ -7,6 +7,7 @@ class Accumulate2dim:
         i.e. acc[x][y] = sum(a[i][j] for i in range(x) for j in range(y)]
     """
     def __init__(self,a):
+        """二次元配列 a から原点を基準とする累積和を構築する。"""
         self.h = h = len(a); self.w = w = len(a[0])
         self.acc = acc = [[0]*(w+1) for _ in range((h+1))]
         for i in range(1,h+1):
@@ -14,16 +15,19 @@ class Accumulate2dim:
                 acc[i][j] = a[i-1][j-1] + acc[i][j-1] - acc[i-1][j-1] + acc[i-1][j]
 
     def get_sum_from_origin(self,h,w):
+        """半開長方形 [0,h) × [0,w) の和を返す。"""
         #半開長方形 [0,h2)*[0,w2) の和
         assert 0 <= h and 0 <= w
         return self.acc[h][w]
 
     def get_sum(self,h1,h2,w1,w2):
+        """半開長方形 [h1,h2) × [w1,w2) の和を返す。"""
         #半開長方形 [h1,h2)*[w1,w2) の和
         assert 0 <= h1 <= h2 and 0 <= w1 <= w2
         return self.acc[h1][w1] - self.acc[h1][w2]  - self.acc[h2][w1] + self.acc[h2][w2]
 
     def get_sum_from_origin_large(self,x,y):
+        """盤面を周期的に敷き詰めたときの [0,x) × [0,y) の和を返す。"""
         # h*w のパターンが無限に繰り返されている場合の半開長方形 [0,x)*[0,y) の和
         assert 0 <= x and 0 <= y
         xq,xr = divmod(x,self.h)
@@ -34,6 +38,7 @@ class Accumulate2dim:
             + self.get_sum_from_origin(xr,yr))
 
     def get_sum_large(self,h1,h2,w1,w2):
+        """盤面を周期的に敷き詰めたときの [h1,h2) × [w1,w2) の和を返す。"""
         # h*w のパターンが無限に繰り返されている場合の半開長方形 [h1,h2)*[w1,w2) の和
         assert 0 <= h1 <= h2 and 0 <= w1 <= w2
         return (self.get_sum_from_origin_large(h1,w1)
@@ -57,6 +62,7 @@ board = [[1 if i=="B" else 0 for i in readline().strip()] for _ in range(n)]
 seg = Accumulate2dim(board)
 
 def f(x,y):
+    """使用例の周期盤面について、閉長方形 [0,x] × [0,y] の和を返す。"""
     if x < 0 or y < 0: return 0
     x += 1
     y += 1

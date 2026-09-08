@@ -7,6 +7,7 @@ class Accumulate2dim:
         i.e. acc[x][y] = sum(a[i][j] for i in range(x) for j in range(y)]
     """
     def __init__(self,a):
+        """二次元配列 a から原点を基準とする累積和を構築する。"""
         self.h = len(a); self.w = len(a[0])
         h,w = self.h + 1, self.w +1
         self.acc = acc = [0]*(h*w)
@@ -16,11 +17,13 @@ class Accumulate2dim:
                             + acc[i*w+j-w] - acc[i*w+j-w-1]
 
     def prefix_sum(self,h,w):
+        """原点から指定位置までの半開長方形の和を返す。"""
         #半開長方形 [0,h2)*[0,w2) の和
         assert 0 <= h and 0 <= w
         return self.acc[h*(1+self.w) + w]
 
     def range_sum(self,h1,h2,w1,w2):
+        """指定した半開長方形の要素和を返す。"""
         #半開長方形 [h1,h2)*[w1,w2) の和
         assert 0 <= h1 <= h2 and 0 <= w1 <= w2
         return (self.acc[h1*(1+self.w) + w1]
@@ -30,6 +33,7 @@ class Accumulate2dim:
                 )
 
     def prefix_sum_large(self,x,y):
+        """盤面を周期的に敷き詰めたときの原点からの半開長方形の和を返す。"""
         # h*w のパターンが無限に繰り返されている場合の半開長方形 [0,x)*[0,y) の和
         assert 0 <= x and 0 <= y
         xq,xr = divmod(x,self.h)
@@ -40,6 +44,7 @@ class Accumulate2dim:
             + self.prefix_sum(xr,yr))
 
     def range_sum_large(self,h1,h2,w1,w2):
+        """盤面を周期的に敷き詰めたときの指定した半開長方形の和を返す。"""
         # h*w のパターンが無限に繰り返されている場合の半開長方形 [h1,h2)*[w1,w2) の和
         assert 0 <= h1 <= h2 and 0 <= w1 <= w2
         return (self.prefix_sum_large(h1,w1)

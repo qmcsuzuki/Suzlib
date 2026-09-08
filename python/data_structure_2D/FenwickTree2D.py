@@ -1,7 +1,9 @@
 # competitive-verifier: TITLE 2次元Fenwick木
 
 class FenwickTree2D:
+    """二次元配列の一点加算と長方形領域の和を管理する。"""
     def __init__(self, h: int, w: int, init=None):
+        """h 行 w 列の初期値または零から二次元 Fenwick 木を構築する。"""
         self.h = h
         self.w = w
         if init is None:

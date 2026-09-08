@@ -7,6 +7,7 @@ class StaticRectangleAdd:
     最後に和を計算する
     """
     def __init__(self,H,W):
+        """H 行 W 列の長方形加算を蓄積する差分配列を用意する。"""
         self.H = H
         self.W = W
         self.data = [[0]*(W+1) for _ in range(H+1)]

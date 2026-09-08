@@ -1,7 +1,9 @@
 # competitive-verifier: TITLE 2次元Fenwick Tree Dual
 
 class FenwickTreeDual2D:
+    """長方形領域への加算と一点取得を行う二次元 Fenwick 木。"""
     def __init__(self, h: int, w: int):
+        """h 行 w 列の区間加算用の零配列を用意する。"""
         self.h = h
         self.w = w
         self.data = [[0]*w for _ in range(h)]
