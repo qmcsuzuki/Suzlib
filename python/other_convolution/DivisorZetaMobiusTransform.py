@@ -10,6 +10,7 @@ class DivisorTransform:
     upper: F(d) = sum_{d|c|n} f(c)
     """
     def __init__(self, n: int, divs=None, primes=None):
+        """変換対象 n の整列済み約数列と素因数列を用意する。"""
         self.n = n
         if divs is None and primes is None:
             self.divs, self.primes = divisors_and_prime_divisors(n)
@@ -43,18 +44,21 @@ class DivisorTransform:
         return a
 
     def zeta_lower_inplace(self, a: dict[int, int]) -> None:
+        """約数側からの和を取るゼータ変換で入力辞書を上書きする。"""
         for p in self.primes:
             for d in self.divs:
                 if d % p == 0:
                     a[d] += a[d // p]
 
     def mobius_lower_inplace(self, a: dict[int, int]) -> None:
+        """約数側のゼータ変換を反転して入力辞書を上書きする。"""
         for p in self.primes:
             for d in reversed(self.divs):
                 if d % p == 0:
                     a[d] -= a[d // p]
 
     def zeta_upper_inplace(self, a: dict[int, int]) -> None:
+        """倍数側からの和を取るゼータ変換で入力辞書を上書きする。"""
         for p in self.primes:
             for d in reversed(self.divs):
                 dp = d * p
@@ -62,6 +66,7 @@ class DivisorTransform:
                     a[d] += a[dp]
 
     def mobius_upper_inplace(self, a: dict[int, int]) -> None:
+        """倍数側のゼータ変換を反転して入力辞書を上書きする。"""
         for p in self.primes:
             for d in self.divs:
                 dp = d * p

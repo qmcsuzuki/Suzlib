@@ -5,6 +5,7 @@ xor畳み込みなどに用いる。
 """
 
 def fwt_inplace(a):
+    """入力配列に XOR 畳み込み用の Walsh–Hadamard 変換を施す。"""
     n = len(a)
     assert n&(n-1) == 0 # 長さは 2 ベキ
     i = 1
@@ -17,6 +18,7 @@ def fwt_inplace(a):
         a[i] %= MOD
 
 def ifwt_inplace(a):
+    """入力配列に Walsh–Hadamard 逆変換を施す。"""
     fwt_inplace(a)
     v = pow(len(a),MOD-2,MOD)
     for i in range(len(a)):

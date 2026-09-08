@@ -4,6 +4,7 @@ from python.polynomial.simple_brute_polynomial import polymul
 
 # A = P(x)/Q(x)
 def Berlecamp_Massey_with_generating_function(A):
+    """数列から線形漸化式を推定し、母関数の分子と分母を返す。"""
     Q = Berlecamp_Massey(A)
     P = polymul(A, Q)[:len(Q)-1]
     return P, Q
@@ -11,6 +12,7 @@ def Berlecamp_Massey_with_generating_function(A):
 # find minimal recurrence C:
 # A[i] + C[0]A[i-1] + C[1]A[i-2] + ... + C[L-1]A[i-L] = 0
 def Berlecamp_Massey(A):
+    """数列の最小線形漸化式の係数を、定数項 1 の多項式として返す。"""
     n = len(A)
     C = [1]
     B = [1]
@@ -39,6 +41,7 @@ def Berlecamp_Massey(A):
     return C
 # 母関数が f(x)/g(x) で与えられる線形漸化式の第 n 項
 def fps_nth_term(f,g,N):
+    """有理型母関数 f/g の x^N の係数を法 MOD で求める。"""
     assert g[0] != 0
     while N:
         h = g[:]
@@ -51,6 +54,7 @@ def fps_nth_term(f,g,N):
 
 # a[0],...,a[L-1] とL次特性多項式 g が与えられているL項間漸化式の第N項
 def rec_nth_term(a,g,N):
+    """初期項 a と漸化式の分母多項式 g から第 N 項を法 MOD で求める。"""
     L = len(g) - 1
     assert len(a) == L
     f = polymul(a, g)[:L]

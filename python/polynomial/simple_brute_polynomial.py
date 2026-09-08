@@ -1,6 +1,7 @@
 # competitive-verifier: TITLE 素朴多項式演算
 
 def polyadd(f,g):
+    """係数列で表した二つの多項式の和を法 MOD で返す。"""
     L = max(len(f),len(g))
     res = f[::] + [0]*(L-len(f))
     for i,v in enumerate(g):
@@ -8,6 +9,7 @@ def polyadd(f,g):
     return res
 
 def polysub(f,g):
+    """係数列で表した二つの多項式の差を法 MOD で返す。"""
     L = max(len(f),len(g))
     res = f[::] + [0]*(L-len(f))
     for i,v in enumerate(g):
@@ -15,6 +17,7 @@ def polysub(f,g):
     return res
 
 def polymul(f,g,maxdegree=None):
+    """係数列で表した二つの多項式の積を二重ループで法 MOD により求める。"""
     L = len(f)+len(g)-1
     if maxdegree is not None:
         L = min(L, maxdegree+1)

@@ -2,6 +2,7 @@
 
 #aを破壊的にgcd-zetaする(０方向に)
 def zeta_gcd(a,primes):
+    """倍数側のゼータ変換を入力配列に施す。"""
     n = len(a)-1
     for p in primes:
         for i in range(n//p,0,-1):
@@ -11,6 +12,7 @@ def zeta_gcd(a,primes):
 
 #aを破壊的にgcd-mobiusする(０方向に)
 def mobius_gcd(a,primes):
+    """倍数側のメビウス変換を入力配列に施す。"""
     n = len(a)
     for p in primes:
         for i in range(1,n):
@@ -21,6 +23,7 @@ def mobius_gcd(a,primes):
 
 #aを破壊的にgcd-zetaする(n方向に)
 def zeta_gcd_to_n(a,primes):
+    """各添字の約数側から値を集めるゼータ変換で入力配列を法 MOD により上書きする。"""
     n = len(a)-1
     for p in primes:
         for i in range(1,1+n//p):
@@ -29,6 +32,7 @@ def zeta_gcd_to_n(a,primes):
 
 #aを破壊的にgcd-mobiusする(n 方向に)
 def zeta_mobius_to_n(a,primes):
+    """約数側からのゼータ変換を反転して入力配列を法 MOD により上書きする。"""
     n = len(a)-1
     for p in primes:
         for i in range(n//p,0,-1):
