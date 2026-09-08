@@ -14,10 +14,12 @@ V = TypeVar('V')
 
 
 class SortedDict(Generic[K, V]):
+    """キーの順序を保ち、順位検索も行える辞書。"""
     BUCKET_RATIO = 16
     SPLIT_RATIO = 24
 
     def __init__(self, a: Mapping[K, V] | Iterable[tuple[K, V]] = ()) -> None:
+        """初期のキーと値から、キーをバケットで管理する辞書を構築する。"""
         if hasattr(a, "items"):
             d = dict(a.items())
         else:
@@ -30,25 +32,31 @@ class SortedDict(Generic[K, V]):
         self.a = [keys[n * i // num_bucket : n * (i + 1) // num_bucket] for i in range(num_bucket)]
 
     def __iter__(self) -> Iterator[K]:
+        """要素を順に列挙するイテレータを返す。"""
         for a in self.a:
             for k in a:
                 yield k
 
     def __reversed__(self) -> Iterator[K]:
+        """要素を逆順に列挙するイテレータを返す。"""
         for a in reversed(self.a):
             for k in reversed(a):
                 yield k
 
     def __len__(self) -> int:
+        """格納されている要素の個数を返す。"""
         return self.size
 
     def __contains__(self, key: K) -> bool:
+        """指定した値が格納されているかを返す。"""
         return key in self.d
 
     def __getitem__(self, key: K) -> V:
+        """指定した添字またはキーに対応する値を返す。"""
         return self.d[key]
 
     def __setitem__(self, key: K, value: V) -> None:
+        """指定した添字またはキーに対応する値を更新する。"""
         if key in self.d:
             self.d[key] = value
             return
@@ -66,12 +74,14 @@ class SortedDict(Generic[K, V]):
             self.a[b:b+1] = [a[:mid], a[mid:]]
 
     def __delitem__(self, key: K) -> None:
+        """指定したキーに対応する要素を削除する。"""
         if key not in self.d:
             raise KeyError(key)
         a, b, i = self._position(key)
         self._pop_key(a, b, i)
 
     def __repr__(self) -> str:
+        """オブジェクトの内容を表すデバッグ用文字列を返す。"""
         return "SortedDict({" + ", ".join(f"{k!r}: {self.d[k]!r}" for k in self) + "})"
 
     def _position(self, key: K) -> tuple[list[K], int, int]:
@@ -82,6 +92,7 @@ class SortedDict(Generic[K, V]):
         return a, b, bisect_left(a, key)
 
     def _pop_key(self, a: list[K], b: int, i: int) -> tuple[K, V]:
+        """指定したバケットのキーと対応する値を取り除き、その組を返す。"""
         key = a.pop(i)
         value = self.d.pop(key)
         self.size -= 1
@@ -90,15 +101,18 @@ class SortedDict(Generic[K, V]):
         return key, value
 
     def get(self, key: K, default=None):
+        """キーに対応する値を返し、キーがなければ default を返す。"""
         return self.d.get(key, default)
 
     def setdefault(self, key: K, default=None):
+        """キーがなければ既定値を登録し、対応する値を返す。"""
         if key in self.d:
             return self.d[key]
         self[key] = default
         return default
 
     def pop(self, key: K, *default):
+        """キーに対応する値を取り除いて返し、未登録なら既定値または例外で処理する。"""
         if key not in self.d:
             if default:
                 if len(default) != 1:
@@ -117,13 +131,16 @@ class SortedDict(Generic[K, V]):
         return True
 
     def keys(self) -> Iterator[K]:
+        """キーを昇順に列挙する。"""
         return iter(self)
 
     def values(self) -> Iterator[V]:
+        """キーの昇順に対応する値を列挙する。"""
         for k in self:
             yield self.d[k]
 
     def items(self) -> Iterator[tuple[K, V]]:
+        """キーの昇順にキーと値の組を列挙する。"""
         for k in self:
             yield k, self.d[k]
 
@@ -152,6 +169,7 @@ class SortedDict(Generic[K, V]):
                 return a[bisect_left(a, key)]
 
     def _item_at(self, i: int) -> tuple[K, V]:
+        """0-indexed の順位にあるキーと値の組を返す。"""
         if i < 0:
             for a in reversed(self.a):
                 i += len(a)
@@ -289,11 +307,13 @@ class SortedDictCursor(Generic[K, V]):
     __slots__ = ("s", "b", "i")
 
     def __init__(self, s: SortedDict[K, V], b: int, i: int) -> None:
+        """辞書とバケット番号・バケット内添字を参照するカーソルを作る。"""
         self.s = s
         self.b = b
         self.i = i
 
     def copy(self) -> "SortedDictCursor[K, V]":
+        """同じ要素を持つ浅いコピーを返す。"""
         return SortedDictCursor(self.s, self.b, self.i)
 
     def prev(self) -> tuple[K, V] | None:
