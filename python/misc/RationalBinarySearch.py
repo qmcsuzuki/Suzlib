@@ -7,6 +7,7 @@ is_valid(p,q) は探索可能な分数 p/q なら True を返す。
 返り値 (a,b,c,d) は境界を挟む a/b, c/d。
 """
 def RationalBinarySearch(check, is_valid):
+    """Stern–Brocot 木で単調な判定の境界を挟む二分数を (a,b,c,d) で返す。"""
     assert check(1,0) and not check(0,1)
 
     a,b,c,d,p,q = 0,1,1,0,1,1

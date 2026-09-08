@@ -5,6 +5,7 @@
 points をソートするという副作用がある点に注意
 """
 def convex_hull(points,need_sort=True):
+    """必要なら点列を整列し、その列における凸包の頂点添字を時計回りに返す。"""
     def cross(i,j,k):
         """
         ベクトル ij と ベクトル ik の外積（正なら反時計回り）

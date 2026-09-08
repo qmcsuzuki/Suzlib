@@ -8,6 +8,7 @@ from python.data_structure.SortedMultiset import SortedMultiset
 class IntervalsUtility:
     """空でない半開区間 [l,r) の列を扱う。座標は整数。"""
     def __init__(self,LR):
+        """非空の半開整数区間の列を保存し、区間数を設定する。"""
         self.n = len(LR)
         self.LRI = [(*lst,i) for i,lst in enumerate(LR)]
         self.L, self.R = zip(*LR) if LR else ((), ())

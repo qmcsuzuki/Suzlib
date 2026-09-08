@@ -1,7 +1,9 @@
 # competitive-verifier: TITLE ダブリング
 
 class Doubling:
+    """同じ遷移の反復と、その間の重みの集約をダブリングで求める。"""
     def __init__(self, nxt, depth=61):
+        """遷移先 nxt から depth 段のダブリング表を構築する。"""
         self.D = depth # we have D rows
         self.table = [nxt]
         for _ in range(depth-1):
@@ -11,6 +13,7 @@ class Doubling:
     # 入力: weights[v] = (v から１回移動するときの重み)
     # 計算: Wtable[k][v] = v から 2^k 回移動した時の重みの和
     def set_weight(self,weights,op,e):
+        """各遷移の重みと集約演算を設定し、反復移動の重みを前計算する。"""
         assert len(weights) == len(self.table[0])
         self.e = e
         self.op = op
@@ -22,12 +25,14 @@ class Doubling:
     
     # f^k(v) を返す
     def kth_pos(self,k,v):
+        """頂点 v から k 回遷移した先の頂点を返す。"""
         for i, nxt in enumerate(self.table):
             if k>>i&1: v = nxt[v]
         return v
 
     # (w,f^k(v)): k 回移動したときの重みの和 w と最終位置 f^k(v) を返す
     def kth_weight_and_pos(self,k,v):
+        """頂点 v から k 回遷移したときの集約重みと到達頂点を返す。"""
         w = self.e
         for i, nxt in enumerate(self.table):
             if k>>i&1:
@@ -40,6 +45,7 @@ class Doubling:
     # すべて False の場合は k = 2^D を返す（w, v は k = 2^D-1 の状態）
     # 戻り値: (k, w, v)
     def binary_search(self, v, check):
+        """単調な check が初めて真になる遷移回数とその重み・頂点を返す。"""
         k = 0
         w = self.e
         if check(w, v):

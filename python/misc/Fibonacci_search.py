@@ -4,6 +4,7 @@
 [l,r) で下に凸な関数 f の最小値を求める
 """
 def Fibonacci_search(l,r,f):
+    """半開整数区間 [l,r) で下に凸な関数の最小点と最小値を返す。"""
     L = l-1
     a,b = 1,2
     while L+b < r:

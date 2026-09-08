@@ -8,6 +8,7 @@ return:
   - res2: 各要素を選んだかどうかを表す 0/1 リスト（元の A の順）
 """
 def subset_sum(A,C):
+    """上限 C 以下の最大部分和と、選んだ要素を示す 0/1 列を返す。"""
     assert C >= 0
     if sum(A) <= C:
         return (sum(A), [1]*len(A))

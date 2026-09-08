@@ -10,7 +10,9 @@
 （注: 不等号の向きは x_reverse, y_reverse で指定可能）
 """
 def DAGof2dPoints(points, x_reverse, y_reverse):
+    """相異なる二次元点の座標比較による到達関係を、補助頂点付き DAG で表す。"""
     def solveDC(l,r):
+        """x 順の区間を分割統治して辺を追加し、y 順の符号化頂点列を返す。"""
         # return sorted list of Y_coord*M + index
         nonlocal g
         if l+1 == r:
