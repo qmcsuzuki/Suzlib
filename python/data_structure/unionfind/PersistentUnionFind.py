@@ -10,17 +10,20 @@ class PersistentUnionFind:
     """
     MMM = 1<<30 #INF のほかに、整数のペアを整数にエンコードするためにも使う
     def __init__(self, n):
+        """n 個の単集合と、初期時刻 -1 の併合・サイズ履歴を用意する。"""
         self.parent_or_size = [-1]*n #非負: 親ノード, 負: サイズ
         self.merge_time = [self.MMM]*n # マージされた時刻
         self.time_size_history = [[1-self.MMM] for i in range(n)]
         self.clock = -1
 
     def leader(self, x, t=MMM-1): #leader(x): xの根ノードを返す．
+        """指定時刻 t での要素 x の代表元を返す。"""
         while self.merge_time[x] <= t:
             x = self.parent_or_size[x]
         return x 
  
     def merge(self, x, y): #merge(x,y): xのいる組とyのいる組をまとめる
+        """時刻を 1 進めて二集合を併合し、代表元または併合済みを表す -1 を返す。"""
         self.clock += 1 # まず時刻を進める
         x, y = self.leader(x), self.leader(y)
         if x == y: return -1
@@ -34,9 +37,11 @@ class PersistentUnionFind:
         return x
  
     def issame(self, x, y, t=MMM-1): #same(x,y): xとyが同じ組ならTrue
+        """指定時刻 t に二つの要素が同じ集合に属するかを返す。"""
         return self.leader(x,t) == self.leader(y,t)
         
     def getsize(self,x, t=MMM-1): #size(x): xのいるグループの要素数を返す
+        """指定時刻 t での要素 x の所属集合の要素数を返す。"""
         history = self.time_size_history[self.leader(x,t)]
         if t==self.MMM-1: return history[-1]%self.MMM
         idx = bisect_left(history,(t+1)*self.MMM)
@@ -58,6 +63,7 @@ class PersistentUnionFind:
         return t
 
     def binary_search(self, ng, ok, check):
+        """check が偽の ng と真の ok の間で、初めて真となる整数を二分探索する。"""
         while ok-ng > 1:
             mid = (ok+ng)//2
             if check(mid):
