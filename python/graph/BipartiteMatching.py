@@ -4,7 +4,13 @@ from random import shuffle
 
 
 class BipartiteMatching:
-    """Kuhn 法を前処理に用いた Hopcroft--Karp 法。計算量は O((V + E) sqrt(V))。"""
+    """Kuhn 法を前処理に用いた Hopcroft--Karp 法。初回 solve の計算量は O((V + E) sqrt(V))。
+
+    辺番号を維持するため、削除済み辺も内部に保持する。
+    累積追加辺数を A とすると、辺情報の保持には O(A) の空間を使い、
+    edges は O(A)、matching_edge_ids は solve 後に O(V + A)、
+    CSR の再構築は O(V + A) 時間を要する。
+    """
 
     def __init__(self, n_left: int, n_right: int) -> None:
         assert 0 <= n_left
@@ -50,7 +56,7 @@ class BipartiteMatching:
         ]
 
     def _build_csr(self) -> None:
-        """現在の辺を左頂点ごとの CSR に O(V+E) でまとめる。"""
+        """現在の辺を左頂点ごとの CSR にまとめる。再構築は累積追加辺数 A に対し O(V + A)。"""
         if self._csr_built:
             return
 
@@ -74,7 +80,7 @@ class BipartiteMatching:
             start[left + 1] += start[left]
 
         to = [0] * len(edges)
-        pos = start[:-1].copy()
+        pos = start[:-1]
         for edge in edges:
             left = edge >> shift
             to[pos[left]] = edge & mask
@@ -112,7 +118,7 @@ class BipartiteMatching:
             rstart[right + 1] += rstart[right]
 
         rto = [0] * len(to)
-        pos = rstart[:-1].copy()
+        pos = rstart[:-1]
         for left in range(n_left):
             for i in range(start[left], start[left + 1]):
                 right = to[i]
@@ -360,7 +366,7 @@ class BipartiteMatching:
             shortest = bfs()
             if shortest == inf:
                 break
-            current_edge = start[:-1].copy()
+            current_edge = start[:-1]
             for left in range(self.n_left):
                 if mate_left[left] == -1 and dfs(left, shortest):
                     self.size += 1
@@ -591,7 +597,6 @@ class GeneralBipartiteMatching:
         self.toR = [-1] * n
         self.fromL: list[int] = []
         self.fromR: list[int] = []
-        self.X2Y: list[list[int]] = []
         self.mateL: list[int] = []
         self.mateR: list[int] = []
         self.mate = [-1] * n
@@ -646,7 +651,6 @@ class GeneralBipartiteMatching:
         for right, v in enumerate(self.fromR):
             self.toR[v] = right
 
-        X2Y = [[] for _ in range(len(self.fromL))]
         matching = BipartiteMatching(len(self.fromL), len(self.fromR))
         packed_edges: list[int] = []
         shift = matching._edge_shift
@@ -657,12 +661,10 @@ class GeneralBipartiteMatching:
             else:
                 left = self.toL[v]
                 right = self.toR[u]
-            X2Y[left].append(right)
             packed_edges.append((left << shift) | right)
 
         matching._edges = packed_edges
         self._matching = matching
-        self.X2Y = X2Y
 
     def solve(self) -> int:
         """現在のグラフの最大マッチング数を返す。非二部グラフなら ValueError。"""
