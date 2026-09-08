@@ -11,7 +11,9 @@ def prefix_function(s):
     return table
 
 def KMP(text,pattern,table):
+    """重複を許して出現回数を返す。空パターンは len(text)+1 箇所に一致する。"""
     m = len(pattern)
+    if m == 0: return len(text)+1
     cnt = k = 0
     for ti in text:
         while k >= 0 and pattern[k] != ti:

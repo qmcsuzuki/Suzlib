@@ -3,7 +3,9 @@
 # https://atcoder.jp/contests/arc165/submissions/66901191
 # https://atcoder.jp/contests/arc200/submissions/66901173
 """
-2 次元平面上の点について、(x[i] <= x[j] かつ y[i] <= y[j] なら辺 ij を張る)というDAG を考える
+相異なる 2 次元平面上の点について、(i != j かつ x[i] <= x[j] かつ y[i] <= y[j] なら辺 ij を張る)という DAG を考える
+同一点の重複は相互到達を要求して DAG と両立しないため禁止する。
+空入力には [] を返す。先頭 N 頂点が入力の各点に対応する。
 この関数は、補助頂点を使って O(N log N) 本の辺からなる DAG を作る
 （注: 不等号の向きは x_reverse, y_reverse で指定可能）
 """
@@ -38,6 +40,7 @@ def DAGof2dPoints(points, x_reverse, y_reverse):
     
     n = len(points)
     assert n < (1<<20)
+    if n == 0: return []
     X = [0]*n
     Y = [0]*n
     for i,point in enumerate(points):
@@ -49,6 +52,9 @@ def DAGof2dPoints(points, x_reverse, y_reverse):
         -(Y[v&((1<<20)-1)]>>20) if y_reverse else Y[v&((1<<20)-1)]>>20,
     ))
     
+    for i in range(1,n):
+        a,b = X[i-1],X[i]
+        assert (a>>20, Y[a&((1<<20)-1)]>>20) != (b>>20, Y[b&((1<<20)-1)]>>20), "同一点の重複は不可"
     g = [[] for _ in range(n)]
     solveDC(0,n)
     return g

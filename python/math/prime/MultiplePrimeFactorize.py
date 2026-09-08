@@ -1,7 +1,7 @@
 # competitive-verifier: TITLE 最小素因数列挙と O(log N) 素因数分解
 
 """
-最小素因数の配列 spf_list を返す
+最小素因数の配列 spf_list を返す。時間 O(N log log N)、空間 O(N)。
 """
 def Eratosthenes_spf_list(N):
     # i>=2 のとき spf_list[i] は i の最小素因数
@@ -25,12 +25,17 @@ def Eratosthenes_spf_list(N):
     return spf_list
 
 """
-素因数を（重複ありの）リスト [p1,p2,p3,...] で返す
+素因数を（重複ありの）リスト [p1,p2,p3,...] で返す。
+spf_list=Eratosthenes_spf_list(N) を渡せば、1 <= n <= N の各呼び出しは O(log n)。
+省略時は従来どおり篩も作るため、時間 O(n log log n)、空間 O(n)。
+n <= 1 は従来どおり [] を返す。
 """
-def factorize(n):
+def factorize(n, spf_list=None):
     if n <= 1:
         return []
-    spf_list = Eratosthenes_spf_list(n)
+    if spf_list is None:
+        spf_list = Eratosthenes_spf_list(n)
+    assert n < len(spf_list)
     res = []
     while n > 1:
         p = spf_list[n]

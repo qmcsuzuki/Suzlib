@@ -1,8 +1,13 @@
 # competitive-verifier: TITLE 01 BFS
 
 from collections import deque
-def BFS01(board,start_list):
-    H,W = len(board), len(board[0])
+def BFS01(board,start_list,cost_one=0):
+    """上下左右の多始点最短距離。"X" は通行不可。
+    移動先が cost_one（既定値は整数 0）ならコスト 1、それ以外は 0。
+    "#" をコスト 1 にする場合は cost_one="#" を指定する。
+    始点は盤面内の通行可能な座標。空の盤面には空の始点列を渡す。
+    """
+    H,W = len(board), len(board[0]) if board else 0
     INF = 1<<60
     dist = [[INF]*W for _ in range(H)]
     dx = [1,0,-1,0]
@@ -24,7 +29,7 @@ def BFS01(board,start_list):
             if board[nx][ny] == "X": #注: 壁は "X" で、他の記号は通過可能と仮定
                 continue
 
-            if board[nx][ny] == 0: # 注: 「壊せる壁」を"#" と仮定"
+            if board[nx][ny] == cost_one:
                 if dist[nx][ny] > d+1:
                     dist[nx][ny] = d+1
                     q.append((nx,ny,d+1))

@@ -17,11 +17,13 @@ from python.data_structure.array1D.FenwickTree import FenwickTree
 from bisect import bisect_left, bisect_right
 class OrderedMultisetWithZaatu:
     def __init__(self, values, banhei_min, banhei_max):
-        assert banhei_min < min(values) and max(values) < banhei_max
+        values = sorted(set(values))
+        assert banhei_min < banhei_max
+        assert not values or banhei_min < values[0] <= values[-1] < banhei_max
         self.banhei_min = banhei_min
         self.banhei_max = banhei_max
         self.cnt = -2  # 番兵を含めて add し、外部向けサイズは番兵を除く
-        self.sortedvalues = [banhei_min] + sorted(set(values)) + [banhei_max]
+        self.sortedvalues = [banhei_min] + values + [banhei_max]
         self.za = {v:i for i,v in enumerate(self.sortedvalues)}
         self.bit = FenwickTree(len(self.sortedvalues)) #存在すれば 1、しないなら 0
         self.add(self.banhei_min)
@@ -52,8 +54,8 @@ class OrderedMultisetWithZaatu:
         return res
 
     def count_eq(self,v):
-        # ちょうど v の要素数
-        if v not in self.za:
+        # ちょうど v の要素数（自動挿入される番兵は除く）
+        if v <= self.banhei_min or v >= self.banhei_max or v not in self.za:
             return 0
         idx = self.za[v]
         return self.bit.range_sum(idx, idx+1)
@@ -103,7 +105,8 @@ class OrderedMultisetWithZaatu:
 
 class OrderedMultisetWithSumWithZaatu(OrderedMultisetWithZaatu):
     def __init__(self, values, banhei_min, banhei_max):
-        size = len(set(values)) + 2
+        values = set(values)
+        size = len(values) + 2
         self.sum_bit = FenwickTree(size)
         # add で番兵も一様に加算するので、先に打ち消しておく
         self.total_sum = -banhei_min - banhei_max

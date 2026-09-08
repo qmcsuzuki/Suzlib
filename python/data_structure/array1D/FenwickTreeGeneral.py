@@ -4,28 +4,28 @@
 一般の演算 op に関する Fenwick tree
 あまり検証していない
 
-- op は可換が必要
-- prefix_sum 以外を使う場合逆演算 inv が必要
+- op は結合的かつ可換、e は単位元
+- init は長さ n の初期値列。初期化は O(n)、更新・取得は O(log n)
+- n=0 も可。空区間の取得結果は e（更新可能な添字はない）
+- range_sum, suffix_sum を使う場合は逆演算 inv が必要
 """
 
 class FenwickTreeGeneral:
     def __init__(self, n, op, e, inv=None, init=None):
+        assert n >= 0
         self.size = n
-        self.longest_interval = 1<<(n.bit_length()-1)
+        self.longest_interval = 1<<(n.bit_length()-1) if n else 0
         self.e = e
         self.op = op
         self.inv = inv
         if init is None:
             self.data = [e]*n
         else:
-            assert 0
-            """
             self.data = list(init)
             assert len(self.data) == n
             for i in range(n):
                 i_above = i + ((i+1) & -(i+1))
-                if i_above < n: self.data[i_above] += self.data[i]
-            """
+                if i_above < n: self.data[i_above] = op(self.data[i_above], self.data[i])
 
     def prefix_sum(self, r):
         """ 半閉区間 [0,r) 上の和 a[0] op ... op a[r-1] を返す """

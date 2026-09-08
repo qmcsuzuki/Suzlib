@@ -4,11 +4,13 @@
 Binary indexed tree (Fenwick tree)
 （外部的に）0-indexed, 関数は半開区間
 0からの区間和、1点加算
+n=0 も可。空区間の和と bisect の返り値は 0（更新可能な添字はない）
 """
 class FenwickTree:
     def __init__(self, n, init=None):
+        assert n >= 0
         self.size = n
-        self.longest_interval = 1<<(n.bit_length()-1)
+        self.longest_interval = 1<<(n.bit_length()-1) if n else 0
         if init is None:
             self.data = [0]*n
         else:
