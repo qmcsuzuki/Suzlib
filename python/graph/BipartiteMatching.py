@@ -247,21 +247,25 @@ class BipartiteMatching:
                 self._solved = True
                 return self.size
 
+        parent = [-1] * self.n_left
+        root = [-1] * self.n_left
+        queue = [0] * self.n_left
+
         def kuhn_phase() -> int:
             """全未マッチ左頂点から交互森を伸ばし、増大路を貪欲に反転する。"""
-            parent = [-1] * self.n_left
-            root = [-1] * self.n_left
-            queue: list[int] = []
+            q_tail = 0
 
             for left in range(self.n_left):
+                parent[left] = -1
                 if mate_left[left] == -1:
                     parent[left] = -2
                     root[left] = left
-                    queue.append(left)
+                    queue[q_tail] = left
+                    q_tail += 1
 
             added = 0
             q_front = 0
-            while q_front < len(queue):
+            while q_front < q_tail:
                 left = queue[q_front]
                 q_front += 1
 
@@ -286,7 +290,8 @@ class BipartiteMatching:
                     if parent[next_left] == -1:
                         parent[next_left] = left
                         root[next_left] = root[left]
-                        queue.append(next_left)
+                        queue[q_tail] = next_left
+                        q_tail += 1
 
             return added
 
@@ -297,6 +302,7 @@ class BipartiteMatching:
                 self._solved = True
                 return self.size
 
+        del parent, root, queue
         inf = self.n_left + 1
         dist = [inf] * self.n_left
         current_edge: list[int] = []
