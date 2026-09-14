@@ -130,20 +130,20 @@ class MFGraph:
                 # 閉路の流量を除いて単純なパスに戻す。
                 cycle_start = position[u]
                 cycle = path[cycle_start:]
-                f = min(remain[edge_id] for edge_id in cycle)
-                for edge_id in cycle:
-                    remain[edge_id] -= f
+                f = min(map(remain.__getitem__, cycle))
+                for e in cycle:
+                    remain[e] -= f
                 for x in vertices[cycle_start + 1 :]:
                     position[x] = -1
                 del vertices[cycle_start + 1 :]
                 del path[cycle_start:]
 
-            f = min(remain[edge_id] for edge_id in path)
+            f = min(remain[e] for e in path)
             if decomposed + f > flow_value:
                 f = flow_value - decomposed
-            for edge_id in path:
-                remain[edge_id] -= f
-            result.append((f, path.copy()))
+            for e in path:
+                remain[e] -= f
+            result.append((f, path))
             decomposed += f
             for v in vertices:
                 position[v] = -1
@@ -175,14 +175,15 @@ class MFGraph:
 
         current_edge = [0] * n
         level = [n] * n
-
-        def bfs() -> bool:
-            """残余グラフのレベルを幅優先探索で設定し、終点に到達できるかを返す。"""
+        result = 0
+        while result < flow_limit:
+            # 残余グラフのレベルを BFS で設定する。
             for v in range(n):
                 level[v] = n
             level[s] = 0
             queue = [s]
             q_front = 0
+            reached = False
             while q_front < len(queue):
                 v = queue[q_front]
                 q_front += 1
@@ -193,68 +194,82 @@ class MFGraph:
                         continue
                     level[u] = next_level
                     if u == t:
-                        return True
+                        reached = True
+                        break
                     queue.append(u)
-            return False
+                if reached:
+                    break
+            if not reached:
+                break
 
-        # t からレベルグラフを逆向きにたどることで再帰を避ける。
-        def dfs(limit: int) -> int:
-            """レベルグラフを終点から逆にたどり、上限 limit まで増加させた流量を返す。"""
+            for v in range(n):
+                current_edge[v] = 0
+
+            # t からレベルグラフを逆向きにたどり、1 回の走査で
+            # blocking flow を流す。増加後も使える suffix は保持する。
             stack = [t]
             edge_stack: list[int] = []
-            while stack:
+            while stack and result < flow_limit:
                 v = stack[-1]
                 if v == s:
-                    f = limit
+                    f = flow_limit - result
                     for i in edge_stack:
                         if cap[i] < f:
                             f = cap[i]
                     for i in edge_stack:
                         cap[i] -= f
                         cap[i ^ 1] += f
-                    return f
+                    result += f
+                    if result == flow_limit:
+                        break
+
+                    # t に近い側から最初に飽和した辺まで巻き戻す。
+                    k = 0
+                    while cap[edge_stack[k]]:
+                        k += 1
+                    del stack[k + 1 :]
+                    del edge_stack[k:]
+                    continue
 
                 prev_level = level[v] - 1
-                while current_edge[v] < len(g[v]):
-                    i = g[v][current_edge[v]]
+                gv = g[v]
+                ce = current_edge[v]
+                while ce < len(gv):
+                    i = gv[ce]
                     reverse_i = i ^ 1
                     if level[to[i]] != prev_level or cap[reverse_i] == 0:
-                        current_edge[v] += 1
+                        ce += 1
                         continue
+                    current_edge[v] = ce
                     stack.append(to[i])
                     edge_stack.append(reverse_i)
                     break
                 else:
+                    current_edge[v] = ce
                     stack.pop()
                     if edge_stack:
                         edge_stack.pop()
                     level[v] = n
-            return 0
-
-        result = 0
-        while result < flow_limit:
-            if not bfs():
-                break
-            for v in range(n):
-                current_edge[v] = 0
-            while result < flow_limit:
-                f = dfs(flow_limit - result)
-                if f == 0:
-                    break
-                result += f
         return result
 
     def min_cut(self, s: int) -> list[bool]:
-        """残余グラフ上で s から到達可能な頂点を返す。"""
-        assert 0 <= s < self._n
-        visited = [False] * self._n
+        """残余グラフ上で s から到達可能な頂点を返す。
+
+        flow_limit による打ち切り後は、返す集合が最小カットとは限らない。
+        """
+        n = self._n
+        assert 0 <= s < n
+        g = self._g
+        to = self._to
+        cap = self._cap
+        visited = [False] * n
         visited[s] = True
         stack = [s]
         while stack:
             v = stack.pop()
-            for i in self._g[v]:
-                u = self._to[i]
-                if self._cap[i] > 0 and not visited[u]:
+            for i in g[v]:
+                u = to[i]
+                if cap[i] > 0 and not visited[u]:
                     visited[u] = True
                     stack.append(u)
         return visited
