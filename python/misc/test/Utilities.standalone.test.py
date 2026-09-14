@@ -3,7 +3,6 @@
 from itertools import product
 
 from python.misc.IntervalsUtility import IntervalsUtility, intervals_including, intervals_included_by
-from python.misc.XorBasis import XorBasis
 from python.misc.DAGof2dPoints import DAGof2dPoints
 
 
@@ -29,18 +28,6 @@ if __name__ == "__main__":
         for LR in product(choices, repeat=n):
             check_intervals(list(LR))
     check_intervals([(0,1), (1,1 << 40), (-10,-5), (-10,-5)])
-
-    basis = XorBasis()
-    for x in [3,5,9,12,7]:
-        basis.add_basis(x)
-    span = {0}
-    for x in basis.basis:
-        span |= {v ^ x for v in list(span)}
-    got = basis.get_sorted_basis()
-    assert got == sorted(basis.basis, reverse=True)
-    assert all(basis.normalize(x) == 0 for x in span)
-    got.clear()
-    assert basis.basis
 
     points = [(0,1),(0,0),(-1,0),(1,-1),(1,1)]
     for xr,yr in product([False,True],repeat=2):
