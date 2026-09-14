@@ -6,8 +6,6 @@ from python.data_structure.array1D.AddAbsGetValOffline import AddAbsGetValOfflin
 from python.data_structure.array1D.Inversion import inversion_distance
 from python.data_structure.array1D.SlidingWindowAggregation import SWAG
 from python.data_structure.array1D.SortedArrayInnerProduct import SortedArrayInnerProduct
-from python.data_structure.array1D.LazySegmentTree import LazySegmentTree
-from python.data_structure.array1D.SegmentTreeDual import SegmentTreeDual
 from python.data_structure.array1D.range_query.RangeAddPointGet import RangeAddPointGet
 from python.data_structure.array1D.range_query.RangeAddRangeSum import RangeAddRangeSum
 from python.data_structure.array1D.range_query.RangeAddRangeInnerproductMOD import RangeAddRangeInnerproductMOD
@@ -89,5 +87,3 @@ if __name__ == "__main__":
             assert affine.range_sum(l,r) == sum(a[l:r]) % mod
             assert ab.prod(l,r)[0] // ab.M == sum(x*y for x,y in zip(aa[l:r],bb[l:r])) % mod
             assert binary.range_sum(l,r) == sum(bits[l:r])
-        str(SegmentTreeDual(n,min,10**9))
-    str(LazySegmentTree(min,10**9,lambda f,x:f+x,int.__add__,0,1,[0]))
