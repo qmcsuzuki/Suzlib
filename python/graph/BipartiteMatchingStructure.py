@@ -33,33 +33,7 @@ def matching_structure(matching: BipartiteMatching) -> tuple[list[int], list[int
     mate_left, mate_right = matching.mates()
     matching_edge_ids = set(matching.matching_edge_ids())
 
-    g = [[] for _ in range(t + 1)]
-
-    # s -> left は容量 1。
-    for left, right in enumerate(mate_left):
-        if right == -1:
-            g[s].append(left)
-        else:
-            g[left].append(s)
-
-    # left -> right も容量 1。
-    # 現在のマッチング辺だけ逆向き、それ以外は順向きが残余辺になる。
-    for edge_id, left, right in edges:
-        r = n_left + right
-        if edge_id in matching_edge_ids:
-            g[r].append(left)
-        else:
-            g[left].append(r)
-
-    # right -> t は容量 1。
-    for right, left in enumerate(mate_right):
-        r = n_left + right
-        if left == -1:
-            g[r].append(t)
-        else:
-            g[t].append(r)
-
-    _, comp, _ = find_SCC(g)
+    _, comp, _ = find_SCC(matching.residual_graph())
 
     edge_status = [REMOVED] * matching.edge_count()
     for edge_id, left, right in edges:
@@ -154,37 +128,8 @@ class DulmageMendelsohn:
         self.s = self.n
         self.t = self.s + 1
 
-        self.edges = matching.edges()
-        self.mate_left, self.mate_right = matching.mates()
-
-        g = [[] for _ in range(self.t + 1)]
-
-        # s -> left は容量 1。
-        for left, right in enumerate(self.mate_left):
-            if right == -1:
-                g[self.s].append(left)
-            else:
-                g[left].append(self.s)
-
-        # left -> right は容量 inf なので、マッチング辺でも順向き残余辺が残る。
-        # マッチング辺にはさらに逆向き残余辺がある。
-        matched = set(matching.matching_edge_ids())
-        for edge_id, left, right in self.edges:
-            r = self.n_left + right
-            g[left].append(r)
-            if edge_id in matched:
-                g[r].append(left)
-
-        # right -> t は容量 1。
-        for right, left in enumerate(self.mate_right):
-            r = self.n_left + right
-            if left == -1:
-                g[r].append(self.t)
-            else:
-                g[self.t].append(r)
-
-        self.residual_graph = g
-        self.scc_groups, self.scc_comp, self.scc_dag = find_SCC(g)
+        self.residual_graph = matching.residual_graph(middle_capacity_inf=True)
+        self.scc_groups, self.scc_comp, self.scc_dag = find_SCC(self.residual_graph)
 
         k_scc = len(self.scc_groups)
         s_scc = self.scc_comp[self.s]
