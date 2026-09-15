@@ -547,6 +547,44 @@ class BipartiteMatching:
         self.solve()
         return self.mate_left.copy(), self.mate_right.copy()
 
+    def residual_graph(self, middle_capacity_inf: bool = False) -> list[list[int]]:
+        """
+        最大マッチングを s -> left -> right -> t のフローと見た残余グラフを返す。
+
+        頂点番号は左 0..n_left-1、右 n_left..n_left+n_right-1、
+        s = n_left+n_right、t = s+1 とする。
+        middle_capacity_inf=True なら left -> right の容量を inf とみなす。
+        """
+        self.solve()
+        n_left = self.n_left
+        n_right = self.n_right
+        s = n_left + n_right
+        t = s + 1
+        g = [[] for _ in range(t + 1)]
+
+        for left, right in enumerate(self.mate_left):
+            if right == -1:
+                g[s].append(left)
+            else:
+                g[left].append(s)
+
+        matched = set(self.matching_edge_ids())
+        for edge_id, left, right in self.edges():
+            r = n_left + right
+            if middle_capacity_inf or edge_id not in matched:
+                g[left].append(r)
+            if edge_id in matched:
+                g[r].append(left)
+
+        for right, left in enumerate(self.mate_right):
+            r = n_left + right
+            if left == -1:
+                g[r].append(t)
+            else:
+                g[t].append(r)
+
+        return g
+
     def _reachable_sets(self) -> tuple[list[bool], list[bool]]:
         """未マッチ左頂点から交互路で到達可能な左右の頂点集合を返す。"""
         self.solve()
