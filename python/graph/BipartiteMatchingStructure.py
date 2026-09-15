@@ -4,7 +4,7 @@
 DM分解、マッチングに使う辺・頂点
 """
 
-from python.graph.BipartiteMatching import BipartiteMatching
+from python.graph.BipartiteMatching import BipartiteMatching, GeneralBipartiteMatching
 from python.graph.SCC import find_SCC
 
 
@@ -89,6 +89,30 @@ def matching_structure(matching: BipartiteMatching) -> tuple[list[int], list[int
     return edge_status, left_status, right_status
 
 
+def general_matching_structure(
+    matching: GeneralBipartiteMatching,
+) -> tuple[list[int], list[int]]:
+    """
+    各辺・頂点が最大マッチングで
+    NEVER / SOMETIMES / ALWAYS のどれかを返す。
+
+    戻り値は (edge_status, vertex_status)。
+    頂点番号・辺番号は入力時の番号をそのまま使う。
+    """
+    matching.solve()
+    assert matching._matching is not None
+
+    edge_status, left_status, right_status = matching_structure(matching._matching)
+
+    vertex_status = [NEVER] * matching.n
+    for left, v in enumerate(matching.fromL):
+        vertex_status[v] = left_status[left]
+    for right, v in enumerate(matching.fromR):
+        vertex_status[v] = right_status[right]
+
+    return edge_status, vertex_status
+
+
 class DulmageMendelsohn:
     """
     二部マッチングを容量 1, inf, 1 の s-t フローに読み替え、
@@ -105,6 +129,9 @@ class DulmageMendelsohn:
 
     groups = [V0] + blocks + [Vinf] とし、comp, dag もこの番号を使う。
     残余グラフ自体の細かい SCC は scc_groups, scc_comp, scc_dag に残す。
+
+    GeneralBipartiteMatching に対して用いる場合は、solve() 後の
+    _matching に入っている BipartiteMatching を渡せばよい。
     """
 
     SOURCE = 0
