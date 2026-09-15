@@ -123,20 +123,25 @@ class DulmageMendelsohn:
 
     DM 分解は
       V0     : s から残余路で到達可能な固定領域
-      blocks : V0, Vinf の外側にある SCC
+      V1,... : V0, Vinf の外側にある SCC
       Vinf   : t へ残余路で到達可能な固定領域
     からなる。
 
-    groups = [V0] + blocks + [Vinf] とし、comp, dag もこの番号を使う。
+    API:
+      DM.groups          : [V0, V1, ..., Vinf] のリスト
+      DM.groupnum[v]     : 統合頂点 v が属する group の番号
+      DM.left_groupnum   : 各左頂点が属する group の番号
+      DM.right_groupnum  : 各右頂点が属する group の番号
+      DM.dag             : groups を縮約した残余 DAG
+      DM.V0, DM.Vinf     : 両端の固定領域
+      DM.blocks          : [V1, V2, ...] のリスト
+
+    groups, groupnum, dag では右頂点 right を n_left + right として扱う。
     残余グラフ自体の細かい SCC は scc_groups, scc_comp, scc_dag に残す。
 
     GeneralBipartiteMatching に対して用いる場合は、solve() 後の
     _matching に入っている BipartiteMatching を渡せばよい。
     """
-
-    SOURCE = 0
-    FREE = 1
-    SINK = 2
 
     def __init__(self, matching: BipartiteMatching) -> None:
         """最大マッチングから容量 1, inf, 1 の残余グラフを作り、DM 分解を求める。"""
@@ -212,42 +217,43 @@ class DulmageMendelsohn:
                     sink_reachable[d] = True
                     stack.append(d)
 
-        scc_state = [self.FREE] * k_scc
-        for c in range(k_scc):
-            if source_reachable[c]:
-                scc_state[c] = self.SOURCE
-            elif sink_reachable[c]:
-                scc_state[c] = self.SINK
-        self.scc_state = scc_state
-
         # V0, Vinf は固定領域全体として一つにまとめ、自由領域だけ SCC を保つ。
-        free_scc = [c for c in range(k_scc) if scc_state[c] == self.FREE]
+        free_scc = [
+            c for c in range(k_scc)
+            if not source_reachable[c] and not sink_reachable[c]
+        ]
         free_id = [-1] * k_scc
         for i, c in enumerate(free_scc):
             free_id[c] = i
 
-        self.V0 = [v for v in range(self.n) if scc_state[self.scc_comp[v]] == self.SOURCE]
+        self.V0 = [
+            v for v in range(self.n)
+            if source_reachable[self.scc_comp[v]]
+        ]
         self.blocks = [
             [v for v in self.scc_groups[c] if v < self.n]
             for c in free_scc
         ]
-        self.Vinf = [v for v in range(self.n) if scc_state[self.scc_comp[v]] == self.SINK]
+        self.Vinf = [
+            v for v in range(self.n)
+            if sink_reachable[self.scc_comp[v]]
+        ]
 
         k = len(self.blocks)
         self.groups = [self.V0] + self.blocks + [self.Vinf]
-        self.s_comp = 0
-        self.t_comp = k + 1
 
         dm_of_scc = [-1] * k_scc
         for c in range(k_scc):
-            if scc_state[c] == self.SOURCE:
-                dm_of_scc[c] = self.s_comp
-            elif scc_state[c] == self.SINK:
-                dm_of_scc[c] = self.t_comp
+            if source_reachable[c]:
+                dm_of_scc[c] = 0
+            elif sink_reachable[c]:
+                dm_of_scc[c] = k + 1
             else:
                 dm_of_scc[c] = 1 + free_id[c]
 
-        self.comp = [dm_of_scc[self.scc_comp[v]] for v in range(self.n)]
+        self.groupnum = [dm_of_scc[self.scc_comp[v]] for v in range(self.n)]
+        self.left_groupnum = self.groupnum[:self.n_left]
+        self.right_groupnum = self.groupnum[self.n_left:]
 
         # V0 と Vinf をそれぞれ一頂点に縮約した DM の DAG。
         dag = [[] for _ in range(k + 2)]
@@ -260,10 +266,3 @@ class DulmageMendelsohn:
                     seen[a].add(b)
                     dag[a].append(b)
         self.dag = dag
-
-        self.state = [self.SOURCE] + [self.FREE] * k + [self.SINK]
-        self.left_state = [self.state[self.comp[left]] for left in range(self.n_left)]
-        self.right_state = [
-            self.state[self.comp[self.n_left + right]]
-            for right in range(self.n_right)
-        ]
