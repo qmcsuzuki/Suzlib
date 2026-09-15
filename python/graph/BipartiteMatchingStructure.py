@@ -122,9 +122,9 @@ class DulmageMendelsohn:
     その後に s, t を置く。
 
     DM 分解は
-      V0     : s から残余路で到達可能な固定領域
+      V0     : t へ残余路で到達可能な固定領域
       V1,... : V0, Vinf の外側にある SCC
-      Vinf   : t へ残余路で到達可能な固定領域
+      Vinf   : s から残余路で到達可能な固定領域
     からなる。
 
     API:
@@ -137,7 +137,8 @@ class DulmageMendelsohn:
       DM.blocks          : [V1, V2, ...] のリスト
 
     groups, groupnum, dag では右頂点 right を n_left + right として扱う。
-    残余グラフ自体の細かい SCC は scc_groups, scc_comp, scc_dag に残す。
+    groups は DAG のトポロジカル順に並び、dag の辺は小さい番号から大きい番号へ向かう。
+    残余グラフ自体の細かい SCC は residual_graph, scc_groups, scc_comp, scc_dag に残す。
 
     GeneralBipartiteMatching に対して用いる場合は、solve() 後の
     _matching に入っている BipartiteMatching を渡せばよい。
@@ -228,7 +229,7 @@ class DulmageMendelsohn:
 
         self.V0 = [
             v for v in range(self.n)
-            if source_reachable[self.scc_comp[v]]
+            if sink_reachable[self.scc_comp[v]]
         ]
         self.blocks = [
             [v for v in self.scc_groups[c] if v < self.n]
@@ -236,7 +237,7 @@ class DulmageMendelsohn:
         ]
         self.Vinf = [
             v for v in range(self.n)
-            if sink_reachable[self.scc_comp[v]]
+            if source_reachable[self.scc_comp[v]]
         ]
 
         k = len(self.blocks)
@@ -244,9 +245,9 @@ class DulmageMendelsohn:
 
         dm_of_scc = [-1] * k_scc
         for c in range(k_scc):
-            if source_reachable[c]:
+            if sink_reachable[c]:
                 dm_of_scc[c] = 0
-            elif sink_reachable[c]:
+            elif source_reachable[c]:
                 dm_of_scc[c] = k + 1
             else:
                 dm_of_scc[c] = 1 + free_id[c]
