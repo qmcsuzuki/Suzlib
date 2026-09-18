@@ -114,8 +114,7 @@ class DulmageMendelsohn:
     groups は DAG のトポロジカル順に並び、dag の辺は小さい番号から大きい番号へ向かう。
     残余グラフ自体の細かい SCC は residual_graph, scc_groups, scc_comp, scc_dag に残す。
 
-    GeneralBipartiteMatching に対して用いる場合は、solve() 後の
-    _matching に入っている BipartiteMatching を渡せばよい。
+    GeneralBipartiteMatching には GeneralDulmageMendelsohn を用いる。
     """
 
     def __init__(self, matching: BipartiteMatching) -> None:
@@ -212,3 +211,45 @@ class DulmageMendelsohn:
                     seen[a].add(b)
                     dag[a].append(b)
         self.dag = dag
+
+
+class GeneralDulmageMendelsohn:
+    """
+    GeneralBipartiteMatching に対する Dulmage--Mendelsohn 分解。
+
+    頂点番号は入力時の番号をそのまま使う。color[v] == 0 の頂点を左、
+    color[v] == 1 の頂点を右として内部の DulmageMendelsohn を構成する。
+
+    API:
+      DM.groups      : [V0, V1, ..., Vinf] のリスト
+      DM.groupnum[v] : 元の頂点 v が属する group の番号
+      DM.color[v]    : 自動二部彩色。0 が左、1 が右
+      DM.dag         : groups を縮約した残余 DAG
+      DM.V0, DM.Vinf : 両端の固定領域
+      DM.blocks      : [V1, V2, ...] のリスト
+    """
+
+    def __init__(self, matching: GeneralBipartiteMatching) -> None:
+        """自動二部彩色し、元の頂点番号で DM 分解を返す。"""
+        matching.solve()
+        assert matching._matching is not None
+
+        dm = DulmageMendelsohn(matching._matching)
+        original = matching.fromL + matching.fromR
+
+        self.n = matching.n
+        self.color = matching.color.copy()
+        self.groups = [
+            [original[v] for v in group]
+            for group in dm.groups
+        ]
+        self.V0 = [original[v] for v in dm.V0]
+        self.blocks = [
+            [original[v] for v in block]
+            for block in dm.blocks
+        ]
+        self.Vinf = [original[v] for v in dm.Vinf]
+        self.groupnum = [-1] * self.n
+        for v in range(self.n):
+            self.groupnum[original[v]] = dm.groupnum[v]
+        self.dag = [adj.copy() for adj in dm.dag]
