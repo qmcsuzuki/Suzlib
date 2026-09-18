@@ -497,7 +497,6 @@ class BipartiteMatching:
         assert 0 <= edge_id < len(self._edges)
         if edge_id in self._removed_edges:
             raise ValueError("edge is already removed")
-
         self._materialize_adjacency()
         assert self.g is not None
         edge = self._edges[edge_id]
@@ -751,6 +750,26 @@ class GeneralBipartiteMatching:
         """各頂点の対応先を返す。未対応は -1。"""
         self.solve()
         return self.mate.copy()
+
+    def residual_graph(self, middle_capacity_inf: bool = False) -> list[list[int]]:
+        """
+        自動二部彩色で color 0 を左、color 1 を右とした残余グラフを返す。
+
+        頂点番号は入力時の 0..n-1 を保ち、s = n、t = n+1 とする。
+        middle_capacity_inf=True なら左から右への容量を inf とみなす。
+        """
+        self.solve()
+        assert self._matching is not None
+        rg = self._matching.residual_graph(middle_capacity_inf)
+        original = self.fromL + self.fromR
+        internal_s = self.n
+        internal_t = self.n + 1
+        original += [internal_s, internal_t]
+
+        g = [[] for _ in range(self.n + 2)]
+        for v, adj in enumerate(rg):
+            g[original[v]] = [original[w] for w in adj]
+        return g
 
     def min_vertex_cover(self) -> list[int]:
         """元の頂点番号で最小頂点被覆を返す。"""
