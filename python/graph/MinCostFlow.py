@@ -32,6 +32,7 @@ class MCFGraph:
         self._dense = dense
         self._g: List[List[MCFGraph._Edge]] = [[] for _ in range(n)]
         self._edges: List[MCFGraph._Edge] = []
+        self._used = False
 
     def add_edge(self, src: int, dst: int, cap: int, cost: int) -> int:
         """src から dst への容量 cap、単位費用 cost の辺を追加し、辺番号を返す。"""
@@ -81,7 +82,8 @@ class MCFGraph:
         t: int,
         flow_limit: Optional[int] = None,
     ) -> List[Tuple[int, int]]:
-        """流量と最小費用の折れ線の頂点を返す。"""
+        """流量と最小費用の折れ線の頂点を返す。このメソッドは1回だけ呼べる。"""
+        assert not self._used
         assert 0 <= s < self._n
         assert 0 <= t < self._n
         assert s != t
@@ -89,9 +91,10 @@ class MCFGraph:
             flow_limit = cast(int, sum(e.cap for e in self._g[s]))
         else:
             assert 0 <= flow_limit
+        self._used = True
 
         dual = [0] * self._n
-        prev: List[Optional[Tuple[int, MCFGraph._Edge]]] = [None] * self._n
+        prev: List[Optional[MCFGraph._Edge]] = [None] * self._n
 
         def refine_dual_sparse() -> bool:
             pq = [(0, s)]
@@ -115,7 +118,7 @@ class MCFGraph:
                     dist_w = dist[w]
                     if dist_w == -1 or new_dist < dist_w:
                         dist[w] = new_dist
-                        prev[w] = v, e
+                        prev[w] = e
                         heappush(pq, (new_dist, w))
             else:
                 return False
@@ -153,7 +156,7 @@ class MCFGraph:
                     dist_w = dist[w]
                     if dist_w == -1 or new_dist < dist_w:
                         dist[w] = new_dist
-                        prev[w] = v, e
+                        prev[w] = e
 
             dist_t = dist[t]
             for v in range(self._n):
@@ -174,17 +177,17 @@ class MCFGraph:
             f = flow_limit - flow
             v = t
             while prev[v] is not None:
-                u, e = cast(Tuple[int, MCFGraph._Edge], prev[v])
+                e = cast(MCFGraph._Edge, prev[v])
                 f = min(f, e.cap)
-                v = u
+                v = cast(MCFGraph._Edge, e.rev).dst
 
             v = t
             while prev[v] is not None:
-                u, e = cast(Tuple[int, MCFGraph._Edge], prev[v])
+                e = cast(MCFGraph._Edge, prev[v])
+                re = cast(MCFGraph._Edge, e.rev)
                 e.cap -= f
-                assert e.rev is not None
-                e.rev.cap += f
-                v = u
+                re.cap += f
+                v = re.dst
 
             c = -dual[s]
             flow += f
