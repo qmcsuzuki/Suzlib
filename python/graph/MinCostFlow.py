@@ -5,7 +5,7 @@
 # https://github.com/not522/ac-library-python/blob/master/LICENSE
 
 from heapq import heappop, heappush
-from typing import List, NamedTuple, Optional, Tuple, cast
+from typing import List, NamedTuple, Optional, Tuple
 
 
 class MCFGraph:
@@ -24,7 +24,7 @@ class MCFGraph:
             self.dst = dst
             self.cap = cap
             self.cost = cost
-            self.rev: Optional[MCFGraph._Edge] = None
+            self.rev: MCFGraph._Edge
 
     def __init__(self, n: int, dense: bool = False) -> None:
         """n 頂点の辺のないグラフを初期化する。
@@ -58,7 +58,7 @@ class MCFGraph:
         """i 番目に追加した辺の始点、終点、容量、現在の流量、コストを返す。"""
         assert 0 <= i < len(self._edges)
         e = self._edges[i]
-        re = cast(MCFGraph._Edge, e.rev)
+        re = e.rev
         return MCFGraph.Edge(
             re.dst,
             e.dst,
@@ -92,7 +92,7 @@ class MCFGraph:
         assert 0 <= t < self._n
         assert s != t
         if flow_limit is None:
-            flow_limit = cast(int, sum(e.cap for e in self._g[s]))
+            flow_limit = sum(e.cap for e in self._g[s])
         else:
             assert 0 <= flow_limit
         self._used = True
@@ -180,15 +180,19 @@ class MCFGraph:
 
             f = flow_limit - flow
             v = t
-            while prev[v] is not None:
-                e = cast(MCFGraph._Edge, prev[v])
+            while True:
+                e = prev[v]
+                if e is None:
+                    break
                 f = min(f, e.cap)
-                v = cast(MCFGraph._Edge, e.rev).dst
+                v = e.rev.dst
 
             v = t
-            while prev[v] is not None:
-                e = cast(MCFGraph._Edge, prev[v])
-                re = cast(MCFGraph._Edge, e.rev)
+            while True:
+                e = prev[v]
+                if e is None:
+                    break
+                re = e.rev
                 e.cap -= f
                 re.cap += f
                 v = re.dst
@@ -221,7 +225,6 @@ class DAGMCFGraph:
         dense=False では heap を用いる疎グラフ向け Dijkstra、dense=True では
         O(V^2 + E) の密グラフ向け Dijkstra を、初期ポテンシャル構築後の最短路計算に用いる。
         """
-        assert 0 <= n
         assert 0 <= s < n
         assert 0 <= t < n
         assert s != t
@@ -306,8 +309,10 @@ class DAGMCFGraph:
         self._build()
         self._used = True
 
-        graph = cast(MCFGraph, self._g)
-        potential = cast(List[int], self._potential)
+        graph = self._g
+        potential = self._potential
+        assert graph is not None
+        assert potential is not None
         result = graph.slope(self._s, self._t, flow_limit)
         shift = potential[self._s] - potential[self._t]
         return [(flow, cost - flow * shift) for flow, cost in result]
