@@ -1,7 +1,5 @@
 # competitive-verifier: TITLE 斜め2次元累積和
 
-from python.data_structure_2D.Accumulate2dim import Accumulate2dim
-
 
 def _ceil_div2(x):
     return (x + 1) // 2
@@ -25,6 +23,7 @@ class DiagonalAccumulate2dim:
         self.v_max = self.h
 
         self.acc = [None, None]
+        self.shape = [None, None]
         self.u_base = [0, 0]
         self.v_base = [0, 0]
 
@@ -36,18 +35,38 @@ class DiagonalAccumulate2dim:
             ve = _ceil_div2(self.v_max - r)
             self.u_base[r] = ub
             self.v_base[r] = vb
-            if ub == ue or vb == ve:
-                continue
+            h = ue - ub
+            w = ve - vb
+            self.shape[r] = (h, w)
+            if h and w:
+                self.acc[r] = [0] * ((h + 1) * (w + 1))
 
-            b = [[0] * (ve - vb) for _ in range(ue - ub)]
-            for x in range(self.h):
-                for y in range(self.w):
-                    u = x + y
-                    if (u & 1) != r:
-                        continue
-                    v = x - y
-                    b[(u - r) // 2 - ub][(v - r) // 2 - vb] = a[x][y]
-            self.acc[r] = Accumulate2dim(b)
+        # 変換後の位置へ直接書き込む。
+        for x in range(self.h):
+            for y in range(self.w):
+                u = x + y
+                v = x - y
+                r = u & 1
+                h, w = self.shape[r]
+                stride = w + 1
+                i = (u - r) // 2 - self.u_base[r] + 1
+                j = (v - r) // 2 - self.v_base[r] + 1
+                self.acc[r][i * stride + j] = a[x][y]
+
+        # 各 parity について in-place で2次元累積和を構築する。
+        for r in range(2):
+            acc = self.acc[r]
+            if acc is None:
+                continue
+            h, w = self.shape[r]
+            stride = w + 1
+            for i in range(1, h + 1):
+                row = i * stride
+                prev = row - stride
+                s = 0
+                for j in range(1, w + 1):
+                    s += acc[row + j]
+                    acc[row + j] = s + acc[prev + j]
 
     def range_sum(self, a, b, c, d):
         """a <= x+y < b, c <= x-y < d を満たす要素の和を返す。"""
@@ -57,18 +76,23 @@ class DiagonalAccumulate2dim:
             acc = self.acc[r]
             if acc is None:
                 continue
+            h, w = self.shape[r]
 
             u1 = _ceil_div2(a - r) - self.u_base[r]
             u2 = _ceil_div2(b - r) - self.u_base[r]
             v1 = _ceil_div2(c - r) - self.v_base[r]
             v2 = _ceil_div2(d - r) - self.v_base[r]
 
-            u1 = max(0, min(acc.h, u1))
-            u2 = max(0, min(acc.h, u2))
-            v1 = max(0, min(acc.w, v1))
-            v2 = max(0, min(acc.w, v2))
+            u1 = max(0, min(h, u1))
+            u2 = max(0, min(h, u2))
+            v1 = max(0, min(w, v1))
+            v2 = max(0, min(w, v2))
             if u1 < u2 and v1 < v2:
-                ans += acc.range_sum(u1, u2, v1, v2)
+                stride = w + 1
+                ans += (acc[u2 * stride + v2]
+                        - acc[u1 * stride + v2]
+                        - acc[u2 * stride + v1]
+                        + acc[u1 * stride + v1])
         return ans
 
     def up(self, x, y):
