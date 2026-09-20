@@ -35,8 +35,7 @@ class DiagonalAccumulate2dim:
             h = ue - ub
             w = ve - vb
             self.shape[r] = (h, w)
-            if h and w:
-                self.acc[r] = [0] * ((h + 1) * (w + 1))
+            self.acc[r] = [0] * ((h + 1) * (w + 1))
 
         # 変換後の位置へ直接書き込む。
         for x in range(self.h):
@@ -53,8 +52,6 @@ class DiagonalAccumulate2dim:
         # 各 parity について in-place で2次元累積和を構築する。
         for r in range(2):
             acc = self.acc[r]
-            if acc is None:
-                continue
             h, w = self.shape[r]
             stride = w + 1
             for i in range(1, h + 1):
@@ -71,8 +68,6 @@ class DiagonalAccumulate2dim:
         ans = 0
         for r in range(2):
             acc = self.acc[r]
-            if acc is None:
-                continue
             h, w = self.shape[r]
 
             u1 = (a - r + 1) // 2 - self.u_base[r]
