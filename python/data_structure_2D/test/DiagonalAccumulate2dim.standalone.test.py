@@ -28,7 +28,8 @@ if __name__ == "__main__":
                     )
                     assert acc.range_sum(p, q, r, s) == expected
 
-                # check four inclusive diagonal regions against brute force
+                # x is downward and y is rightward, as in matrix coordinates.
+                # Check four inclusive diagonal regions against brute force.
                 for x in range(h):
                     for y in range(w):
                         up = right = down = left = 0
@@ -37,13 +38,13 @@ if __name__ == "__main__":
                                 v = a[i][j]
                                 dx = i - x
                                 dy = j - y
-                                if dy >= abs(dx):
-                                    up += v
-                                if dx >= abs(dy):
-                                    right += v
-                                if -dy >= abs(dx):
-                                    down += v
                                 if -dx >= abs(dy):
+                                    up += v
+                                if dy >= abs(dx):
+                                    right += v
+                                if dx >= abs(dy):
+                                    down += v
+                                if -dy >= abs(dx):
                                     left += v
                         assert acc.up(x, y) == up
                         assert acc.right(x, y) == right

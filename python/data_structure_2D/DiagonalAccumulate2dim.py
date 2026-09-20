@@ -5,6 +5,7 @@ class DiagonalAccumulate2dim:
     """
     a: h*w 行列
 
+    x は下向き、y は右向きとする行列座標を用いる。
     u = x+y, v = x-y として、斜め方向の静的 range sum を扱う。
     range_sum(a,b,c,d) は
         a <= x+y < b, c <= x-y < d
@@ -92,17 +93,17 @@ class DiagonalAccumulate2dim:
         return ans
 
     def up(self, x, y):
-        """(x,y) から見て上側 y'-y >= |x'-x| の要素和を返す。境界を含む。"""
-        return self.range_sum(x + y, self.u_max, self.v_min, x - y + 1)
+        """(x,y) から見て上側 x-x' >= |y'-y| の要素和を返す。境界を含む。"""
+        return self.range_sum(self.u_min, x + y + 1, self.v_min, x - y + 1)
 
     def right(self, x, y):
-        """(x,y) から見て右側 x'-x >= |y'-y| の要素和を返す。境界を含む。"""
-        return self.range_sum(x + y, self.u_max, x - y, self.v_max)
+        """(x,y) から見て右側 y'-y >= |x'-x| の要素和を返す。境界を含む。"""
+        return self.range_sum(x + y, self.u_max, self.v_min, x - y + 1)
 
     def down(self, x, y):
-        """(x,y) から見て下側 y-y' >= |x'-x| の要素和を返す。境界を含む。"""
-        return self.range_sum(self.u_min, x + y + 1, x - y, self.v_max)
+        """(x,y) から見て下側 x'-x >= |y'-y| の要素和を返す。境界を含む。"""
+        return self.range_sum(x + y, self.u_max, x - y, self.v_max)
 
     def left(self, x, y):
-        """(x,y) から見て左側 x-x' >= |y'-y| の要素和を返す。境界を含む。"""
-        return self.range_sum(self.u_min, x + y + 1, self.v_min, x - y + 1)
+        """(x,y) から見て左側 y-y' >= |x'-x| の要素和を返す。境界を含む。"""
+        return self.range_sum(self.u_min, x + y + 1, x - y, self.v_max)
