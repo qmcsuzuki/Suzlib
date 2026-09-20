@@ -26,9 +26,10 @@ class MCFGraph:
             self.cost = cost
             self.rev: Optional[MCFGraph._Edge] = None
 
-    def __init__(self, n: int) -> None:
+    def __init__(self, n: int, dense: bool = False) -> None:
         """n 頂点の辺のないグラフを初期化する。"""
         self._n = n
+        self._dense = dense
         self._g: List[List[MCFGraph._Edge]] = [[] for _ in range(n)]
         self._edges: List[MCFGraph._Edge] = []
 
@@ -92,10 +93,10 @@ class MCFGraph:
         dual = [0] * self._n
         prev: List[Optional[Tuple[int, MCFGraph._Edge]]] = [None] * self._n
 
-        def refine_dual() -> bool:
+        def refine_dual_sparse() -> bool:
             pq = [(0, s)]
             visited = [False] * self._n
-            dist: List[Optional[int]] = [None] * self._n
+            dist = [-1] * self._n
             dist[s] = 0
             while pq:
                 dist_v, v = heappop(pq)
@@ -112,7 +113,7 @@ class MCFGraph:
                     reduced_cost = e.cost - dual[w] + dual_v
                     new_dist = dist_v + reduced_cost
                     dist_w = dist[w]
-                    if dist_w is None or new_dist < dist_w:
+                    if dist_w == -1 or new_dist < dist_w:
                         dist[w] = new_dist
                         prev[w] = v, e
                         heappush(pq, (new_dist, w))
@@ -122,8 +123,45 @@ class MCFGraph:
             dist_t = dist[t]
             for v in range(self._n):
                 if visited[v]:
-                    dual[v] -= cast(int, dist_t) - cast(int, dist[v])
+                    dual[v] -= dist_t - dist[v]
             return True
+
+        def refine_dual_dense() -> bool:
+            visited = [False] * self._n
+            dist = [-1] * self._n
+            dist[s] = 0
+            while True:
+                v = -1
+                for u in range(self._n):
+                    if visited[u] or dist[u] == -1:
+                        continue
+                    if v == -1 or dist[u] < dist[v]:
+                        v = u
+                if v == -1:
+                    return False
+                visited[v] = True
+                if v == t:
+                    break
+                dist_v = dist[v]
+                dual_v = dual[v]
+                for e in self._g[v]:
+                    w = e.dst
+                    if visited[w] or e.cap == 0:
+                        continue
+                    reduced_cost = e.cost - dual[w] + dual_v
+                    new_dist = dist_v + reduced_cost
+                    dist_w = dist[w]
+                    if dist_w == -1 or new_dist < dist_w:
+                        dist[w] = new_dist
+                        prev[w] = v, e
+
+            dist_t = dist[t]
+            for v in range(self._n):
+                if visited[v]:
+                    dual[v] -= dist_t - dist[v]
+            return True
+
+        refine_dual = refine_dual_dense if self._dense else refine_dual_sparse
 
         flow = 0
         cost = 0
@@ -170,7 +208,7 @@ class DAGMCFGraph:
 
     Edge = MCFGraph.Edge
 
-    def __init__(self, n: int, s: int, t: int) -> None:
+    def __init__(self, n: int, s: int, t: int, dense: bool = False) -> None:
         """n 頂点、始点 s、終点 t のグラフを初期化する。"""
         assert 0 <= n
         assert 0 <= s < n
@@ -179,6 +217,7 @@ class DAGMCFGraph:
         self._n = n
         self._s = s
         self._t = t
+        self._dense = dense
         self._edges: List[Tuple[int, int, int, int]] = []
         self._g: Optional[MCFGraph] = None
         self._potential: Optional[List[int]] = None
@@ -234,7 +273,7 @@ class DAGMCFGraph:
                 if nd < potential[dst]:
                     potential[dst] = nd
 
-        graph = MCFGraph(self._n)
+        graph = MCFGraph(self._n, dense=self._dense)
         for src, dst, cap, cost in self._edges:
             reduced_cost = cost + potential[src] - potential[dst]
             assert 0 <= reduced_cost
