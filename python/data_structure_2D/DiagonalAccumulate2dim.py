@@ -1,10 +1,6 @@
 # competitive-verifier: TITLE 斜め2次元累積和
 
 
-def _ceil_div2(x):
-    return (x + 1) // 2
-
-
 class DiagonalAccumulate2dim:
     """
     a: h*w 行列
@@ -29,10 +25,10 @@ class DiagonalAccumulate2dim:
 
         # x+y と x-y は同じ parity を持つので、偶奇ごとに圧縮する。
         for r in range(2):
-            ub = _ceil_div2(self.u_min - r)
-            ue = _ceil_div2(self.u_max - r)
-            vb = _ceil_div2(self.v_min - r)
-            ve = _ceil_div2(self.v_max - r)
+            ub = (self.u_min - r + 1) // 2
+            ue = (self.u_max - r + 1) // 2
+            vb = (self.v_min - r + 1) // 2
+            ve = (self.v_max - r + 1) // 2
             self.u_base[r] = ub
             self.v_base[r] = vb
             h = ue - ub
@@ -78,10 +74,10 @@ class DiagonalAccumulate2dim:
                 continue
             h, w = self.shape[r]
 
-            u1 = _ceil_div2(a - r) - self.u_base[r]
-            u2 = _ceil_div2(b - r) - self.u_base[r]
-            v1 = _ceil_div2(c - r) - self.v_base[r]
-            v2 = _ceil_div2(d - r) - self.v_base[r]
+            u1 = (a - r + 1) // 2 - self.u_base[r]
+            u2 = (b - r + 1) // 2 - self.u_base[r]
+            v1 = (c - r + 1) // 2 - self.v_base[r]
+            v2 = (d - r + 1) // 2 - self.v_base[r]
 
             u1 = max(0, min(h, u1))
             u2 = max(0, min(h, u2))
