@@ -93,17 +93,17 @@ class DiagonalAccumulate2dim:
         return ans
 
     def up(self, x, y):
-        """(x,y) から見て上側 x-x' >= |y'-y| の要素和を返す。境界を含む。"""
+        """上側（x が減る向き）x-x' >= |y'-y| の要素和を返す。境界を含む。"""
         return self.range_sum(self.u_min, x + y + 1, self.v_min, x - y + 1)
 
     def right(self, x, y):
-        """(x,y) から見て右側 y'-y >= |x'-x| の要素和を返す。境界を含む。"""
+        """右側（y が増える向き）y'-y >= |x'-x| の要素和を返す。境界を含む。"""
         return self.range_sum(x + y, self.u_max, self.v_min, x - y + 1)
 
     def down(self, x, y):
-        """(x,y) から見て下側 x'-x >= |y'-y| の要素和を返す。境界を含む。"""
+        """下側（x が増える向き）x'-x >= |y'-y| の要素和を返す。境界を含む。"""
         return self.range_sum(x + y, self.u_max, x - y, self.v_max)
 
     def left(self, x, y):
-        """(x,y) から見て左側 y-y' >= |x'-x| の要素和を返す。境界を含む。"""
+        """左側（y が減る向き）y-y' >= |x'-x| の要素和を返す。境界を含む。"""
         return self.range_sum(self.u_min, x + y + 1, x - y, self.v_max)
