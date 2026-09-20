@@ -27,7 +27,11 @@ class MCFGraph:
             self.rev: Optional[MCFGraph._Edge] = None
 
     def __init__(self, n: int, dense: bool = False) -> None:
-        """n 頂点の辺のないグラフを初期化する。"""
+        """n 頂点の辺のないグラフを初期化する。
+
+        dense=False では heap を用いる疎グラフ向け Dijkstra、dense=True では
+        O(V^2 + E) の密グラフ向け Dijkstra を用いる。
+        """
         self._n = n
         self._dense = dense
         self._g: List[List[MCFGraph._Edge]] = [[] for _ in range(n)]
@@ -212,7 +216,11 @@ class DAGMCFGraph:
     Edge = MCFGraph.Edge
 
     def __init__(self, n: int, s: int, t: int, dense: bool = False) -> None:
-        """n 頂点、始点 s、終点 t のグラフを初期化する。"""
+        """n 頂点、始点 s、終点 t のグラフを初期化する。
+
+        dense=False では heap を用いる疎グラフ向け Dijkstra、dense=True では
+        O(V^2 + E) の密グラフ向け Dijkstra を、初期ポテンシャル構築後の最短路計算に用いる。
+        """
         assert 0 <= n
         assert 0 <= s < n
         assert 0 <= t < n
