@@ -1,20 +1,10 @@
 # competitive-verifier: TITLE 割り当て問題
 
 
-def assignment(
+def _assignment(
     cost: list[list[int]],
     flow: int | None = None,
-) -> tuple[int, list[int]]:
-    """完全二部グラフの最小費用割り当てを求める。
-
-    cost[i][j] を左頂点 i と右頂点 j を対応させる費用とする。
-    flow=None では min(n, m) 個、flow を指定した場合はちょうど flow 個を対応させる。
-    戻り値は (最小費用, match) で、match[i] は i に対応する右頂点、
-    未使用の左頂点では -1 である。
-
-    負の費用と長方形行列に対応する。
-    計算量は O(flow * n * m)、追加メモリは O(n + m)。
-    """
+) -> tuple[list[int], list[int]]:
     n = len(cost)
     m = len(cost[0]) if n else 0
     assert all(len(row) == m for row in cost)
@@ -24,8 +14,9 @@ def assignment(
     assert 0 <= flow <= min(n, m)
 
     left_match = [-1] * n
+    costs = [0]
     if flow == 0:
-        return 0, left_match
+        return costs, left_match
 
     right_match = [-1] * m
 
@@ -35,6 +26,7 @@ def assignment(
     min_cost = min(min(row) for row in cost)
     left_potential = [0] * n
     right_potential = [min_cost] * m
+    total_cost = 0
 
     for _ in range(flow):
         dist: list[int | None] = [None] * m
@@ -111,13 +103,47 @@ def assignment(
         while j != -1:
             i = prev_left[j]
             old_j = left_match[i]
+            total_cost += cost[i][j]
+            if old_j != -1:
+                total_cost -= cost[i][old_j]
             left_match[i] = j
             right_match[j] = i
             j = old_j
 
-    total_cost = sum(
-        cost[i][j]
-        for i, j in enumerate(left_match)
-        if j != -1
-    )
-    return total_cost, left_match
+        costs.append(total_cost)
+
+    return costs, left_match
+
+
+def assignment(
+    cost: list[list[int]],
+    flow: int | None = None,
+) -> tuple[int, list[int]]:
+    """完全二部グラフの最小費用割り当てを求める。
+
+    cost[i][j] を左頂点 i と右頂点 j を対応させる費用とする。
+    flow=None では min(n, m) 個、flow を指定した場合はちょうど flow 個を対応させる。
+    戻り値は (最小費用, match) で、match[i] は i に対応する右頂点、
+    未使用の左頂点では -1 である。
+
+    負の費用と長方形行列に対応する。
+    計算量は O(flow * n * m)、追加メモリは O(n + m)。
+    """
+    costs, match = _assignment(cost, flow)
+    return costs[-1], match
+
+
+def assignment_costs(
+    cost: list[list[int]],
+    flow: int | None = None,
+) -> list[int]:
+    """各流量に対する最小割り当て費用を返す。
+
+    戻り値 costs は costs[f] がちょうど f 個を対応させる最小費用である。
+    flow=None では f=0,...,min(n,m)、flow を指定した場合は f=0,...,flow を返す。
+
+    負の費用と長方形行列に対応する。
+    計算量は O(flow * n * m)、追加メモリは O(n + m)。
+    """
+    costs, _ = _assignment(cost, flow)
+    return costs

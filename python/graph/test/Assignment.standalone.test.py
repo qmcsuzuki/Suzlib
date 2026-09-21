@@ -3,7 +3,7 @@
 from itertools import combinations, permutations
 from random import Random
 
-from python.graph.Assignment import assignment
+from python.graph.Assignment import assignment, assignment_costs
 
 
 def brute_force(cost: list[list[int]], flow: int) -> int:
@@ -32,10 +32,17 @@ def check(cost: list[list[int]], flow: int) -> None:
     assert len(set(used)) == flow
     assert min_cost == sum(cost[i][j] for i, j in enumerate(match) if j != -1)
 
+    costs = assignment_costs(cost, flow)
+    assert len(costs) == flow + 1
+    for f, value in enumerate(costs):
+        assert value == brute_force(cost, f)
+
 
 if __name__ == "__main__":
     assert assignment([], 0) == (0, [])
     assert assignment([[], [], []], 0) == (0, [-1, -1, -1])
+    assert assignment_costs([], 0) == [0]
+    assert assignment_costs([[], [], []], 0) == [0]
 
     rng = Random(0)
     for n in range(1, 5):
@@ -45,10 +52,13 @@ if __name__ == "__main__":
                     [rng.randrange(-10, 11) for _ in range(m)]
                     for _ in range(n)
                 ]
-                for flow in range(min(n, m) + 1):
+                max_flow = min(n, m)
+                for flow in range(max_flow + 1):
                     check(cost, flow)
 
                 min_cost, match = assignment(cost)
-                flow = min(n, m)
-                assert min_cost == brute_force(cost, flow)
-                assert sum(j != -1 for j in match) == flow
+                assert min_cost == brute_force(cost, max_flow)
+                assert sum(j != -1 for j in match) == max_flow
+
+                costs = assignment_costs(cost)
+                assert costs == [brute_force(cost, f) for f in range(max_flow + 1)]
