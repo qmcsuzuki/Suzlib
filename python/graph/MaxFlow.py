@@ -253,7 +253,8 @@ class MFGraph:
         return result
 
     def min_cut(self, s: int) -> list[bool]:
-        """残余グラフ上で s から到達可能な頂点を返す。
+        """各頂点 v について、残余グラフ上で s から v に到達可能なら True、
+        到達不可能なら False となる長さ n のリストを返す。
 
         最大 s-t フローを流し切った直後なら、True の頂点が s 側、
         False の頂点が t 側となる最小 s-t カットを表す。
