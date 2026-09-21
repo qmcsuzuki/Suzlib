@@ -255,7 +255,9 @@ class MFGraph:
     def min_cut(self, s: int) -> list[bool]:
         """残余グラフ上で s から到達可能な頂点を返す。
 
-        flow_limit による打ち切り後は、返す集合が最小カットとは限らない。
+        最大 s-t フローを流し切った直後なら、True の頂点が s 側、
+        False の頂点が t 側となる最小 s-t カットを表す。
+        最大流状態でなければ、返す集合が最小カットとは限らない。
         """
         n = self._n
         assert 0 <= s < n
