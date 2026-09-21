@@ -88,32 +88,39 @@ class MCFGraph:
     ) -> List[Tuple[int, int]]:
         """流量と最小費用の折れ線の頂点を返す。このメソッドは1回だけ呼べる。"""
         assert not self._used
-        assert 0 <= s < self._n
-        assert 0 <= t < self._n
+        n = self._n
+        g = self._g
+        assert 0 <= s < n
+        assert 0 <= t < n
         assert s != t
         if flow_limit is None:
-            flow_limit = sum(e.cap for e in self._g[s])
+            flow_limit = sum(e.cap for e in g[s])
         else:
             assert 0 <= flow_limit
         self._used = True
 
-        dual = [0] * self._n
-        prev: List[Optional[MCFGraph._Edge]] = [None] * self._n
+        dual = [0] * n
+        prev: List[Optional[MCFGraph._Edge]] = [None] * n
 
         def refine_dual_sparse() -> bool:
-            pq = [(0, s)]
-            visited = [False] * self._n
-            dist = [-1] * self._n
+            pq = []
+            que_min = [s]
+            visited = [False] * n
+            dist = [-1] * n
             dist[s] = 0
-            while pq:
-                dist_v, v = heappop(pq)
+            while que_min or pq:
+                if que_min:
+                    v = que_min.pop()
+                    dist_v = dist[v]
+                else:
+                    dist_v, v = heappop(pq)
                 if visited[v]:
                     continue
                 visited[v] = True
                 if v == t:
                     break
                 dual_v = dual[v]
-                for e in self._g[v]:
+                for e in g[v]:
                     w = e.dst
                     if visited[w] or e.cap == 0:
                         continue
@@ -123,23 +130,26 @@ class MCFGraph:
                     if dist_w == -1 or new_dist < dist_w:
                         dist[w] = new_dist
                         prev[w] = e
-                        heappush(pq, (new_dist, w))
+                        if reduced_cost == 0:
+                            que_min.append(w)
+                        else:
+                            heappush(pq, (new_dist, w))
             else:
                 return False
 
             dist_t = dist[t]
-            for v in range(self._n):
+            for v in range(n):
                 if visited[v]:
                     dual[v] -= dist_t - dist[v]
             return True
 
         def refine_dual_dense() -> bool:
-            visited = [False] * self._n
-            dist = [-1] * self._n
+            visited = [False] * n
+            dist = [-1] * n
             dist[s] = 0
             while True:
                 v = -1
-                for u in range(self._n):
+                for u in range(n):
                     if visited[u] or dist[u] == -1:
                         continue
                     if v == -1 or dist[u] < dist[v]:
@@ -151,7 +161,7 @@ class MCFGraph:
                     break
                 dist_v = dist[v]
                 dual_v = dual[v]
-                for e in self._g[v]:
+                for e in g[v]:
                     w = e.dst
                     if visited[w] or e.cap == 0:
                         continue
@@ -163,7 +173,7 @@ class MCFGraph:
                         prev[w] = e
 
             dist_t = dist[t]
-            for v in range(self._n):
+            for v in range(n):
                 if visited[v]:
                     dual[v] -= dist_t - dist[v]
             return True
@@ -180,18 +190,14 @@ class MCFGraph:
 
             f = flow_limit - flow
             v = t
-            while True:
+            while v != s:
                 e = prev[v]
-                if e is None:
-                    break
                 f = min(f, e.cap)
                 v = e.rev.dst
 
             v = t
-            while True:
+            while v != s:
                 e = prev[v]
-                if e is None:
-                    break
                 re = e.rev
                 e.cap -= f
                 re.cap += f
