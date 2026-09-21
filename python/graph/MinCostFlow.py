@@ -5,7 +5,7 @@
 # https://github.com/not522/ac-library-python/blob/master/LICENSE
 
 from heapq import heappop, heappush
-from typing import List, NamedTuple, Optional, Tuple
+from typing import NamedTuple
 
 
 class MCFGraph:
@@ -34,8 +34,8 @@ class MCFGraph:
         """
         self._n = n
         self._dense = dense
-        self._g: List[List[MCFGraph._Edge]] = [[] for _ in range(n)]
-        self._edges: List[MCFGraph._Edge] = []
+        self._g: list[list[MCFGraph._Edge]] = [[] for _ in range(n)]
+        self._edges: list[MCFGraph._Edge] = []
         self._used = False
 
     def add_edge(self, src: int, dst: int, cap: int, cost: int) -> int:
@@ -67,7 +67,7 @@ class MCFGraph:
             e.cost,
         )
 
-    def edges(self) -> List[Edge]:
+    def edges(self) -> list[Edge]:
         """追加した全ての辺を、追加順に返す。"""
         return [self.get_edge(i) for i in range(len(self._edges))]
 
@@ -75,8 +75,8 @@ class MCFGraph:
         self,
         s: int,
         t: int,
-        flow_limit: Optional[int] = None,
-    ) -> Tuple[int, int]:
+        flow_limit: int | None = None,
+    ) -> tuple[int, int]:
         """flow_limit 以下で流せる最大量まで流し、その (流量, 最小費用) を返す。"""
         return self.slope(s, t, flow_limit)[-1]
 
@@ -84,7 +84,7 @@ class MCFGraph:
         self,
         s: int,
         t: int,
-        flow_limit: Optional[int] = None,
+        flow_limit: int | None = None,
     ) -> int:
         """0 以上 flow_limit 以下の任意流量に対する最小費用を返す。"""
         return min(cost for _, cost in self.slope(s, t, flow_limit))
@@ -93,8 +93,8 @@ class MCFGraph:
         self,
         s: int,
         t: int,
-        flow_limit: Optional[int] = None,
-    ) -> List[Tuple[int, int]]:
+        flow_limit: int | None = None,
+    ) -> list[tuple[int, int]]:
         """各流量に対する最小費用の折れ線の頂点を返す。
 
         最後の点の流量は flow_limit 以下で流せる最大流量である。
@@ -113,7 +113,7 @@ class MCFGraph:
         self._used = True
 
         dual = [0] * n
-        prev: List[Optional[MCFGraph._Edge]] = [None] * n
+        prev: list[MCFGraph._Edge | None] = [None] * n
 
         def refine_dual_sparse() -> bool:
             pq = []
@@ -195,7 +195,7 @@ class MCFGraph:
 
         flow = 0
         cost = 0
-        prev_cost_per_flow: Optional[int] = None
+        prev_cost_per_flow: int | None = None
         result = [(flow, cost)]
         while flow < flow_limit:
             if not refine_dual():
@@ -251,9 +251,9 @@ class DAGMCFGraph:
         self._s = s
         self._t = t
         self._dense = dense
-        self._edges: List[Tuple[int, int, int, int]] = []
-        self._g: Optional[MCFGraph] = None
-        self._potential: Optional[List[int]] = None
+        self._edges: list[tuple[int, int, int, int]] = []
+        self._g: MCFGraph | None = None
+        self._potential: list[int] | None = None
         self._used = False
 
     def _rank(self, v: int) -> int:
@@ -282,7 +282,7 @@ class DAGMCFGraph:
         e = self._g.get_edge(i)
         return DAGMCFGraph.Edge(e.src, e.dst, e.cap, e.flow, cost)
 
-    def edges(self) -> List[Edge]:
+    def edges(self) -> list[Edge]:
         """追加した全ての辺を、元のコストで追加順に返す。"""
         return [self.get_edge(i) for i in range(len(self._edges))]
 
@@ -290,7 +290,7 @@ class DAGMCFGraph:
         if self._g is not None:
             return
 
-        adj: List[List[Tuple[int, int]]] = [[] for _ in range(self._n)]
+        adj: list[list[tuple[int, int]]] = [[] for _ in range(self._n)]
         for src, dst, _, cost in self._edges:
             adj[src].append((dst, cost))
 
@@ -315,18 +315,18 @@ class DAGMCFGraph:
         self._g = graph
         self._potential = potential
 
-    def flow(self, flow_limit: Optional[int] = None) -> Tuple[int, int]:
+    def flow(self, flow_limit: int | None = None) -> tuple[int, int]:
         """flow_limit 以下で流せる最大量まで流し、その (流量, 最小費用) を元のコストで返す。"""
         return self.slope(flow_limit)[-1]
 
-    def min_cost(self, flow_limit: Optional[int] = None) -> int:
+    def min_cost(self, flow_limit: int | None = None) -> int:
         """0 以上 flow_limit 以下の任意流量に対する最小費用を返す。"""
         return min(cost for _, cost in self.slope(flow_limit))
 
     def slope(
         self,
-        flow_limit: Optional[int] = None,
-    ) -> List[Tuple[int, int]]:
+        flow_limit: int | None = None,
+    ) -> list[tuple[int, int]]:
         """各流量に対する最小費用の折れ線の頂点を、元のコストで返す。
 
         最後の点の流量は flow_limit 以下で流せる最大流量である。
