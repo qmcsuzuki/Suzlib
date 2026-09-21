@@ -80,14 +80,14 @@ class MCFGraph:
         """flow_limit 以下で流せる最大量まで流し、その (流量, 最小費用) を返す。"""
         return self.slope(s, t, flow_limit)[-1]
 
-    def max_flow(
+    def min_cost(
         self,
         s: int,
         t: int,
         flow_limit: Optional[int] = None,
     ) -> int:
-        """s から t へ flow_limit 以下で流せる最大流量を返す。"""
-        return self.slope(s, t, flow_limit)[-1][0]
+        """0 以上 flow_limit 以下の任意流量に対する最小費用を返す。"""
+        return min(cost for _, cost in self.slope(s, t, flow_limit))
 
     def slope(
         self,
@@ -95,7 +95,7 @@ class MCFGraph:
         t: int,
         flow_limit: Optional[int] = None,
     ) -> List[Tuple[int, int]]:
-        """流量と最小費用の折れ線の頂点を返す。
+        """各流量に対する最小費用の折れ線の頂点を返す。
 
         最後の点の流量は flow_limit 以下で流せる最大流量である。
         このメソッドは1回だけ呼べる。
@@ -319,15 +319,15 @@ class DAGMCFGraph:
         """flow_limit 以下で流せる最大量まで流し、その (流量, 最小費用) を元のコストで返す。"""
         return self.slope(flow_limit)[-1]
 
-    def max_flow(self, flow_limit: Optional[int] = None) -> int:
-        """s から t へ flow_limit 以下で流せる最大流量を返す。"""
-        return self.slope(flow_limit)[-1][0]
+    def min_cost(self, flow_limit: Optional[int] = None) -> int:
+        """0 以上 flow_limit 以下の任意流量に対する最小費用を返す。"""
+        return min(cost for _, cost in self.slope(flow_limit))
 
     def slope(
         self,
         flow_limit: Optional[int] = None,
     ) -> List[Tuple[int, int]]:
-        """流量と最小費用の折れ線の頂点を、元のコストで返す。
+        """各流量に対する最小費用の折れ線の頂点を、元のコストで返す。
 
         最後の点の流量は flow_limit 以下で流せる最大流量である。
         """
