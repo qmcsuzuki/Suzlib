@@ -49,3 +49,19 @@ if __name__ == "__main__":
     b = TropicalMatrix(1,2,[[5,2]])
     assert (a+b).matrix == [[3,2]]
     assert (TropicalMatrix(1,1,[[3]])**4).matrix == [[12]]
+
+    # 到達不能は負重みを足しても到達不能。単位行列による積は値を変えない。
+    inf = TropicalMatrix.zero
+    a = [[0,inf],[inf,-1]]
+    A = TropicalMatrix(2,2,a)
+    assert (A*TropicalMatrix.eye(2)).matrix == a
+    assert (TropicalMatrix.eye(2)*A).matrix == a
+    assert (A**4).matrix == [[0,inf],[inf,-4]]
+    for n in range(1,5):
+        for _ in range(100):
+            a = [[rng.choice([inf,-3,-1,0,2,5]) for _ in range(n)] for _ in range(n)]
+            b = [[rng.choice([inf,-3,-1,0,2,5]) for _ in range(n)] for _ in range(n)]
+            expected = [[min([inf]+[a[i][k]+b[k][j] for k in range(n)
+                                     if a[i][k] != inf and b[k][j] != inf])
+                         for j in range(n)] for i in range(n)]
+            assert (TropicalMatrix(n,n,a)*TropicalMatrix(n,n,b)).matrix == expected

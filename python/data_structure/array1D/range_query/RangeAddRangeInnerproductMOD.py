@@ -6,9 +6,10 @@ from python.data_structure.array1D.LazySegmentTree import LazySegmentTree
 class RangeAddRangeInnerproductMOD(LazySegmentTree):
     """
     数列 A,B に区間加算、A と B の区間内積
-    W=None、A=B=None なら、長さ N の二つの零列から開始する。
+    A,B を個別に省略するとその列を零列とする。
+    W[i] は各位置の重み（既定値 1）。区間内積は sum(W[i]*A[i]*B[i])。
     apply(l,r,p*M+q) は両列への加算作用を表す。p,q は法 MOD で還元して符号化。
-    prod(l,r)[0]//M が内積の集約値。W[i] は作用時の重み（既定値 1）。
+    prod(l,r)[0]//M が内積の集約値。
     構築・空間 O(N)、区間更新・取得 O(log N)。
 
     lazy: (p,q) の 1 次元化
@@ -28,11 +29,13 @@ class RangeAddRangeInnerproductMOD(LazySegmentTree):
 
         if W is None:
             W = [1]*N
-        if A is not None:
-            assert len(A)==N
-            array = [(A[i]*B[i]%self.MOD*self.M + W[i]%self.MOD,  A[i]%self.MOD*self.M + B[i]%self.MOD) for i in range(N)]
-        else:
-            array = [(W[i]%self.MOD,0) for i in range(N)]
+        if A is None:
+            A = [0]*N
+        if B is None:
+            B = [0]*N
+        assert len(A) == len(B) == len(W) == N
+        array = [(W[i]*A[i]*B[i]%self.MOD*self.M + W[i]%self.MOD,
+                  W[i]*A[i]%self.MOD*self.M + W[i]*B[i]%self.MOD) for i in range(N)]
 
         self.data[self.N0:self.N0+self.N] = array
         for i in range(self.N0-1,0,-1): self.update(i)

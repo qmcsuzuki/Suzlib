@@ -10,6 +10,11 @@ def Garner(a,m,already_coprime=True,permit0=True):
     permit0=False では最小正解を返す（零解の場合は法の最小公倍数）。
     時間 O(len(a)^2 log max(m))。
     """
+    assert len(a) == len(m)
+    assert all(mi > 0 for mi in m)
+    if not a:
+        return (0 if permit0 else 1) % MOD
+
     def compute(i,M): # c[0] + c[1]m[0] + c[2]m[0]m[1] + ... c[i-1]m[0]...m[i-2] mod M を返す
         """確定した混合基数係数 c[0:i] の値を法 M で評価する。"""
         v = c[i-1]
@@ -23,7 +28,7 @@ def Garner(a,m,already_coprime=True,permit0=True):
     # ans = c[0] + c[1]m[0] + c[2]m[0]m[1] + ... なる c を求める
     n = len(a)
     c = [0]*n
-    c[0] = a[0]
+    c[0] = a[0] % m[0]
     for i in range(1,n):
         ms = 1
         for j in range(i): ms = ms*m[j]%m[i]

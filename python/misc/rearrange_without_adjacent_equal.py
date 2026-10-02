@@ -5,7 +5,7 @@ def rearrange_without_adjacent_equal(seq):
     返り値: List （不可能なら空リスト）
     """
     n = len(seq)
-    if n == 1: return seq[:]
+    if n <= 1: return seq[:]
 
     cnt = {}
     for x in seq:
