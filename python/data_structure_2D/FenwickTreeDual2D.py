@@ -1,7 +1,8 @@
 # competitive-verifier: TITLE 2次元Fenwick Tree Dual
 
 class FenwickTreeDual2D:
-    """原点側の長方形 [0,r1) × [0,r2) への加算と一点取得。
+    """長方形領域への加算と一点取得を行う二次元 Fenwick 木。
+    原点側の長方形 [0,r1) × [0,r2) への加算と一点取得。
     各操作 O(log h * log w)、構築・空間 O(h*w)。任意長方形は4回の prefix_add で処理する。
     """
     def __init__(self, h: int, w: int):

@@ -6,7 +6,7 @@
 - apply_to_point(i,x): モノイド作用を値 x に行う
 - point_get(i): 1点取得
 - all_get(): 全点取得
-- point_set(i,x): 葉の値を x に変更
+- point_set(i,x): 1点の値を変更（葉の値を x に変更）
 
 op(f,g) は左作用 f を g の後に適用する合成。e は恒等作用。
 葉も合成演算 op の対象であり、init は葉に保持する同じ型の値の列。

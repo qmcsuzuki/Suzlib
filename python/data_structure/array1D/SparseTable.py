@@ -23,7 +23,8 @@ class SparseTable:
 
 # argmin or argmax を扱うもの
 class SparseTableArgminmax(SparseTable):
-    """整数列の極値と添字を求める。len(a) <= 2^20 を仮定する。
+    """区間の最小値または最大値とその添字を求めるスパーステーブル。
+    a は整数列で、len(a) <= 2^20 を仮定する。
     構築・空間 O(N log N)、非空区間の prod は O(1)。
     """
     M = 1<<20

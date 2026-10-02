@@ -4,7 +4,8 @@
 """
 遅延セグメント木（区間演算、区間更新）
 data[] の要素に モノイド X をもつ
-lazy[] の要素に X への作用をもつ（左作用、可逆である必要はない）
+lazy[] の要素に Aut(X) をもつ（ただし作用素は「左」から作用とする）
+補足: 上の Aut(X) は可逆性を要請する意味ではなく、実装では X への左作用でよい。
 mapping(f, op_X(x,y)) = op_X(mapping(f,x), mapping(f,y)) を仮定する。
 compose(f,g) は f を g の後に適用する合成。作用演算のコストは O(1) を想定。
 構築 O(N)、区間更新・取得・境界探索 O(log N)、all_prod O(1)。
@@ -150,6 +151,7 @@ class LazySegmentTree:
     """
     始点 l を固定
     f(x_l*...*x_{r-1}) が True になる最大の r 
+    つまり TTTTFFFF となるとき、F となる最小の添え字
     r を増やすと判定が True から False に変わることを仮定する。
     返り値 r 自体は判定が True の右端（空区間も含む）である。
     存在しない場合 n が返る
@@ -181,6 +183,7 @@ class LazySegmentTree:
     終点 r を固定
     f(x_l*...*x_{r-1}) が True になる最小の l
     つまり FFFFTTTT となるとき、T となる最小の添え字
+    存在しない場合 r が返る
     [0,r) 全体で True なら 0 を返す。空区間のみ True なら r を返す。
     f(e_M) = True でないと壊れる
     """

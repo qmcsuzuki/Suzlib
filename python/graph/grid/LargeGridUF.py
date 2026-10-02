@@ -3,7 +3,8 @@
 from python.data_structure.unionfind.UnionFind import UnionFind
 
 def LargeGridUF(H,W,blocks):
-    """4 近傍の空き区間を併合し、(UF, blockpos) を返す。
+    """障害物で分割された各行の空き区間を併合し、UnionFind と区間位置表を返す。
+    接続は 4 近傍。戻り値は (UF, blockpos)。
 
     blocks は盤面内の障害物座標列。H + len(blocks) < 2^20 を仮定する。
     blockpos[i] の各値は 区間開始列 * 2^20 + UF の要素番号。
@@ -50,7 +51,8 @@ def LargeGridUF(H,W,blocks):
 
 from bisect import bisect_left
 def get_blockid(i,j):
-    """大域変数 blockpos を使い、空きマス (i,j) の UF 要素番号を O(log K) で返す。
+    """大域変数 blockpos を使い、空きマス (i,j) の区間番号を返す。
+    区間番号は UF の要素番号に対応する。計算量 O(log K)。
     呼び出し側で UF, blockpos = LargeGridUF(...) と設定する。障害物には呼ばない。
     """
     M = 1<<20

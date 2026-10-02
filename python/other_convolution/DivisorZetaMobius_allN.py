@@ -24,7 +24,8 @@ def mobius_gcd(a,primes):
             a[i] %= MOD
 #    return a
 
-#aを破壊的に約数側のzeta変換にする(n方向に)
+#aを破壊的にgcd-zetaする(n方向に)
+#この方向は、各 n に対して約数側の値を集計する。
 def zeta_gcd_to_n(a,primes):
     """各添字の約数側から値を集めるゼータ変換で入力配列を法 MOD により上書きする。"""
     n = len(a)-1

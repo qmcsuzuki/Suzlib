@@ -1,7 +1,8 @@
 # competitive-verifier: TITLE ダブリング
 
 class Doubling:
-    """反復遷移とモノイドの重み集約を求める。構築 O(N*depth)、各クエリ O(depth)。
+    """同じ遷移の反復と、その間の重みの集約をダブリングで求める。
+    重みはモノイドを仮定する。構築 O(N*depth)、各クエリ O(depth)。
     nxt[v] は 0 以上 N 未満。0 <= k < 2^depth、depth >= 1 を仮定する。
     重みクエリと binary_search の前に set_weight を呼ぶ。nxt の初期列は参照する。
     """

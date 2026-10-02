@@ -16,8 +16,8 @@ def extgcd(a,b):
 
 def solve_linear_congruence(a: int, b: int, MOD: int) -> tuple[int, int]:
     """
-    MOD > 0 に対し ax = b (mod MOD) の解 x = r (mod m) を返す。
-    0 <= r < m。解なしなら (0,0)。時間 O(log MOD)。
+    ax = b (mod MOD) の解 x = r (mod m) を (r,m) で返す。解なしなら (0,0)
+    MOD > 0 を仮定。0 <= r < m。時間 O(log MOD)。
     """
     g, x, _ = extgcd(a, MOD)
     if b % g: return (0,0)

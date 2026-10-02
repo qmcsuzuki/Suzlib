@@ -22,7 +22,9 @@ class XorBasis:
         return x
     
     def get_sorted_basis(self): # 降順ソートした基底を得る（貪欲法などに使用）
-        """内部の基底を降順に整列し、そのコピーを返す（内部順序も変わる）。"""
+        """XOR 基底を降順に並べた新しいリストを返す。
+        内部の基底も降順に整列される。
+        """
         self.basis.sort(reverse=True)
         return self.basis[::]
 

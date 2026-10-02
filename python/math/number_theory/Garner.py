@@ -3,7 +3,8 @@
 from math import gcd
 
 def Garner(a,m,already_coprime=True,permit0=True):
-    """x == a[i] (mod m[i]) の最小非負解を大域変数 MOD で還元して返す。
+    """連立合同式の解を大域変数 MOD で還元して返し、不整合なら -1 を返す。
+    x == a[i] (mod m[i]) の最小非負解を大域変数 MOD で還元して返す。
     各 m[i] > 0、len(a) == len(m) を仮定する。
     already_coprime=True は法が互いに素のときだけ指定する。
     False では a,m を破壊的に同値な互いに素の法へ変換し、不整合なら -1。

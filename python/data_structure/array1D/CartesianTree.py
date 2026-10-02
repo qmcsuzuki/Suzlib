@@ -5,7 +5,8 @@ Cartesian tree を構築。最小値で列を分割する（同じ値は左を�
 以下の三つの関数がある
 
 - Cartesian_tree_DFSsearch(A,calc):
-    - calc(i,l,r,p) を子から親への後行順で呼ぶ。区間は [l,r)、根の親は -1。
+    - calc(i,l,r,p) を DFS 順に行う
+    - この DFS 順は子から親への後行順。区間は [l,r)、根の親は -1。
     - A に番兵を一時追加するため、可変リストを渡す（正常終了時に元に戻す）。
 - Cartesian_tree_full(A): Cartesian tree の情報を返す
 - Cartesian_tree_simple(A): シンプルに親だけを返す

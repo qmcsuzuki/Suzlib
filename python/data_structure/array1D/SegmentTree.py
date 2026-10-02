@@ -67,6 +67,7 @@ class SegmentTree:
 
     """
     f(x_l*...*x_{r-1}) が True になる最大の r 
+    つまり TTTTFFFF となるとき、F となる最小の添え字
     r を増やすと判定が True から False に変わることを仮定する。
     返り値 r 自体は判定が True の右端（空区間も含む）である。
     存在しない場合 n が返る
@@ -98,6 +99,7 @@ class SegmentTree:
     """
     f(x_l*...*x_{r-1}) が True になる最小の l
     つまり FFFFTTTT となるとき、T となる最小の添え字
+    存在しない場合 r が返る
     [0,r) 全体で True なら 0 を返す。空区間のみ True なら r を返す。
     f(e_M) = True でないと壊れる
     """

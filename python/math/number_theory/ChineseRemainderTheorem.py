@@ -4,8 +4,9 @@
 from math import gcd
 
 def crt(RMlist):
-    """
-    x == r_i (mod m_i) の解を (r,m) で返す。m は法の最小公倍数、0 <= r < m。
+    r"""
+    x == r_i (mod m_i) (for all i) の解 x \equiv r (mod m) を (r,m) の形で出力
+    m は法の最小公倍数、0 <= r < m。
     m_i > 0。互いに素でなくてもよい。空入力では (0,1)。
     解がないときは (0,0)
     """

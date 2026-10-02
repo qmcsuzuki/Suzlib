@@ -3,6 +3,7 @@
 """
 Stern-Brocot 木上で単調な check を二分探索する。
 check(0,1) = False, check(1,0) = True を仮定する。
+is_valid(p,q) は探索可能な分数 p/q なら True を返す。
 check は非負有理数の大小について単調（False の後に True）。
 is_valid は Stern–Brocot 木で祖先も有効となる有限の探索範囲を指定する。
 例えば p <= P かつ q <= Q の制限。任意の穴のある有効領域には使えない。

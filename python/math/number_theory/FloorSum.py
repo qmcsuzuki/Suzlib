@@ -4,8 +4,11 @@ from python.math.number_theory.extgcd import extgcd
 
 """
 sum((a*i+b)//m for i in range(n)) を返す
-n >= 0、m > 0。a,b は負でもよい。
-時間 O(log m)（整数演算を O(1) とする）。
+a,b <= 0 もOK
+O(log(n+m+a+b))
+前提は n >= 0、m > 0。
+補足: a,b が負の場合も含めて、整数演算を O(1) とする計算量は O(log m)。
+上の概算表記の n+m+a+b が非正でも、この関数は使用できる。
 """
 def floor_sum(n,m,a,b):
     """0 <= i < n に対する (a*i+b)//m の総和を求める。"""
