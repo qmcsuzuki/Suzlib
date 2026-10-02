@@ -1,5 +1,9 @@
 # competitive-verifier: TITLE 長さ K 以下のブロックで合計長 N を作る場合の数
 
+"""貼り付け用コード。実行前に SIZE、MOD、choose(n,k) を設定する。
+SIZE >= N、choose は必要な n まで定義し O(1) を想定。
+fixed_K 版は全項を時間 O(N)、空間 O(N) で返す。"""
+
 pow2 = [1]*(SIZE+1)
 for i in range(1,SIZE+1):
     pow2[i] = pow2[i-1]*2%MOD

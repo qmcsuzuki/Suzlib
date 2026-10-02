@@ -1,6 +1,6 @@
 # competitive-verifier: TITLE 自分より小さい値で一番近いものの位置（all nearest smaller values）
 
-"""
+r"""
 L[i]: A[l] < A[i] かつ l < i なる最大の l（存在しないなら -1）
 R[i]: A[r] <= A[i] かつ r > i なる最小の r （存在しないなら len(A)）
 左、右で不等号にイコールが入るかどうかが異なることに注意

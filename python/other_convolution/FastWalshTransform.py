@@ -1,4 +1,7 @@
 # competitive-verifier: TITLE 高速ウォルシュ変換（XOR畳み込み）
+
+"""大域変数 MOD を奇素数に設定する。a の長さは正の 2 冪。
+変換・逆変換は破壊的、時間 O(N log N)、追加空間 O(1)。"""
 """
 in place な高速Walsh変換
 xor畳み込みなどに用いる。

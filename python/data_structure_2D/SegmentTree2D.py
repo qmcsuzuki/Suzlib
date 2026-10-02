@@ -1,7 +1,10 @@
 # competitive-verifier: TITLE 2次元セグメント木
 
 class SegmentTree2D:
-    """ seg = SegmentTree2D(N,M,op,e,init=None) """
+    """可換モノイドの一点代入と半開長方形の集約。
+    op は結合的かつ可換、e は単位元。N,M >= 1 を仮定する。
+    構築・空間 O(N*M)、update/prod は O(log N * log M)、get/all_prod は O(1)。
+    """
     def __init__(self, N,M, op, e, init=None):
         """演算と単位元を設定し、N 行 M 列の初期値から二次元セグメント木を構築する。"""
         self.op = op

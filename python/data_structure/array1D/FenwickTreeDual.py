@@ -22,7 +22,7 @@ class FenwickTreeDual:
         return
 
     def suffix_add(self, l, x) -> None:
-        """ 半閉区間 [l,\infty) 上に x を加算"""
+        r""" 半閉区間 [l,\infty) 上に x を加算"""
         self.prefix_add(self.n,x)
         self.prefix_add(l,-x)
 

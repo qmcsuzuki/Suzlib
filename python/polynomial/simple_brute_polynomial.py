@@ -1,5 +1,10 @@
 # competitive-verifier: TITLE 素朴多項式演算
 
+"""大域変数 MOD を素数に設定する。係数列は定数項から昇冪順、各係数は 0 以上 MOD 未満。
+零多項式は [0]。除算では除数の最高次係数が非零。
+FPSlog/FPSexp はそれぞれ定数項 1/0、polypow は非負整数指数を仮定する。
+積分・log・exp・pow で扱う打切り長は MOD 以下とする（分母の逆元が必要）。"""
+
 def polyadd(f,g):
     """係数列で表した二つの多項式の和を法 MOD で返す。"""
     L = max(len(f),len(g))

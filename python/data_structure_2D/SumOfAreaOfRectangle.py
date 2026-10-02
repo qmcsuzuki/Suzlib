@@ -5,7 +5,9 @@ class UnionOfLines:
 
     想定用途:
         座標圧縮した 1 次元区間の和集合長を管理する。
-        width[i] は葉 i に対応する基本区間の物理的な長さ。
+        N >= 1、width[i] >= 0 を仮定。width[i] は基本区間の物理的な長さ。
+        削除は追加済みの同じ区間に対して行い、lazy の被覆本数を負にしない。
+        構築 O(N)、apply/is_covered O(log N)、all_prod O(1)、空間 O(N)。
 
     内部の不変条件:
         - lazy[k]: ノード k の区間全体を「丸ごと」覆っている本数
@@ -72,7 +74,11 @@ class UnionOfLines:
 
 
 class AreaOfUnionOfRectangles:
-    """登録された軸平行長方形の和集合の面積を走査線で求める。"""
+    """整数座標の半開長方形の和集合面積を走査線で求める。
+    add_query(l,d,r,u) では l <= r、0 <= d <= u < 2^31 を仮定する。
+    長方形数 Q として座標圧縮版は時間 O(Q log Q)、空間 O(Q)。
+    非圧縮版は時間 O(y_max + Q log(Q+y_max))、空間 O(Q+y_max)。
+    """
     MMM = 1 << 31
     def sorted_tuples(self, lists, key):
         """整数値の key に従って入力列を安定に整列したリストを返す。"""

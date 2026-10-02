@@ -36,7 +36,7 @@ class FenwickTree2D:
         return self.prefix_sum(l1,l2) - self.prefix_sum(l1,r2) - self.prefix_sum(r1,l2) + self.prefix_sum(r1,r2) 
 
     def suffix_sum(self,l1,l2):
-        """ 半閉区間 [l1,\infty)*[l2,\infty) 上の和を返す """
+        r""" 半閉区間 [l1,\infty)*[l2,\infty) 上の和を返す """
         return self.range_sum(l1, self.h, l2, self.w)
     
     def add(self, i, j, x):

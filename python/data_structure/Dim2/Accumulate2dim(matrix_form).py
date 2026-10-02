@@ -4,7 +4,7 @@ class Accumulate2dim:
     """
     a: h*w 行列
     acc: a の累積和（原点スタート、番兵の 0 を入れる）
-        i.e. acc[x][y] = sum(a[i][j] for i in range(x) for j in range(y)]
+        i.e. acc[x][y] = sum(a[i][j] for i in range(x) for j in range(y))
     """
     def __init__(self,a):
         """二次元配列 a から原点を基準とする累積和を構築する。"""

@@ -6,7 +6,11 @@ from python.data_structure.array1D.LazySegmentTree import LazySegmentTree
 class RangeAddRangeInnerproductMOD(LazySegmentTree):
     """
     数列 A,B に区間加算、A と B の区間内積
-    
+    W=None、A=B=None なら、長さ N の二つの零列から開始する。
+    apply(l,r,p*M+q) は両列への加算作用を表す。p,q は法 MOD で還元して符号化。
+    prod(l,r)[0]//M が内積の集約値。W[i] は作用時の重み（既定値 1）。
+    構築・空間 O(N)、区間更新・取得 O(log N)。
+
     lazy: (p,q) の 1 次元化
     data: ((sum(ai*bi),sum(wi))の 1 次元化, (sum(ai),sum(bi)) の 1 次元化)
     """

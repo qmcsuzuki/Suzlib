@@ -1,7 +1,8 @@
 # competitive-verifier: TITLE 小さい値の部分和
 """
 subset sum を O(N max A) で解く (Pisinger)
-A: 値のリスト
+A: 非負整数のリスト（0 も可）。復元結果は元の順序。
+空入力にも対応。空間 O(N max A)。
 C: 和の上限
 return:
   - ans: 部分和の最大値

@@ -23,7 +23,9 @@ class SparseTable:
 
 # argmin or argmax を扱うもの
 class SparseTableArgminmax(SparseTable):
-    """区間の最小値または最大値とその添字を求めるスパーステーブル。"""
+    """整数列の極値と添字を求める。len(a) <= 2^20 を仮定する。
+    構築・空間 O(N log N)、非空区間の prod は O(1)。
+    """
     M = 1<<20
     def __init__(self, a, min_or_max):
         """値と添字を符号化し、min または max のスパーステーブルを構築する。"""

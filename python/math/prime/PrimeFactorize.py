@@ -1,6 +1,6 @@
 # competitive-verifier: TITLE O(\sqrt N) 素因数分解
 
-"""
+r"""
 O(\sqrt N) 素因数分解
 input: N
 output: [[p1,e1],[p2,e2],...] の形で素因数分解する。

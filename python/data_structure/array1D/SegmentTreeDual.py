@@ -6,7 +6,12 @@
 - apply_to_point(i,x): モノイド作用を値 x に行う
 - point_get(i): 1点取得
 - all_get(): 全点取得
-- point_set(i): 1点の値を変更
+- point_set(i,x): 葉の値を x に変更
+
+op(f,g) は左作用 f を g の後に適用する合成。e は恒等作用。
+葉も合成演算 op の対象であり、init は葉に保持する同じ型の値の列。
+mapping を渡す場合、apply_to_point(i,x) で蓄積した作用を外部の値 x に適用する。
+構築 O(N)、区間更新・一点取得 O(log N)、all_get O(N)。
 """
 #SegmentTreeDual(N, op, e, is_commutative=False, init=None, mapping=None)
 class SegmentTreeDual:

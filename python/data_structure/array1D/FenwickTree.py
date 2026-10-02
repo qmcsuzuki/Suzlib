@@ -47,8 +47,8 @@ class FenwickTree:
 
     def bisect_left(self,w):
         """
-        a[0]+ ... +a[idx] が w 以上になる最小の index (存在しない場合 self.size)
-        つまり bit.prefix_sum(idx) < x なる最大の idx
+        各 a[i] >= 0 を仮定。prefix_sum(idx+1) >= w となる最小の idx を返す。
+        存在しない場合 self.size。w <= 0 なら 0。計算量 O(log n)。
         """
         if w <= 0: return 0
         x,k = 0,self.longest_interval

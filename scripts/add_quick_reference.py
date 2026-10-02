@@ -101,7 +101,8 @@ def parse_python_file(path: Path) -> list[dict]:
                 {
                     "kind": "class",
                     "sig": class_sig,
-                    "doc": docstring_text(ast.get_docstring(node)) or module_doc,
+                        "doc": docstring_text(ast.get_docstring(node)) or module_doc,
+                        "init_doc": docstring_text(ast.get_docstring(init)) if init else "",
                     "methods": [
                         {
                             "sig": signature(method),
@@ -133,6 +134,8 @@ def make_quick_reference(items: list[dict]) -> str:
             append_doc(lines, item["doc"], "  ")
 
         if item["kind"] == "class":
+            if item["init_doc"]:
+                append_doc(lines, item["init_doc"], "  ")
             lines.append("")
             for method in item["methods"]:
                 lines.append(f"  - `{method['sig']}`")

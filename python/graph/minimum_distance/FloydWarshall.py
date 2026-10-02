@@ -1,7 +1,9 @@
 # competitive-verifier: TITLE フロイド・ワーシャル法
 
 """
-とりあえず辺の重みは非負
+辺重みは非負。有限距離は INF 未満を仮定する。
+add_edge で辺を登録し、build を一度呼んでから距離を取得する。
+build は O(V^3)、辺追加による更新は O(V^2)、距離取得は O(1)。空間 O(V^2)。
 """
 class FloydWarshall:
     """重み付き有向グラフの全頂点対最短距離を管理する。"""

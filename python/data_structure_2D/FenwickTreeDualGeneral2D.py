@@ -44,7 +44,7 @@ class FenwickTreeDualGeneral2DSuffix:
         self.BIT = FenwickTreeDualGeneral2D(h,w,op,e_M)
 
     def suffix_add(self, r1, r2, x):
-        """ 半閉区間 [r1,\infty) * [r2,\infty) 上に x を加算"""
+        r""" 半閉区間 [r1,\infty) * [r2,\infty) 上に x を加算"""
         self.BIT.prefix_add(self.h - r1, self.w - r2, x)
 
     def get(self, i, j) -> int:

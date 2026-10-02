@@ -1,5 +1,8 @@
 # competitive-verifier: TITLE [x^N] 1/(1 + A x^B + C x^D) (3 項多項式の逆数の係数 O(N/D))
 
+"""大域変数 MOD と choose(n,k) を事前に設定する。
+choose を O(1) とする。powAneg は N//B、powCneg は N//D の添字まで必要。"""
+
 def coeff_inv_three_terms(N, B, D, powAneg, powCneg):
     """
     [x^N] 1 / (1 + A x^B + C x^D) を O(N/D) で求める

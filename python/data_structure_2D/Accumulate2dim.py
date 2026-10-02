@@ -3,8 +3,9 @@
 class Accumulate2dim:
     """
     a: h*w 行列
-    acc: a の累積和（原点スタート、番兵の 0 を入れる）
-        i.e. acc[x][y] = sum(a[i][j] for i in range(x) for j in range(y)]
+    a は h,w >= 1 の長方形配列。構築 O(h*w)、各クエリ O(1)、空間 O(h*w)。
+    acc は幅 w+1 で平坦化した累積和で、番兵の 0 を含む。
+        acc[x*(w+1)+y] = sum(a[i][j] for i in range(x) for j in range(y))
     """
     def __init__(self,a):
         """二次元配列 a から原点を基準とする累積和を構築する。"""

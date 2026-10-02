@@ -1,3 +1,4 @@
+# competitive-verifier: TITLE バケット分割による可変長列
 # Ported from tatyam-prime/SortedSet:
 # https://github.com/tatyam-prime/SortedSet/blob/main/BucketList.py
 # Original repository license: The Unlicense

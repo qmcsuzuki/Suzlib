@@ -1,3 +1,4 @@
+# competitive-verifier: TITLE 順序付き多重集合
 # Ported from tatyam-prime/SortedSet:
 # https://github.com/tatyam-prime/SortedSet/blob/main/SortedMultiset.py
 # Original repository license: The Unlicense

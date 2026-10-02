@@ -1,3 +1,4 @@
+# competitive-verifier: TITLE 順序付き辞書
 # SortedDict using the same square-root-decomposition design as tatyam-prime/SortedSet:
 # https://github.com/tatyam-prime/SortedSet/blob/main/SortedSet.py
 # The referenced implementation is released under The Unlicense:

@@ -98,7 +98,9 @@ class MCFGraph:
         """各流量に対する最小費用の折れ線の頂点を返す。
 
         最後の点の流量は flow_limit 以下で流せる最大流量である。
-        このメソッドは1回だけ呼べる。
+        flow / min_cost / slope は合わせて1回だけ呼べる。
+        先頭は (0,0)。中間の整数流量の費用は隣接する頂点間の線形補間で得られる。
+        辺の流量は最後の点に対応し、min_cost も最後の点まで流す。
         """
         assert not self._used
         n = self._n
@@ -330,6 +332,8 @@ class DAGMCFGraph:
         """各流量に対する最小費用の折れ線の頂点を、元のコストで返す。
 
         最後の点の流量は flow_limit 以下で流せる最大流量である。
+        flow / min_cost / slope は合わせて1回だけ呼べる。
+        min_cost も最大量まで流した状態を保持する。
         """
         assert not self._used
         self._build()

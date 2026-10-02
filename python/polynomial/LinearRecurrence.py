@@ -1,5 +1,10 @@
 # competitive-verifier: TITLE Linear Recurrence
 
+"""大域変数 MOD を素数に設定する。インポート利用時は simple_brute_polynomial 側にも同じ MOD を設定する。
+係数は昇冪順。Berlecamp_Massey の返り値 Q は Q[0]=1 で、
+A[i] + Q[1]*A[i-1] + ... + Q[L]*A[i-L] = 0 を表す。
+推定 O(len(A)^2)、第 N 項の計算 O(L^2 log(N+1))。"""
+
 from python.polynomial.simple_brute_polynomial import polymul
 
 # A = P(x)/Q(x)

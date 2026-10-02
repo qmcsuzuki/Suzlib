@@ -1,5 +1,8 @@
 # competitive-verifier: TITLE 約数包除（N 以下の整数全て）
 
+"""大域変数 MOD を設定する。a[i] は整数 i の値、a[0] は変換しない。
+primes には len(a)-1 以下の素数をすべて渡す。時間 O(N log log N)。"""
+
 #aを破壊的にgcd-zetaする(０方向に)
 def zeta_gcd(a,primes):
     """倍数側のゼータ変換を入力配列に施す。"""
@@ -21,7 +24,7 @@ def mobius_gcd(a,primes):
             a[i] %= MOD
 #    return a
 
-#aを破壊的にgcd-zetaする(n方向に)
+#aを破壊的に約数側のzeta変換にする(n方向に)
 def zeta_gcd_to_n(a,primes):
     """各添字の約数側から値を集めるゼータ変換で入力配列を法 MOD により上書きする。"""
     n = len(a)-1

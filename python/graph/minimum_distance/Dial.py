@@ -3,7 +3,9 @@
 def Dial(g, Wmax, start):
     """
     Dial's algorithm (circular buckets), O(Wmax * V + E)
-    Wmax: 辺のコストの最大値
+    g[v] は (行き先, コスト) の列。0 <= コスト <= Wmax の整数を仮定。
+    start からの距離配列を返す。未到達は 1<<60、有限距離はその値未満。
+    空間 O(V+E+Wmax)。Wmax=0 も可。
     """
     n = len(g)
     C = Wmax + 1

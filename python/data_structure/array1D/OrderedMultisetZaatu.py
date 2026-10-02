@@ -107,7 +107,7 @@ class OrderedMultisetWithZaatu:
         return self.sortedvalues[self.prev_index(v)]
 
     def next_index(self,v): #一個次の元の sortedvalues における index
-        """英小文字列の各位置より後の次出現位置を 1-indexed で返し、未出現を -1 とする。"""
+        """v より大きい最小要素の圧縮後の添字を返す。なければ上側の番兵。v < banhei_max を仮定。"""
         idx = bisect_right(self.sortedvalues,v)
         s = self.bit.prefix_sum(idx)
         idx = self.bit.bisect_left(s+1)

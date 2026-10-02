@@ -1,5 +1,9 @@
 # competitive-verifier: TITLE 絶対値関数の和 (AddAbsGetVal)
 
+"""sa は非空の重複なし昇順の折れ点列、za[pos] は sa 内の添字。
+add_abs/getval は O(log len(sa))、add_const は O(1)。
+getmin は各 add_abs の a,b >= 0 を仮定する。"""
+
 from python.data_structure.array1D.FenwickTree import FenwickTree
 from bisect import bisect_left
 class AddAbsGetValOffline:

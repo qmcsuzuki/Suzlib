@@ -1,10 +1,11 @@
 # competitive-verifier: TITLE ダイクストラ法
 
 """
-Dijkstra法: 単一始点最短路（距離が正）
+Dijkstra法: 単一始点最短路（辺重みは非負、0 も可）
 g: g[i] = [(子、距離),...]の隣接リスト
 start: 始点
-返り値 dist: #startからの最短距離
+返り値 dist: start からの最短距離。未到達は 1<<61。有限距離はこの値未満を仮定。
+時間 O((V+E) log(V+E))、空間 O(V+E)（多重辺も可）。
 """
 
 from heapq import *

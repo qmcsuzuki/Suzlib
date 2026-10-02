@@ -3,7 +3,13 @@
 from math import gcd
 
 def Garner(a,m,already_coprime=True,permit0=True):
-    """連立合同式の解を大域変数 MOD で還元して返し、不整合なら -1 を返す。"""
+    """x == a[i] (mod m[i]) の最小非負解を大域変数 MOD で還元して返す。
+    各 m[i] > 0、len(a) == len(m) を仮定する。
+    already_coprime=True は法が互いに素のときだけ指定する。
+    False では a,m を破壊的に同値な互いに素の法へ変換し、不整合なら -1。
+    permit0=False では最小正解を返す（零解の場合は法の最小公倍数）。
+    時間 O(len(a)^2 log max(m))。
+    """
     def compute(i,M): # c[0] + c[1]m[0] + c[2]m[0]m[1] + ... c[i-1]m[0]...m[i-2] mod M を返す
         """確定した混合基数係数 c[0:i] の値を法 M で評価する。"""
         v = c[i-1]
