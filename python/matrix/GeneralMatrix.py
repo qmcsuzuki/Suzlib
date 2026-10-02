@@ -86,8 +86,10 @@ class GeneralMatrix:
 
 INF = 1<<60
 class TropicalMatrix(GeneralMatrix):
-    """最小値を加法、和を乗法とするトロピカル行列。"""
+    """最小値を加法、和を乗法とするトロピカル行列。
+    INF は到達不能を表す吸収元。有限の経路重みは INF 未満を仮定する。
+    """
     add = staticmethod(lambda a, b: min(a, b))
-    mul = staticmethod(lambda a, b: a + b)
+    mul = staticmethod(lambda a, b: INF if a == INF or b == INF else a + b)
     zero = INF
     one = 0

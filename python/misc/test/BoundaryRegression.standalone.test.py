@@ -107,3 +107,16 @@ if __name__ == '__main__':
                     pattern = ''.join(pc)
                     expected = sum(text[i:i+m] == pattern for i in range(n-m+1))
                     assert KMP(text,pattern,prefix_function(pattern)) == expected
+
+    from collections import Counter
+    from python.misc.rearrange_without_adjacent_equal import rearrange_without_adjacent_equal
+    assert rearrange_without_adjacent_equal([]) == []
+    for n in range(8):
+        for seq in product(range(3), repeat=n):
+            got = rearrange_without_adjacent_equal(list(seq))
+            possible = not seq or max(Counter(seq).values()) <= (n+1)//2
+            if possible:
+                assert Counter(got) == Counter(seq)
+                assert all(x != y for x,y in zip(got,got[1:]))
+            else:
+                assert got == []

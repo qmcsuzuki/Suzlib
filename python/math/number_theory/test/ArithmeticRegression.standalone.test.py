@@ -49,3 +49,24 @@ if __name__ == "__main__":
         assert len({pow(g,k,p) for k in range(p-1)}) == p-1
         g = primitive_power_root(p,2)
         assert len({pow(g,k,p*p) for k in range(p*(p-1))}) == p*(p-1)
+
+    # 法の外の剰余・負の剰余・零解・非互いに素の法を最小解と直接比較する。
+    from random import Random
+    from math import lcm
+    rng = Random(20261002)
+    garner.MOD = 101
+    assert garner.Garner([3],[3]) == 0
+    assert garner.Garner([-1],[3]) == 2
+    assert garner.Garner([3],[3],permit0=False) == 3
+    assert garner.Garner([],[]) == 0
+    assert garner.Garner([],[],permit0=False) == 1
+    for _ in range(1000):
+        m = [rng.randrange(1,9) for _ in range(rng.randrange(1,5))]
+        a = [rng.randrange(-20,21) for _ in m]
+        period = lcm(*m)
+        solutions = [x for x in range(period) if all((x-ai)%mi == 0 for ai,mi in zip(a,m))]
+        coprime = all(gcd(m[i],m[j]) == 1 for i in range(len(m)) for j in range(i))
+        for already in ([False,True] if coprime else [False]):
+            for permit0 in [False,True]:
+                expected = -1 if not solutions else (solutions[0] or (0 if permit0 else period)) % garner.MOD
+                assert garner.Garner(a[:],m[:],already,permit0) == expected

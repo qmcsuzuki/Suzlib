@@ -39,8 +39,9 @@ class FloydWarshall:
         """無向辺を一本追加し、全頂点対最短距離を二乗時間で更新する。"""
         n = len(self.D)
         assert self.built
-        if v >= self.D[a][b]: return
-        self.D[a][b] = self.D[b][a] = v
+        if v >= self.D[a][b] and v >= self.D[b][a]: return
+        self.D[a][b] = min(self.D[a][b], v)
+        self.D[b][a] = min(self.D[b][a], v)
         for i in range(n):
             for j in range(n):
                 self.D[i][j] = min(self.D[i][j],
@@ -49,6 +50,7 @@ class FloydWarshall:
     
     def construct_edge_directed(self,a,b,v):
         """有向辺を一本追加し、全頂点対最短距離を二乗時間で更新する。"""
+        assert self.built
         n = len(self.D)
         if v >= self.D[a][b]: return
         self.D[a][b] = v
