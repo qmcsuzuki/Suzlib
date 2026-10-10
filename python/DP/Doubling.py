@@ -1,10 +1,13 @@
 # competitive-verifier: TITLE ダブリング
 
 class Doubling:
-    """同じ遷移の反復と、その間の重みの集約をダブリングで求める。
-    重みはモノイドを仮定する。構築 O(N*depth)、各クエリ O(depth)。
-    nxt[v] は 0 以上 N 未満。0 <= k < 2^depth、depth >= 1 を仮定する。
-    重みクエリと binary_search の前に set_weight を呼ぶ。nxt の初期列は参照する。
+    """ functional graph 上の遷移と、モノイド重みの和をダブリングで求める
+    構築 O(N*depth)、各クエリ O(depth)
+    usage:
+        nxt = [i-1 for i in a]
+        wt = list(range(1,n+1))
+        D = Doubling(nxt,31)
+        D.set_weight(wt, int.__add__, 0)
     """
     def __init__(self, nxt, depth=61):
         """遷移先 nxt から depth 段のダブリング表を構築する。"""
@@ -14,10 +17,12 @@ class Doubling:
             nxt = [nxt[v] for v in nxt]
             self.table.append(nxt)
 
-    # 入力: weights[v] = (v から１回移動するときの重み)
-    # 計算: Wtable[k][v] = v から 2^k 回移動した時の重みの和
     def set_weight(self,weights,op,e):
-        """各遷移の重みと集約演算を設定し、反復移動の重みを前計算する。"""
+        """
+        各遷移の重みとモノイド演算を設定し、2^k 回移動時の重みを前計算する。
+        入力: weights[v] = (v から１回移動するときの重み)
+        計算: Wtable[k][v] = v から 2^k 回移動した時の重みの和
+        """
         assert len(weights) == len(self.table[0])
         self.e = e
         self.op = op
@@ -27,16 +32,14 @@ class Doubling:
             w = [op(w[i],w[v]) for i,v in enumerate(nxt)]
             self.Wtable.append(w)
     
-    # f^k(v) を返す
     def kth_pos(self,k,v):
-        """頂点 v から k 回遷移した先の頂点を返す。"""
+        """ f^k(v): 頂点 v から k 回遷移した先の頂点を返す。"""
         for i, nxt in enumerate(self.table):
             if k>>i&1: v = nxt[v]
         return v
 
-    # (w,f^k(v)): k 回移動したときの重みの和 w と最終位置 f^k(v) を返す
     def kth_weight_and_pos(self,k,v):
-        """頂点 v から k 回遷移したときの集約重みと到達頂点を返す。"""
+        """ (w,f^k(v)): k 回移動したときの重みの和 w と最終位置 f^k(v) を返す """
         w = self.e
         for i, nxt in enumerate(self.table):
             if k>>i&1:
@@ -44,12 +47,12 @@ class Doubling:
                 v = nxt[v]
         return w,v
 
-    # check(w, v) が単調 (False が並んでから True) のとき，
-    # 最小の k (0 <= k < 2^D) で check(w, f^k(v)) が True となる k と状態を返す
-    # すべて False の場合は k = 2^D を返す（w, v は k = 2^D-1 の状態）
-    # 戻り値: (k, w, v)
     def binary_search(self, v, check):
-        """単調な check が初めて真になる遷移回数とその重み・頂点を返す。"""
+        """
+        単調 (...,False,True,...) な関数 check が初めて真になる遷移回数とその重み・頂点を返す。
+        戻り値: (k, w, v) : check(w, f^k(v)) が True となる k と状態を返す
+        k < 2^D ですべて False の場合は k = 2^D を返す（w, v は k = 2^D-1 の状態）
+        """
         k = 0
         w = self.e
         if check(w, v):
@@ -68,8 +71,4 @@ class Doubling:
 
 # example: https://atcoder.jp/contests/abc438/submissions/72051651
 
-# nxt = [i-1 for i in a]
-# wt = list(range(1,n+1))
-# D = Doubling(nxt,31)
-# D.set_weight(wt, int.__add__, 0)
 
