@@ -68,6 +68,8 @@ def parse_python_file(path: Path) -> list[dict]:
 
     items = []
     module_doc = docstring_text(ast.get_docstring(tree))
+    if module_doc:
+        items.append({"kind": "module", "doc": module_doc})
 
     for node in tree.body:
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
@@ -101,8 +103,8 @@ def parse_python_file(path: Path) -> list[dict]:
                 {
                     "kind": "class",
                     "sig": class_sig,
-                        "doc": docstring_text(ast.get_docstring(node)) or module_doc,
-                        "init_doc": docstring_text(ast.get_docstring(init)) if init else "",
+                    "doc": docstring_text(ast.get_docstring(node)),
+                    "init_doc": docstring_text(ast.get_docstring(init)) if init else "",
                     "methods": [
                         {
                             "sig": signature(method),
@@ -129,14 +131,22 @@ def make_quick_reference(items: list[dict]) -> str:
 
     lines = ["## Quick reference", ""]
     for item in items:
+        if item["kind"] == "module":
+            lines.append("**モジュール**")
+            append_doc(lines, item["doc"], "")
+            lines.append("")
+            continue
+
         lines.append(f"- `{item['sig']}`")
         if item["doc"]:
             append_doc(lines, item["doc"], "  ")
 
         if item["kind"] == "class":
-            if item["init_doc"]:
-                append_doc(lines, item["init_doc"], "  ")
             lines.append("")
+            if item["init_doc"]:
+                lines.append("  - **コンストラクタ**")
+                append_doc(lines, item["init_doc"], "    ")
+                lines.append("")
             for method in item["methods"]:
                 lines.append(f"  - `{method['sig']}`")
                 if method["doc"]:
@@ -147,7 +157,6 @@ def make_quick_reference(items: list[dict]) -> str:
 
     lines.append("")
     return "\n".join(lines)
-
 
 def doc_page_candidates(src_path: Path) -> list[Path]:
     """competitive-verifier の代表的な出力名から候補を作る。"""
