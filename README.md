@@ -19,6 +19,7 @@ import で使う場合はリポジトリのルートを `PYTHONPATH` に追加�
 | --- | --- |
 | `combinatorics/coeff_inv_three_terms.py` | `MOD`、`choose(n,k)`、必要な長さの累乗表 |
 | `combinatorics/count_bounded_ordered_division.py` | 実行前に `SIZE`、`MOD`、`choose(n,k)` を用意する貼り付け用コード |
+| `DP/subset_sum_fixed_k.py` | mod 998244353 の `convolution(a, b)` を引数に渡す。K=3,4 の整数での数え上げ・復元 |
 | `polynomial/` | 各モジュールの `MOD`。`LinearRecurrence` は依存する `simple_brute_polynomial` にも同じ値を設定 |
 | `other_convolution/FastWalshTransform.py`、`DivisorZetaMobius_allN.py` | 各モジュールの `MOD` |
 | `matrix/DeterminantMatrixLinearExpression.py`、`FlattenMatrixFactory.make_MODint_matrix` | 各モジュールの `MOD` |
