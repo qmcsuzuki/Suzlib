@@ -12,6 +12,23 @@ class BFlow:
     solve は1回だけ呼べる。成功後は指定辺の最適化を何度でも行える。
     solve と各最適化は最大流を高々1回呼ぶ。一般に O(V^2 (E+V)) 時間、
     O(V+E) 空間。前回最適化した辺の流量は固定しない。
+    全頂点の balance が0なら上下限付き循環流。自己ループ・多重辺も扱える。
+    辺・需給の追加は solve 前、最適化・解の取得は solve 成功後のみ。
+    get_edge は O(1)、edges は O(E)。補助辺は含めず、下限を足し戻した
+    src, dst, lower, upper, flow を返す。取得済みの値は後の最適化で変わらない。
+
+    使用例:
+        g = BFlow(3)
+        g.add_balance(0, 3)   # 3供給
+        g.add_balance(2, -3)  # 3需要
+        g.add_edge(0, 1, 1, 4)
+        g.add_edge(1, 2, 1, 4)
+        e = g.add_edge(0, 2, 0, 2)
+        if g.solve():
+            assert g.maximize_edge(e) == 2
+            maximum_edges = g.edges()
+            assert g.minimize_edge(e) == 0
+            minimum_edges = g.edges()
     """
 
     class Edge(NamedTuple):
@@ -49,7 +66,11 @@ class BFlow:
         return i
 
     def solve(self) -> bool:
-        """実行可能解を構築する。解がなければ False。成否によらず1回限定。"""
+        """実行可能解を構築する。解がなければ False。成否によらず1回限定。
+
+        下限を需給へ移し、補助始点・終点間の最大流で判定する。
+        補助辺は判定後に順逆とも無効化する。
+        """
         assert not self._solved
         self._solved = True
         if sum(self._balance) != 0:
@@ -85,6 +106,12 @@ class BFlow:
         return [self.get_edge(i) for i in range(len(self._lower))]
 
     def _optimize_edge(self, i: int, maximize: bool) -> int:
+        """対象辺 u→v を除き、増加時は v→u、減少時は u→v に残余流を流す。
+
+        対象辺を同量だけ増減すると差分が循環流になり、需給を保つ。
+        任意の実行可能解との差もこの形で表せるため最適値を得る。
+        自己ループは需給に影響せず直接上下限に設定する。
+        """
         assert self._feasible
         assert 0 <= i < len(self._lower)
         g = self._graph
