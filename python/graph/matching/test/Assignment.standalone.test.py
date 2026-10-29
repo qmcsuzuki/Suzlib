@@ -3,7 +3,7 @@
 from itertools import combinations, permutations
 from random import Random
 
-from python.graph.Assignment import assignment, assignment_costs
+from python.graph.matching.Assignment import assignment, assignment_costs
 
 
 def brute_force(cost: list[list[int]], flow: int) -> int:

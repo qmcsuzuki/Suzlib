@@ -1,6 +1,6 @@
 # competitive-verifier: PROBLEM https://judge.u-aizu.ac.jp/onlinejudge/description.jsp?id=GRL_6_B
 
-from python.graph.MinCostFlow import MCFGraph
+from python.graph.flow.MinCostFlow import MCFGraph
 
 
 def main() -> None:

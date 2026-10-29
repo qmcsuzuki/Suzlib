@@ -2,7 +2,7 @@
 
 from random import Random
 
-from python.graph.BipartiteMatching import BipartiteMatching
+from python.graph.matching.BipartiteMatching import BipartiteMatching
 
 
 def rebuild(n_left: int, n_right: int, edges: list[tuple[int, int] | None]) -> int:

@@ -1,4 +1,4 @@
-from python.graph.BipartiteMatching import BipartiteMatching
+from python.graph.matching.BipartiteMatching import BipartiteMatching
 
 
 def main() -> None:

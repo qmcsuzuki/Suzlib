@@ -1,6 +1,6 @@
 # competitive-verifier: TITLE Min Cut Optimization（燃やす埋める）
 
-from python.graph.MaxFlow import MFGraph
+from python.graph.flow.MaxFlow import MFGraph
 
 
 class MinCutOptimization:

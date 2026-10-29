@@ -1,6 +1,6 @@
 # competitive-verifier: PROBLEM https://judge.u-aizu.ac.jp/onlinejudge/description.jsp?id=GRL_6_A
 
-from python.graph.MaxFlow import MFGraph
+from python.graph.flow.MaxFlow import MFGraph
 
 
 def main() -> None:

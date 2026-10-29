@@ -3,10 +3,10 @@
 from itertools import product
 from random import Random
 
-from python.graph.MinCostFlow import MCFGraph, DAGMCFGraph
+from python.graph.flow.MinCostFlow import MCFGraph, DAGMCFGraph
 from python.graph.SCC import find_SCC
-from python.graph.BipartiteMatching import BipartiteMatching
-from python.graph.BipartiteMatchingStructure import matching_structure, NEVER, SOMETIMES, ALWAYS
+from python.graph.matching.BipartiteMatching import BipartiteMatching
+from python.graph.matching.BipartiteMatchingStructure import matching_structure, NEVER, SOMETIMES, ALWAYS
 from python.graph.DirectedTrailDecomposition import DirectedTrailDecomposition
 from python.graph.UndirectedTrailDecomposition import UndirectedTrailDecomposition
 
