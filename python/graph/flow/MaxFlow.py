@@ -151,7 +151,7 @@ class MFGraph:
         return result
 
     def change_edge(self, i: int, new_cap: int, new_flow: int) -> None:
-        """i 番目の辺の容量と流量を変更する。"""
+        """i 番目の辺の容量と流量を変更する。頂点の収支は変わる可能性がある"""
         assert 0 <= i < (len(self._to) >> 1)
         assert 0 <= new_flow <= new_cap
         i <<= 1
@@ -159,15 +159,8 @@ class MFGraph:
         self._cap[i ^ 1] = new_flow
 
     def flow(self, s: int, t: int, flow_limit: int | None = None) -> int:
-        """残余グラフで s から t に流し、今回追加した流量を返す。
-
-        呼び出しごとに始点・終点を変更できる。返り値を d とすると、
-        流出量 - 流入量は s で d 増え、t で d 減り、他では変わらない。
-        現在の s-t 流量が F なら flow(t, s, D) (0 <= D <= F) は
-        D を返し、総流量を F-D にする。flow(a, s, D) は、返り値の分だけ
-        供給元を s から a に移す。異なる端点での呼び出し後は、元の
-        s-t フローの流量保存則を満たすとは限らない。
-        flow_limit=None は制限なし。一般に O(V^2 E) 時間、O(V) 追加空間。
+        """残余グラフで s から t に最大 flow_limit だけ流し、今回追加した流量を返す。
+        flow_limit=None は制限なし。一般に O(V^2 E) 時間
         """
         n = self._n
         assert 0 <= s < n
@@ -262,14 +255,8 @@ class MFGraph:
         return result
 
     def increase_edge(self, i: int, limit: int | None = None) -> int:
-        """全頂点の収支を保ち、辺 i の流量を増やし、変更後の辺流量を返す。
-
-        limit は非負の増加量上限。None なら可能な限り増やす。目標流量の指定ではない。
-        現在のフローも更新する。最大流である必要はなく、最大流に適用すれば
-        総流量と最大性を保つ。他の辺の流量は固定しない。
-        自己ループは直接更新し、それ以外は最大流を高々1回呼ぶ。
-        一般に O(V^2 E) 時間、O(V) 追加空間。
-
+        """総流量や全頂点の収支を保ちながら、辺 i の流量を増やし、変更後の辺流量を返す。
+        limit は非負の増加量上限。None なら可能な限り増やす。
         使用例:
             F = g.flow(s, t)
             maximum = g.increase_edge(i)  # 総流量 F を保って指定辺を最大化
@@ -297,22 +284,8 @@ class MFGraph:
         return cap[j ^ 1]
 
     def decrease_edge(self, i: int, limit: int | None = None) -> int:
-        """全頂点の収支を保ち、辺 i の流量を減らし、変更後の辺流量を返す。
-
-        limit は非負の減少量上限。None なら可能な限り減らす。目標流量の指定ではない。
-        現在のフローも更新する。最大流である必要はなく、最大流に適用すれば
-        総流量と最大性を保つ。他の辺の流量は固定しない。
-        limit に届かなくても、迂回できた分の変更は反映される。
-        自己ループは直接更新し、それ以外は最大流を高々1回呼ぶ。
-        一般に O(V^2 E) 時間、O(V) 追加空間。
-
-        使用例:
-            e = g.get_edge(i)
-            required = max(0, e.flow - new_cap)  # new_cap >= 0
-            current = g.decrease_edge(i, required)
-            if current <= new_cap:
-                g.change_edge(i, new_cap, current)
-            # 未達なら容量は元のまま。迂回後も元の収支を満たす。
+        """総流量や全頂点の収支を保ちながら、辺 i の流量を減らし、変更後の辺流量を返す。
+        limit は非負の減少量上限。None なら可能な限り減らす。
         """
         assert 0 <= i < (len(self._to) >> 1)
         j = i << 1
@@ -338,7 +311,7 @@ class MFGraph:
 
     def change_capacity(self, i: int, new_cap: int, s: int, t: int) -> int:
         """最大 s-t フローを保つよう辺 i の容量を変更し、総流量の変化量を返す。
-        change_edge とは異なり、呼び出し前も後も最大流が流れていることが不変条件
+        change_edge とは異なり、呼び出し前も後も最大 s-t 流が流れていることが不変条件
         使用例:
             F = g.flow(s, t)
             F += g.change_capacity(i, new_cap, s, t)
