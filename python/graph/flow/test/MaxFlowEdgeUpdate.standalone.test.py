@@ -47,12 +47,13 @@ for trial in range(600):
         increase = rng.randrange(2)
         if increase:
             available = max(f[i] for f in feasible) - old.flow
-            delta = g.increase_edge(i, limit)
-            assert g.get_edge(i).flow == old.flow + delta
+            current = g.increase_edge(i, limit)
+            delta = current - old.flow
         else:
             available = old.flow - min(f[i] for f in feasible)
-            delta = g.decrease_edge(i, limit)
-            assert g.get_edge(i).flow == old.flow - delta
+            current = g.decrease_edge(i, limit)
+            delta = old.flow - current
+        assert current == g.get_edge(i).flow
         assert delta == (available if limit is None else min(limit, available))
         check(g, edges, expected)
     if trial % 3 == 1:
@@ -64,7 +65,7 @@ i = g.add_edge(0, 2, 5)
 assert g.flow(0, 2) == 5
 g.add_edge(0, 1, 2)
 g.add_edge(1, 2, 2)
-assert g.decrease_edge(i, 4) == 2
+assert g.decrease_edge(i, 4) == 3
 assert g.get_edge(i).flow == 3
 check(g, [(0, 2, 5), (0, 1, 2), (1, 2, 2)], [5, 0, -5])
 g.change_edge(i, 3, 3)
@@ -76,8 +77,12 @@ check(g, [(0, 2, 3), (0, 1, 2), (1, 2, 2)], [1, 0, -1])
 g = MFGraph(1)
 i = g.add_edge(0, 0, 10**30)
 assert g.increase_edge(i, 10**20) == 10**20
-assert g.increase_edge(i) == 10**30 - 10**20
-assert g.decrease_edge(i) == 10**30
+assert g.increase_edge(i) == 10**30
+assert g.increase_edge(i, 0) == 10**30
+assert g.increase_edge(i) == 10**30
+assert g.decrease_edge(i, 0) == 10**30
+assert g.decrease_edge(i, 10**20) == 10**30 - 10**20
+assert g.decrease_edge(i) == 0
 for method in (g.increase_edge, g.decrease_edge):
     for args in [(-1,), (1,), (0, -1)]:
         try:

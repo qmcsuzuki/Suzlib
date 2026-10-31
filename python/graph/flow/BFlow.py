@@ -109,12 +109,10 @@ class BFlow:
         """辺 i の流量を最大化し、増分ではなく最大値を返す。解も更新する。"""
         assert self._feasible
         assert 0 <= i < len(self._lower)
-        self._graph.increase_edge(i)
-        return self._lower[i] + self._graph.get_edge(i).flow
+        return self._lower[i] + self._graph.increase_edge(i)
 
     def minimize_edge(self, i: int) -> int:
         """辺 i の流量を最小化し、減少量ではなく最小値を返す。解も更新する。"""
         assert self._feasible
         assert 0 <= i < len(self._lower)
-        self._graph.decrease_edge(i)
-        return self._lower[i] + self._graph.get_edge(i).flow
+        return self._lower[i] + self._graph.decrease_edge(i)

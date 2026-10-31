@@ -262,9 +262,9 @@ class MFGraph:
         return result
 
     def increase_edge(self, i: int, limit: int | None = None) -> int:
-        """全頂点の収支を保ち、辺 i の流量を増やし、実際の増加量を返す。
+        """全頂点の収支を保ち、辺 i の流量を増やし、変更後の辺流量を返す。
 
-        limit は非負の増加量上限。None なら可能な限り増やす。
+        limit は非負の増加量上限。None なら可能な限り増やす。目標流量の指定ではない。
         現在のフローも更新する。最大流である必要はなく、最大流に適用すれば
         総流量と最大性を保つ。他の辺の流量は固定しない。
         自己ループは直接更新し、それ以外は最大流を高々1回呼ぶ。
@@ -272,8 +272,7 @@ class MFGraph:
 
         使用例:
             F = g.flow(s, t)
-            d = g.increase_edge(i)  # 総流量 F を保って指定辺を最大化
-            maximum = g.get_edge(i).flow
+            maximum = g.increase_edge(i)  # 総流量 F を保って指定辺を最大化
         """
         assert 0 <= i < (len(self._to) >> 1)
         j = i << 1
@@ -285,7 +284,7 @@ class MFGraph:
             assert limit >= 0
             limit = min(limit, forward)
         if limit == 0:
-            return 0
+            return reverse
         u, v = self._to[j ^ 1], self._to[j]
         if u == v:
             delta = limit
@@ -295,12 +294,12 @@ class MFGraph:
             delta = self.flow(v, u, limit)
         cap[j] = forward - delta
         cap[j ^ 1] = reverse + delta
-        return delta
+        return cap[j ^ 1]
 
     def decrease_edge(self, i: int, limit: int | None = None) -> int:
-        """全頂点の収支を保ち、辺 i の流量を減らし、実際の減少量を返す。
+        """全頂点の収支を保ち、辺 i の流量を減らし、変更後の辺流量を返す。
 
-        limit は非負の減少量上限。None なら可能な限り減らす。
+        limit は非負の減少量上限。None なら可能な限り減らす。目標流量の指定ではない。
         現在のフローも更新する。最大流である必要はなく、最大流に適用すれば
         総流量と最大性を保つ。他の辺の流量は固定しない。
         limit に届かなくても、迂回できた分の変更は反映される。
@@ -310,9 +309,9 @@ class MFGraph:
         使用例:
             e = g.get_edge(i)
             required = max(0, e.flow - new_cap)  # new_cap >= 0
-            moved = g.decrease_edge(i, required)
-            if moved == required:
-                g.change_edge(i, new_cap, e.flow - moved)
+            current = g.decrease_edge(i, required)
+            if current <= new_cap:
+                g.change_edge(i, new_cap, current)
             # 未達なら容量は元のまま。迂回後も元の収支を満たす。
         """
         assert 0 <= i < (len(self._to) >> 1)
@@ -325,7 +324,7 @@ class MFGraph:
             assert limit >= 0
             limit = min(limit, reverse)
         if limit == 0:
-            return 0
+            return reverse
         u, v = self._to[j ^ 1], self._to[j]
         if u == v:
             delta = limit
@@ -335,7 +334,7 @@ class MFGraph:
             delta = self.flow(u, v, limit)
         cap[j] = forward + delta
         cap[j ^ 1] = reverse - delta
-        return delta
+        return cap[j ^ 1]
 
     def change_capacity(self, i: int, new_cap: int, s: int, t: int) -> int:
         """最大 s-t フローを保つよう辺 i の容量を変更し、総流量の変化量を返す。
@@ -357,8 +356,8 @@ class MFGraph:
             return 0
 
         required = e.flow - new_cap
-        moved = self.decrease_edge(i, required)
-        lost = required - moved
+        current = self.decrease_edge(i, required)
+        lost = current - new_cap
         self.change_edge(i, new_cap, new_cap)
         if lost:
             # 迂回を流し切ったので、残る指定辺の流れは循環には含まれない。
