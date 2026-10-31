@@ -1,4 +1,4 @@
-# competitive-verifier: TITLE 最小費用流
+# competitive-verifier: TITLE 最小費用流（最短路反復法、primal-dual）
 # Ported from not522/ac-library-python:
 # https://github.com/not522/ac-library-python/blob/master/atcoder/mincostflow.py
 # Original repository license: CC0-1.0
