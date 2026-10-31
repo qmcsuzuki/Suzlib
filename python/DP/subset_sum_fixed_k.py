@@ -1,16 +1,7 @@
 # competitive-verifier: TITLE 要素数 3・4 の部分和（整数での数え上げ・復元）
-"""相異なる正整数 A から K=3,4 個を選び、和を M にする。
-
-convolution(a, b) は mod 998244353 の畳み込みを返す関数を渡す。
-入力を変更せず、長さ len(a)+len(b)-1 の標準剰余のリストを返すこと。
-N=max(A), n=len(A)。n < 998244353 を仮定する。
-通常の NTT では、復元なし/K=3 は 2N+1 <= 2^23、K=4 の復元は
-3N+1 <= 2^23 が必要。利用する convolution の長さ制限にも従う。
-
-count_subset_sum: 真の個数（剰余ではない）。存在判定は返り値 > 0。
-find_subset_sum: 選んだ値 K 個のリスト。解なしは None。添字ではない。
-数え上げ/K=3 復元は畳み込み1回。K=4 復元は係数分割を用いる。
-時間 O(N log(N+1))、空間 O(N)（上記の NTT 長さ制限下、整数演算単位）。
+"""
+相異なる正整数 A から K=3,4 個を選び、和を M にできるか O(N log(N+1)) で判定・構築する
+引数 convolution(a, b) は mod 998244353 の畳み込みを返す関数を渡す
 """
 
 
@@ -34,7 +25,7 @@ def _get(f, i):
 
 
 def count_subset_sum(A, K, M, convolution):
-    """和 M の K 要素部分集合の真の個数。畳み込み1回、O(N log(N+1))。"""
+    """和 M の K 要素部分集合の真の個数を返す。畳み込み1回、O(N log(N+1))。"""
     data = _prepare(A, K, M, convolution)
     if data is None:
         return 0
