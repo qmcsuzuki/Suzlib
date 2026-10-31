@@ -19,8 +19,8 @@ class DiagonalAccumulate2dim:
         self.v_min = 1 - self.w
         self.v_max = self.h
 
-        self.acc = [None, None]
-        self.shape = [None, None]
+        self.acc = [[], []]
+        self.shape = [(0,0), (0,0)]
         self.u_base = [0, 0]
         self.v_base = [0, 0]
 
