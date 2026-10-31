@@ -105,35 +105,16 @@ class BFlow:
         assert self._feasible
         return [self.get_edge(i) for i in range(len(self._lower))]
 
-    def _optimize_edge(self, i: int, maximize: bool) -> int:
-        """対象辺 u→v を除き、増加時は v→u、減少時は u→v に残余流を流す。
-
-        対象辺を同量だけ増減すると差分が循環流になり、需給を保つ。
-        任意の実行可能解との差もこの形で表せるため最適値を得る。
-        自己ループは需給に影響せず直接上下限に設定する。
-        """
-        assert self._feasible
-        assert 0 <= i < len(self._lower)
-        g = self._graph
-        e = g.get_edge(i)
-        limit = e.cap - e.flow if maximize else e.flow
-        if e.src == e.dst:
-            delta = limit
-        else:
-            # 対象辺自身の逆辺を使った見かけの増減を禁止する。
-            g.change_edge(i, 0, 0)
-            if maximize:
-                delta = g.flow(e.dst, e.src, limit)
-            else:
-                delta = g.flow(e.src, e.dst, limit)
-        flow = e.flow + delta if maximize else e.flow - delta
-        g.change_edge(i, e.cap, flow)
-        return self._lower[i] + flow
-
     def maximize_edge(self, i: int) -> int:
         """辺 i の流量を最大化し、増分ではなく最大値を返す。解も更新する。"""
-        return self._optimize_edge(i, True)
+        assert self._feasible
+        assert 0 <= i < len(self._lower)
+        self._graph.increase_edge(i)
+        return self._lower[i] + self._graph.get_edge(i).flow
 
     def minimize_edge(self, i: int) -> int:
         """辺 i の流量を最小化し、減少量ではなく最小値を返す。解も更新する。"""
-        return self._optimize_edge(i, False)
+        assert self._feasible
+        assert 0 <= i < len(self._lower)
+        self._graph.decrease_edge(i)
+        return self._lower[i] + self._graph.get_edge(i).flow

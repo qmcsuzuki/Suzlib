@@ -159,7 +159,16 @@ class MFGraph:
         self._cap[i ^ 1] = new_flow
 
     def flow(self, s: int, t: int, flow_limit: int | None = None) -> int:
-        """s から t へ追加で流せる流量を返す。"""
+        """残余グラフで s から t に流し、今回追加した流量を返す。
+
+        呼び出しごとに始点・終点を変更できる。返り値を d とすると、
+        流出量 - 流入量は s で d 増え、t で d 減り、他では変わらない。
+        現在の s-t 流量が F なら flow(t, s, D) (0 <= D <= F) は
+        D を返し、総流量を F-D にする。flow(a, s, D) は、返り値の分だけ
+        供給元を s から a に移す。異なる端点での呼び出し後は、元の
+        s-t フローの流量保存則を満たすとは限らない。
+        flow_limit=None は制限なし。一般に O(V^2 E) 時間、O(V) 追加空間。
+        """
         n = self._n
         assert 0 <= s < n
         assert 0 <= t < n
@@ -251,6 +260,125 @@ class MFGraph:
                         edge_stack.pop()
                     level[v] = n
         return result
+
+    def increase_edge(self, i: int, limit: int | None = None) -> int:
+        """全頂点の収支を保ち、辺 i の流量を増やし、実際の増加量を返す。
+
+        limit は非負の増加量上限。None なら可能な限り増やす。
+        現在のフローも更新する。最大流である必要はなく、最大流に適用すれば
+        総流量と最大性を保つ。他の辺の流量は固定しない。
+        自己ループは直接更新し、それ以外は最大流を高々1回呼ぶ。
+        一般に O(V^2 E) 時間、O(V) 追加空間。
+
+        使用例:
+            F = g.flow(s, t)
+            d = g.increase_edge(i)  # 総流量 F を保って指定辺を最大化
+            maximum = g.get_edge(i).flow
+        """
+        assert 0 <= i < (len(self._to) >> 1)
+        j = i << 1
+        cap = self._cap
+        forward, reverse = cap[j], cap[j ^ 1]
+        if limit is None:
+            limit = forward
+        else:
+            assert limit >= 0
+            limit = min(limit, forward)
+        if limit == 0:
+            return 0
+        u, v = self._to[j ^ 1], self._to[j]
+        if u == v:
+            delta = limit
+        else:
+            # 指定辺の取り消しを禁止。正方向 u→v は v-u 増加路に入らない。
+            cap[j ^ 1] = 0
+            delta = self.flow(v, u, limit)
+        cap[j] = forward - delta
+        cap[j ^ 1] = reverse + delta
+        return delta
+
+    def decrease_edge(self, i: int, limit: int | None = None) -> int:
+        """全頂点の収支を保ち、辺 i の流量を減らし、実際の減少量を返す。
+
+        limit は非負の減少量上限。None なら可能な限り減らす。
+        現在のフローも更新する。最大流である必要はなく、最大流に適用すれば
+        総流量と最大性を保つ。他の辺の流量は固定しない。
+        limit に届かなくても、迂回できた分の変更は反映される。
+        自己ループは直接更新し、それ以外は最大流を高々1回呼ぶ。
+        一般に O(V^2 E) 時間、O(V) 追加空間。
+
+        使用例:
+            e = g.get_edge(i)
+            required = max(0, e.flow - new_cap)  # new_cap >= 0
+            moved = g.decrease_edge(i, required)
+            if moved == required:
+                g.change_edge(i, new_cap, e.flow - moved)
+            # 未達なら容量は元のまま。迂回後も元の収支を満たす。
+        """
+        assert 0 <= i < (len(self._to) >> 1)
+        j = i << 1
+        cap = self._cap
+        forward, reverse = cap[j], cap[j ^ 1]
+        if limit is None:
+            limit = reverse
+        else:
+            assert limit >= 0
+            limit = min(limit, reverse)
+        if limit == 0:
+            return 0
+        u, v = self._to[j ^ 1], self._to[j]
+        if u == v:
+            delta = limit
+        else:
+            # 指定辺への再送を禁止。逆方向 v→u は u-v 増加路に入らない。
+            cap[j] = 0
+            delta = self.flow(u, v, limit)
+        cap[j] = forward + delta
+        cap[j ^ 1] = reverse - delta
+        return delta
+
+    def change_capacity(self, i: int, new_cap: int, s: int, t: int) -> int:
+        """最大 s-t フローを保つよう辺 i の容量を変更し、総流量の変化量を返す。
+
+        呼び出し前に実行可能な最大 s-t フローであることが必要。
+        この前提は検査しない。new_cap は非負。返り値は増加時に正、減少時に負。
+        辺容量と現在のフローを更新する。循環流・自己ループ・多重辺にも対応。
+        容量増加時は s→t に再増加する。縮小時は指定辺の流れをまず迂回し、
+        不足分だけ u→s と t→v に流して前後をキャンセルする。
+        迂回できなかった量だけ最大流値が下がるため、最後の再増加は不要。
+        最大流を高々3回呼ぶ。一般に O(V^2 E) 時間、O(V) 追加空間。
+
+        使用例:
+            F = g.flow(s, t)
+            F += g.change_capacity(i, new_cap, s, t)
+            F += g.change_capacity(i, 0, s, t)  # 辺を無効化
+
+        1本の有向辺の更新。無向辺を2本の有向辺で表した場合は両方を更新する。
+        """
+        assert 0 <= i < (len(self._to) >> 1)
+        assert 0 <= s < self._n and 0 <= t < self._n and s != t
+        assert new_cap >= 0
+        e = self.get_edge(i)
+        if new_cap >= e.flow:
+            self.change_edge(i, new_cap, e.flow)
+            if new_cap > e.cap:
+                return self.flow(s, t, new_cap - e.cap)
+            return 0
+
+        required = e.flow - new_cap
+        moved = self.decrease_edge(i, required)
+        lost = required - moved
+        self.change_edge(i, new_cap, new_cap)
+        if lost:
+            # 迂回を流し切ったので、残る指定辺の流れは循環には含まれない。
+            # 指定辺の流量を lost 減らして生じた収支のずれを解消する。
+            if e.src != s:
+                canceled = self.flow(e.src, s, lost)
+                assert canceled == lost
+            if e.dst != t:
+                canceled = self.flow(t, e.dst, lost)
+                assert canceled == lost
+        return -lost
 
     def min_cut(self, s: int) -> list[bool]:
         """各頂点 v について、残余グラフ上で s から v に到達可能なら True、
