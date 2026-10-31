@@ -49,15 +49,14 @@ class Doubling:
 
     def binary_search(self, v, check):
         """
-        単調 (...,False,True,...) な関数 check が初めて真になる遷移回数とその重み・頂点を返す。
-        戻り値: (k, w, v) : check(w, f^k(v)) が True となる k と状態を返す
+        戻り値: (k, w, v) : FFFTTT 型の単調関数 check(w, f^k(v)) が初めて True となる k と状態を返す
         k < 2^D ですべて False の場合は k = 2^D を返す（w, v は k = 2^D-1 の状態）
         """
         k = 0
         w = self.e
         if check(w, v):
             return k, w, v
-        for i in reversed(range(self.D)):
+        for i in range(self.D)[::-1]:
             nw = self.op(w, self.Wtable[i][v])
             nv = self.table[i][v]
             if not check(nw, nv):
