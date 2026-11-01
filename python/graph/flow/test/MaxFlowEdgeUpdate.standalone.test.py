@@ -91,3 +91,20 @@ for method in (g.increase_edge, g.decrease_edge):
             pass
         else:
             raise AssertionError('invalid call accepted')
+
+# 空グラフからの頂点追加、および既存の流量を保ったままの拡張。
+g = MFGraph(0)
+assert g.add_vertex() == 0
+assert g.add_vertex() == 1
+edge = g.add_edge(0, 1, 3)
+assert g.flow(0, 1) == 3
+before = g.edges()
+assert g.add_vertex() == 2
+assert g.edges() == before
+assert g.min_cut(0) == [True, False, False]
+assert len(g.residual_graph()) == 3
+assert g.add_edge(0, 2, 2) == 1
+assert g.add_edge(2, 1, 2) == 2
+assert g.flow(0, 1) == 2
+assert g.get_edge(edge).flow == 3
+check(g, [(0, 1, 3), (0, 2, 2), (2, 1, 2)], [5, -5, 0])

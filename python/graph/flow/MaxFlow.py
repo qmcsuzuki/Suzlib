@@ -29,6 +29,13 @@ class MFGraph:
         self._to: list[int] = []
         self._cap: list[int] = []
 
+    def add_vertex(self) -> int:
+        """孤立頂点を追加して頂点番号を返す。償却 O(1)。既存の辺・流量は保持する。"""
+        v = self._n
+        self._g.append([])
+        self._n += 1
+        return v
+
     def add_edge(self, src: int, dst: int, cap: int) -> int:
         """src から dst への容量 cap の辺を追加し、辺番号を返す。"""
         assert 0 <= src < self._n

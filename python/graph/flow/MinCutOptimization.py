@@ -7,8 +7,7 @@ class MinCutOptimization:
     """s-t 最小カットで解ける 0/1 最適化問題を構築する。
     auto_flip=True では、自動的に内部的に変数を反転する。入力・返り値はすべて元の変数の意味で指定する。
     all 報酬・any ペナルティは auto_flip=False 専用。補助頂点は内部で
-    管理し、solve() は元の n 変数だけを返す。集合項がある場合、solve()
-    時に既存のグラフをコピーし、集合サイズの総和に比例する辺を追加する。
+    管理し、solve() は元の n 変数だけを返す。
 
     例: opt = MinCutOptimization(2, auto_flip=True)
         opt.add_pairwise(0, 1, 1, 0, 0, 1)  # 異なる値を好む項
@@ -31,7 +30,6 @@ class MinCutOptimization:
 
         self._finite_cap_sum = 0
         self._hard_edges: list[tuple[int, int]] = []
-        self._groups: list[tuple[list[int], bool, int]] = []
         self._solved = False
 
     def _check_variable(self, i: int) -> None:
@@ -90,24 +88,15 @@ class MinCutOptimization:
                 self._cost_false[indices[0]] += amount
             else:
                 self._cost_true[indices[0]] += amount
+            return
+        z = self._graph.add_vertex()
+        if value:
+            self._graph.add_edge(self._s, z, amount)
+            self._hard_edges.extend((z, i) for i in indices)
         else:
-            self._groups.append((indices, value, amount))
-
-    def _build_groups(self) -> None:
-        # MFGraph の頂点数は固定なので、必要数が確定してから拡張する。
-        graph = MFGraph(self._n + 2 + len(self._groups))
-        for edge in self._graph.edges():
-            graph.add_edge(edge.src, edge.dst, edge.cap)
-        self._graph = graph
-        for z, (indices, value, amount) in enumerate(self._groups, self._n + 2):
-            if value:
-                graph.add_edge(self._s, z, amount)
-                self._hard_edges.extend((z, i) for i in indices)
-            else:
-                graph.add_edge(z, self._t, amount)
-                self._hard_edges.extend((i, z) for i in indices)
-            self._finite_cap_sum += amount
-        self._groups.clear()
+            self._graph.add_edge(z, self._t, amount)
+            self._hard_edges.extend((i, z) for i in indices)
+        self._finite_cap_sum += amount
 
     def add_unary(self, i: int, cost_false: int, cost_true: int) -> None:
         """x_i=False / True のときのコストをそれぞれ加える。"""
@@ -266,8 +255,6 @@ class MinCutOptimization:
         assert not self._solved
         self._solved = True
         flip = self._prepare_auto_flip() if self._auto_flip else []
-        if self._groups:
-            self._build_groups()
 
         finite_cap_sum = self._finite_cap_sum
         offset = self._offset
