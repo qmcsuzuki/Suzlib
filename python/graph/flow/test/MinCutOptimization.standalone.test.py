@@ -255,3 +255,98 @@ if __name__ == "__main__":
             if rng.randrange(5) == 0:
                 forces.append((i, bool(rng.randrange(2))))
         check_auto(n, unary, pairwise, penalties, implications, forces)
+
+    group_methods = [
+        'add_reward_all_false', 'add_reward_all_true',
+        'add_penalty_any_false', 'add_penalty_any_true',
+    ]
+    for _ in range(1000):
+        n = rng.randrange(7)
+        opt = MinCutOptimization(n)
+        constant = rng.randint(-20, 20)
+        opt.add_constant(constant)
+        unary = [[rng.randint(-5, 5), rng.randint(-5, 5)] for _ in range(n)]
+        for i, costs in enumerate(unary):
+            opt.add_unary(i, *costs)
+        groups = []
+        penalties = []
+        implications = []
+        forces = []
+        for __ in range(8):
+            kind = rng.randrange(4)
+            indices = [rng.randrange(n) for ___ in range(rng.randrange(8))] if n else []
+            amount = rng.randrange(15)
+            groups.append((kind, indices[:], amount))
+            getattr(opt, group_methods[kind])(indices, amount)
+            indices.clear()  # 呼び出し元での変更に影響されない。
+        for i in range(n):
+            j = rng.randrange(n)
+            amount = rng.randrange(8)
+            opt.add_penalty(i, j, amount)
+            penalties.append((i, j, amount))
+            if rng.randrange(3) == 0:
+                opt.add_implication(i, j)
+                implications.append((i, j))
+            if rng.randrange(3) == 0:
+                value = bool(rng.randrange(2))
+                opt.force(i, value)
+                forces.append((i, value))
+
+        def group_cost(x):
+            cost = constant + evaluate(x, unary, [], penalties)
+            for kind, indices, amount in groups:
+                if kind == 0:
+                    cost -= amount * all(not x[i] for i in indices)
+                elif kind == 1:
+                    cost -= amount * all(x[i] for i in indices)
+                elif kind == 2:
+                    cost += amount * any(not x[i] for i in indices)
+                else:
+                    cost += amount * any(x[i] for i in indices)
+            return cost
+
+        feasible = [x for x in product([False, True], repeat=n)
+                    if all(not x[i] or x[j] for i, j in implications)
+                    and all(x[i] == value for i, value in forces)]
+        if not feasible:
+            try:
+                opt.solve()
+            except ValueError as exc:
+                assert str(exc) == 'hard constraints are infeasible'
+            else:
+                assert False
+        else:
+            expected = min(map(group_cost, feasible))
+            cost, x = opt.solve()
+            assert len(x) == n and all(type(v) is bool for v in x)
+            assert tuple(x) in feasible
+            assert cost == expected == group_cost(x)
+        for method in group_methods:
+            try:
+                getattr(opt, method)([], 0)
+            except AssertionError:
+                pass
+            else:
+                assert False
+        try:
+            opt.add_constant(0)
+        except AssertionError:
+            pass
+        else:
+            assert False
+
+    for method in group_methods:
+        for auto, indices, amount in [(True, [], 0), (False, [0], -1),
+                                      (False, [2], 1)]:
+            opt = MinCutOptimization(2, auto_flip=auto)
+            try:
+                getattr(opt, method)(indices, amount)
+            except AssertionError:
+                pass
+            else:
+                assert False
+            assert opt.solve()[0] == 0  # 拒否した呼び出しは目的関数を変えない。
+    for auto in (False, True):
+        opt = MinCutOptimization(0, auto_flip=auto)
+        opt.add_constant(-10**30)
+        assert opt.solve() == (-10**30, [])

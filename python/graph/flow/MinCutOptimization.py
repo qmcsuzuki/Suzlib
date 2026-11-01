@@ -13,6 +13,10 @@ class MinCutOptimization:
     異なる頂点対数と含意数の合計を M として、反転判定は時間・空間
     O(n + M)。別途、構築したグラフで最大流を計算する。
 
+    all 報酬・any ペナルティは auto_flip=False 専用。補助頂点は内部で
+    管理し、solve() は元の n 変数だけを返す。集合項がある場合、solve()
+    時に既存のグラフをコピーし、集合サイズの総和に比例する辺を追加する。
+
     例: opt = MinCutOptimization(2, auto_flip=True)
         opt.add_pairwise(0, 1, 1, 0, 0, 1)  # 異なる値を好む項
         cost, x = opt.solve()  # cost == 0, x[0] != x[1]
@@ -34,11 +38,83 @@ class MinCutOptimization:
 
         self._finite_cap_sum = 0
         self._hard_edges: list[tuple[int, int]] = []
+        self._groups: list[tuple[list[int], bool, int]] = []
         self._solved = False
 
     def _check_variable(self, i: int) -> None:
         assert 0 <= i < self._n
         assert not self._solved
+
+    def add_constant(self, cost: int) -> None:
+        """無条件のコストを加える。負数も可。O(1)、auto_flip 両対応。"""
+        assert not self._solved
+        self._offset += cost
+
+    def add_reward_all_false(self, indices: list[int], reward: int) -> None:
+        """全変数が False なら非負の reward をコストから引く。
+
+        auto_flip=False 専用。重複は無視し、空集合では無条件の報酬。
+        登録は平均 O(len(indices))。補助頂点は高々 1 個、辺は O(len(indices))。
+        """
+        self._add_group(indices, False, reward, True)
+
+    def add_reward_all_true(self, indices: list[int], reward: int) -> None:
+        """全変数が True なら非負の reward をコストから引く。
+
+        制限・計算量・空集合の扱いは add_reward_all_false と同じ。
+        """
+        self._add_group(indices, True, reward, True)
+
+    def add_penalty_any_false(self, indices: list[int], cost: int) -> None:
+        """一つ以上が False なら非負の cost を加える。
+
+        auto_flip=False 専用。重複は無視し、空集合のコストは 0。
+        登録は平均 O(len(indices))。補助頂点は高々 1 個、辺は O(len(indices))。
+        """
+        self._add_group(indices, True, cost, False)
+
+    def add_penalty_any_true(self, indices: list[int], cost: int) -> None:
+        """一つ以上が True なら非負の cost を加える。
+
+        制限・計算量・空集合の扱いは add_penalty_any_false と同じ。
+        """
+        self._add_group(indices, False, cost, False)
+
+    def _add_group(self, indices, value, amount, reward):
+        assert not self._solved
+        assert not self._auto_flip, "group costs require auto_flip=False"
+        assert amount >= 0
+        indices = list(dict.fromkeys(indices))
+        for i in indices:
+            self._check_variable(i)
+        # all 報酬 = -amount + any(反対の値) のペナルティ。
+        if reward:
+            self._offset -= amount
+        if not indices or amount == 0:
+            return
+        if len(indices) == 1:
+            if value:
+                self._cost_false[indices[0]] += amount
+            else:
+                self._cost_true[indices[0]] += amount
+        else:
+            self._groups.append((indices, value, amount))
+
+    def _build_groups(self) -> None:
+        # MFGraph の頂点数は固定なので、必要数が確定してから拡張する。
+        graph = MFGraph(self._n + 2 + len(self._groups))
+        for edge in self._graph.edges():
+            graph.add_edge(edge.src, edge.dst, edge.cap)
+        self._graph = graph
+        for z, (indices, value, amount) in enumerate(self._groups, self._n + 2):
+            if value:
+                graph.add_edge(self._s, z, amount)
+                self._hard_edges.extend((z, i) for i in indices)
+            else:
+                graph.add_edge(z, self._t, amount)
+                self._hard_edges.extend((i, z) for i in indices)
+            self._finite_cap_sum += amount
+        self._groups.clear()
 
     def add_unary(self, i: int, cost_false: int, cost_true: int) -> None:
         """x_i=False / True のときのコストをそれぞれ加える。"""
@@ -197,6 +273,8 @@ class MinCutOptimization:
         assert not self._solved
         self._solved = True
         flip = self._prepare_auto_flip() if self._auto_flip else []
+        if self._groups:
+            self._build_groups()
 
         finite_cap_sum = self._finite_cap_sum
         offset = self._offset
