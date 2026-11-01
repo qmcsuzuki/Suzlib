@@ -38,38 +38,24 @@ class MinCutOptimization:
         assert not self._solved
 
     def add_constant(self, cost: int) -> None:
-        """無条件のコストを加える。負数も可。O(1)、auto_flip 両対応。"""
+        """無条件のコストを加える。"""
         assert not self._solved
         self._offset += cost
 
     def add_reward_all_false(self, indices: list[int], reward: int) -> None:
-        """全変数が False なら非負の reward をコストから引く。
-
-        auto_flip=False 専用。重複は無視し、空集合では無条件の報酬。
-        登録は平均 O(len(indices))。補助頂点は高々 1 個、辺は O(len(indices))。
-        """
+        """リスト indices の全変数が False なら reward >= 0. auto_flip=False 専用。"""
         self._add_group(indices, False, reward, True)
 
     def add_reward_all_true(self, indices: list[int], reward: int) -> None:
-        """全変数が True なら非負の reward をコストから引く。
-
-        制限・計算量・空集合の扱いは add_reward_all_false と同じ。
-        """
+        """リスト indices の全変数が True なら reward >= 0. auto_flip=False 専用。"""
         self._add_group(indices, True, reward, True)
 
     def add_penalty_any_false(self, indices: list[int], cost: int) -> None:
-        """一つ以上が False なら非負の cost を加える。
-
-        auto_flip=False 専用。重複は無視し、空集合のコストは 0。
-        登録は平均 O(len(indices))。補助頂点は高々 1 個、辺は O(len(indices))。
-        """
+        """リスト indices の一つ以上が False なら cost >= 0. auto_flip=False 専用"""
         self._add_group(indices, True, cost, False)
 
     def add_penalty_any_true(self, indices: list[int], cost: int) -> None:
-        """一つ以上が True なら非負の cost を加える。
-
-        制限・計算量・空集合の扱いは add_penalty_any_false と同じ。
-        """
+        """リスト indices の一つ以上が True なら cost >= 0. auto_flip=False 専用"""
         self._add_group(indices, False, cost, False)
 
     def _add_group(self, indices, value, amount, reward):
@@ -137,11 +123,8 @@ class MinCutOptimization:
         cost_tf: int,
         cost_tt: int,
     ) -> None:
-        """(x_i, x_j) ごとの 2 変数コストを加える (i != j)。
-
-        既定では cost_ff + cost_tt <= cost_ft + cost_tf を要求する。
-        auto_flip=True では add_penalty も含め頂点対ごとに合算し、
-        solve() で反転の可否を判定する。登録は平均 O(1)。
+        """二変数 (x_i, x_j) のコストを加える (i != j)。
+        既定では monge性 cost_ff + cost_tt <= cost_ft + cost_tf を要求する。
         """
         self._check_variable(i)
         self._check_variable(j)
@@ -245,13 +228,8 @@ class MinCutOptimization:
         return flip
 
     def solve(self) -> tuple[int, list[bool]]:
-        """最小コストと、それを達成する bool 変数の割り当てを返す。
-
-        呼び出しは 1 回のみ。以後の追加も不可。
-        auto_flip=True で反転条件が矛盾すると ValueError
-        ("auto-flip constraints are inconsistent")。これは元の問題の
-        実行不能を意味しない。反転可能でも hard constraint が両立しない
-        場合は ValueError ("hard constraints are infeasible")。
+        """最小コストと、それを達成する bool 変数の割り当てを返す。呼び出しは 1 回のみ。
+        auto_flip=True で矛盾があると ValueError
         """
         assert not self._solved
         self._solved = True
