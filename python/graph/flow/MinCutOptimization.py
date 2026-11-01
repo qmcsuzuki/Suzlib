@@ -6,10 +6,11 @@ from python.graph.flow.MaxFlow import MFGraph
 class MinCutOptimization:
     """s-t 最小カットで解ける 0/1 最適化問題を構築する。
     auto_flip=True では、自動的に内部的に変数を反転する。入力・返り値はすべて元の変数の意味で指定する。
-    all 報酬・any ペナルティは auto_flip=False 専用。補助頂点は内部で
-    管理し、solve() は元の n 変数だけを返す。
+    all 報酬・any ペナルティは auto_flip=False 専用。
+    補助頂点は内部で管理し、solve() は元の n 変数だけを返す。
 
-    例: opt = MinCutOptimization(2, auto_flip=True)
+    例: 
+        opt = MinCutOptimization(2, auto_flip=True)
         opt.add_pairwise(0, 1, 1, 0, 0, 1)  # 異なる値を好む項
         cost, x = opt.solve()  # cost == 0, x[0] != x[1]
     """
