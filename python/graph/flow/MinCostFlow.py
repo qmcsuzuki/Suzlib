@@ -9,7 +9,9 @@ from typing import NamedTuple
 
 
 class MCFGraph:
-    """ポテンシャル付き最短路法による最小費用流。辺コストは非負を仮定する。"""
+    """ポテンシャル付き最短路法による最小費用流。辺コストは非負を仮定する。
+    flow / slope / min_cost_flow の呼び出しは、合わせて一度だけ可能。
+    """
 
     class Edge(NamedTuple):
         """最小費用流グラフの辺の始点・終点・容量・流量・コストを保持する。"""
@@ -78,14 +80,18 @@ class MCFGraph:
         """flow_limit 以下で流せる最大量まで流し、その (流量, 最小費用) を返す。"""
         return self.slope(s, t, flow_limit)[-1]
 
-    def min_cost(
+    def min_cost_flow(
         self,
         s: int,
         t: int,
         flow_limit: int | None = None,
-    ) -> int:
-        """0 以上 flow_limit 以下の任意流量に対する最小費用を返す。"""
-        return min(cost for _, cost in self.slope(s, t, flow_limit))
+    ) -> tuple[int, int]:
+        """流量も選んで費用を最小化し、(総流量, 総費用) を返す。
+        流量は 0 以上 flow_limit 以下（None は上限なし）。同費用なら流量最小。
+        get_edge / edges で最適解の各辺の流量を取得できる。
+        非負コストなので、このクラスでは常に (0, 0) となる。
+        """
+        return self._slope(s, t, flow_limit, 0)[-1]
 
     def slope(
         self,
@@ -94,8 +100,18 @@ class MCFGraph:
         flow_limit: int | None = None,
     ) -> list[tuple[int, int]]:
         """各流量に対する最小費用の折れ線の頂点を返す。
-        最後の点の流量は flow_limit 以下で流せる最大流量である。
+        最後の点の流量は flow_limit 以下で流せる最大流量であり、そのフローを保持する。
         """
+        return self._slope(s, t, flow_limit)
+
+    def _slope(
+        self,
+        s: int,
+        t: int,
+        flow_limit: int | None,
+        marginal_limit: int | None = None,
+    ) -> list[tuple[int, int]]:
+        # 限界費用が marginal_limit 以上なら、増流する前に停止する。
         assert not self._used
         n = self._n
         g = self._g
@@ -197,6 +213,10 @@ class MCFGraph:
             if not refine_dual():
                 break
 
+            c = -dual[s]
+            if marginal_limit is not None and c >= marginal_limit:
+                break
+
             f = flow_limit - flow
             v = t
             while v != s:
@@ -212,7 +232,6 @@ class MCFGraph:
                 re.cap += f
                 v = re.dst
 
-            c = -dual[s]
             flow += f
             cost += f * c
             if c == prev_cost_per_flow:
@@ -225,7 +244,8 @@ class MCFGraph:
 
 class DAGMCFGraph:
     """初期グラフが指定順の DAG のとき、負コスト辺を許す最小費用流。
-    トポロジカル順は「s, s と t 以外の頂点を頂点番号順, t"」
+    トポロジカル順は「s, s と t 以外の頂点を頂点番号順, t」。
+    flow / slope / min_cost_flow の呼び出しは、合わせて一度だけ可能。
     """
 
     Edge = MCFGraph.Edge
@@ -309,15 +329,27 @@ class DAGMCFGraph:
         """flow_limit 以下で流せる最大量まで流し、その (流量, 最小費用) を元のコストで返す。"""
         return self.slope(flow_limit)[-1]
 
-    def min_cost(self, flow_limit: int | None = None) -> int:
-        """0 以上 flow_limit 以下の任意流量に対する最小費用を返す。"""
-        return min(cost for _, cost in self.slope(flow_limit))
+    def min_cost_flow(self, flow_limit: int | None = None) -> tuple[int, int]:
+        """流量も選んで費用を最小化し、元のコストで (総流量, 総費用) を返す。
+        流量は 0 以上 flow_limit 以下（None は上限なし）。同費用なら流量最小。
+        get_edge / edges で最適解の各辺の流量を取得できる。
+        """
+        return self._slope(flow_limit, True)[-1]
 
     def slope(
         self,
         flow_limit: int | None = None,
     ) -> list[tuple[int, int]]:
-        """各流量に対する最小費用の折れ線の頂点を、元のコストで返す。"""
+        """各流量に対する最小費用の折れ線の頂点を、元のコストで返す。
+        最後の点に対応する最大流量のフローを保持する。
+        """
+        return self._slope(flow_limit)
+
+    def _slope(
+        self,
+        flow_limit: int | None,
+        minimize_cost: bool = False,
+    ) -> list[tuple[int, int]]:
         assert not self._used
         self._build()
         self._used = True
@@ -326,6 +358,9 @@ class DAGMCFGraph:
         potential = self._potential
         assert graph is not None
         assert potential is not None
-        result = graph.slope(self._s, self._t, flow_limit)
         shift = potential[self._s] - potential[self._t]
+        # 元の限界費用は変換後の限界費用 - shift。
+        result = graph._slope(
+            self._s, self._t, flow_limit, shift if minimize_cost else None
+        )
         return [(flow, cost - flow * shift) for flow, cost in result]

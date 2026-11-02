@@ -78,7 +78,7 @@ if __name__ == '__main__':
             check_slope(graph.slope(),expected)
             graph = DAGMCFGraph(n,n-1,0,dense)
             for e in edges: graph.add_edge(*e)
-            assert graph.min_cost() == min(expected.values())
+            assert graph.min_cost_flow() == min(expected.items(), key=lambda item: (item[1], item[0]))
 
     # SCC を全頂点対の到達可能性と比較する。
     for n in range(8):
