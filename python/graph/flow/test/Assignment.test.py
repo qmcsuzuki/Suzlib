@@ -1,6 +1,6 @@
 # competitive-verifier: PROBLEM https://judge.yosupo.jp/problem/assignment
 
-from python.graph.matching.Assignment import assignment
+from python.graph.flow.Assignment import assignment
 
 
 def main() -> None:
