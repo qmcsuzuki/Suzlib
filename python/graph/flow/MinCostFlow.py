@@ -28,9 +28,7 @@ class MCFGraph:
 
     def __init__(self, n: int, dense: bool = False) -> None:
         """n 頂点の辺のないグラフを初期化する。
-
-        dense=False では heap を用いる疎グラフ向け Dijkstra、dense=True では
-        O(V^2 + E) の密グラフ向け Dijkstra を用いる。
+        dense = True だと O(N^2) の Dijkstra に内部アルゴリズムを変更
         """
         self._n = n
         self._dense = dense
@@ -96,12 +94,7 @@ class MCFGraph:
         flow_limit: int | None = None,
     ) -> list[tuple[int, int]]:
         """各流量に対する最小費用の折れ線の頂点を返す。
-
         最後の点の流量は flow_limit 以下で流せる最大流量である。
-        このメソッドは1回だけ呼べる。
-        flow / min_cost / slope は合わせて1回だけ呼べる。
-        先頭は (0,0)。中間の整数流量の費用は隣接する頂点間の線形補間で得られる。
-        辺の流量は最後の点に対応し、min_cost も最後の点まで流す。
         """
         assert not self._used
         n = self._n
@@ -232,20 +225,14 @@ class MCFGraph:
 
 class DAGMCFGraph:
     """初期グラフが指定順の DAG のとき、負コスト辺を許す最小費用流。
-
-    トポロジカル順は
-        s, s と t 以外の頂点を頂点番号順, t
-    とする。最初に DAG DP でポテンシャルを求め、非負の reduced cost に
-    変換した後は MCFGraph に処理を委ねる。
+    トポロジカル順は「s, s と t 以外の頂点を頂点番号順, t"」
     """
 
     Edge = MCFGraph.Edge
 
     def __init__(self, n: int, s: int, t: int, dense: bool = False) -> None:
         """n 頂点、始点 s、終点 t のグラフを初期化する。
-
-        dense=False では heap を用いる疎グラフ向け Dijkstra、dense=True では
-        O(V^2 + E) の密グラフ向け Dijkstra を、初期ポテンシャル構築後の最短路計算に用いる。
+        dense=True では O(N^2) の密 Dijkstra を用いる。
         """
         assert 0 <= s < n
         assert 0 <= t < n
@@ -330,12 +317,7 @@ class DAGMCFGraph:
         self,
         flow_limit: int | None = None,
     ) -> list[tuple[int, int]]:
-        """各流量に対する最小費用の折れ線の頂点を、元のコストで返す。
-
-        最後の点の流量は flow_limit 以下で流せる最大流量である。
-        flow / min_cost / slope は合わせて1回だけ呼べる。
-        min_cost も最大量まで流した状態を保持する。
-        """
+        """各流量に対する最小費用の折れ線の頂点を、元のコストで返す。"""
         assert not self._used
         self._build()
         self._used = True
