@@ -119,31 +119,19 @@ def assignment(
     cost: list[list[int]],
     flow: int | None = None,
 ) -> tuple[int, list[int]]:
-    """完全二部グラフの最小費用割り当てを求める。
+    """完全二部グラフの最小費用割り当てを求める。負の費用に対応する。
+    戻り値は (最小費用, match), match[i] = i に対応する頂点（-1 は対応無し）
 
-    cost[i][j] を左頂点 i と右頂点 j を対応させる費用とする。
-    flow=None では min(n, m) 個、flow を指定した場合はちょうど flow 個を対応させる。
-    戻り値は (最小費用, match) で、match[i] は i に対応する右頂点、
-    未使用の左頂点では -1 である。
-
-    負の費用と長方形行列に対応する。
-    計算量は O(flow * n * m)、追加メモリは O(n + m)。
+    - cost[i][j]: 左頂点 i と右頂点 j を対応させる費用
+    - flow=None では min(n, m) 個、flow を指定した場合はちょうど flow 個を対応させる
     """
     costs, match = _assignment(cost, flow)
     return costs[-1], match
-
 
 def assignment_costs(
     cost: list[list[int]],
     flow: int | None = None,
 ) -> list[int]:
-    """各流量に対する最小割り当て費用を返す。
-
-    戻り値 costs は costs[f] がちょうど f 個を対応させる最小費用である。
-    flow=None では f=0,...,min(n,m)、flow を指定した場合は f=0,...,flow を返す。
-
-    負の費用と長方形行列に対応する。
-    計算量は O(flow * n * m)、追加メモリは O(n + m)。
-    """
+    """各流量 0,1,...,flow に対する最小割り当て費用の配列 costs を返す。負の費用と長方形行列に対応する。"""
     costs, _ = _assignment(cost, flow)
     return costs
