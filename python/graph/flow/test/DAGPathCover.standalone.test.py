@@ -44,14 +44,10 @@ def check(n, edges, required, starts, ends, disjoint):
     rejects(g.paths, RuntimeError)
     for i, (u, v) in enumerate(edges):
         assert g.add_edge(u, v) == i
-    for v in range(n):
-        g.set_required(v, required[v])
-        g.set_start_allowed(v, starts[v])
-        g.set_end_allowed(v, ends[v])
     expected = brute(n, edges, required, starts, ends, disjoint)
-    actual = g.solve()
+    actual = g.solve(required, starts, ends)
     assert actual == expected, (n, edges, required, starts, ends, disjoint, actual, expected)
-    assert g.solve() == actual
+    assert g.solve(required, starts, ends) == actual
     if actual == -1:
         rejects(g.paths, RuntimeError)
         return
@@ -100,23 +96,34 @@ for _ in range(1500):
         check(n, edges, required, [True] * n, [True] * n, disjoint)
         check(n, edges, [True] * n, [True] * n, [True] * n, disjoint)
 
-# 設定変更・辺追加による再計算と失敗からの復帰。
+# 引数の省略で条件がリセットされ、失敗時に古い結果を返さない。
 g = DAGPathCover(2)
 assert g.solve() == 2
 g.add_edge(0, 1)
 rejects(g.paths, RuntimeError)
 assert g.solve() == 1 and g.paths() == [[0, 1]]
-g.set_start_allowed(0, False)
+assert g.solve(start_allowed=[False, True]) == -1
 rejects(g.paths, RuntimeError)
-assert g.solve() == -1
-g.set_required(0, False)
-assert g.solve() == 1 and g.paths() == [[1]]
-g.set_end_allowed(1, False)
-assert g.solve() == -1
-g.set_required(1, False)
-assert g.solve() == 0 and g.paths() == []
+assert g.solve(required=[False, True], start_allowed=[False, True]) == 1
+assert g.paths() == [[1]]
+assert g.solve(required=[False, True], end_allowed=[True, False]) == -1
+rejects(g.paths, RuntimeError)
+assert g.solve(required=[False, False]) == 0 and g.paths() == []
+assert g.solve() == 1 and g.paths() == [[0, 1]]
+for name in ('required', 'start_allowed', 'end_allowed'):
+    rejects(lambda: g.solve(**{name: [True]}), AssertionError)
+    rejects(g.paths, RuntimeError)
+    assert g.solve() == 1
+required, starts, ends = [False, True], [True, True], [True, True]
+snapshot = (required[:], starts[:], ends[:])
+assert g.solve(required, starts, ends) == 1
+assert (required, starts, ends) == snapshot
+saved = g.paths()
+required[:] = starts[:] = ends[:] = [False, False]
+assert g.paths() == saved  # 呼び出し元の配列を保持しない。
 g.add_edge(1, 0)
-rejects(g.solve, ValueError)  # 必須頂点なしでも DAG 検査を省略しない。
+rejects(lambda: g.solve(required=[False, False]), ValueError)
+rejects(g.paths, RuntimeError)
 g = DAGPathCover(1)
 g.add_edge(0, 0)
 rejects(g.solve, ValueError)
@@ -127,9 +134,10 @@ for mode in range(3):
     g = DAGPathCover(n, mode == 0)
     for v in range(n - 1):
         g.add_edge(v, v + 1)
+    starts = [True] * n
     if mode == 2:
-        g.set_start_allowed(1, False)
-    assert g.solve() == 1
+        starts[1] = False
+    assert g.solve(start_allowed=starts) == 1
     assert g.paths() == [list(range(n))]
 
 print("DAGPathCover: exhaustive, randomized, lifecycle and long-path tests passed")

@@ -7,18 +7,17 @@ from python.graph.matching.BipartiteMatching import BipartiteMatching
 class DAGPathCover:
     """必須頂点を覆う最小本数の有向パスを求める。
 
-    頂点番号は 0..n-1。初期状態では全頂点が必須で、開始・終了も自由。
+    頂点番号は 0..n-1。solve の引数を省略すると全頂点が必須で、開始・終了も自由。
     vertex_disjoint=True は任意頂点を含めて点素、False はパス間の共有可。
     元の辺をたどり、単頂点パスも許す（開始・終了の両方が許可された場合）。
     多重辺と空グラフを許す。solve 時に DAG を検査し、閉路なら ValueError。
-    設定変更・辺追加後は再度 solve が必要。増分計算ではなく再構築する。
+    solve は毎回、指定された条件で再構築する。前回の条件は引き継がない。
 
     使用例:
         g = DAGPathCover(3, vertex_disjoint=False)
         g.add_edge(0, 1)
         g.add_edge(1, 2)
-        g.set_required(1, False)
-        k = g.solve()       # 1。実行不能なら -1
+        k = g.solve(required=[True, False, True])  # 1。実行不能なら -1
         paths = g.paths()   # [[0, 1, 2]]
 
     n 頂点 m 辺、必須頂点数 K、復元結果の総頂点数 L とする。
@@ -35,9 +34,6 @@ class DAGPathCover:
         self._n = n
         self._disjoint = vertex_disjoint
         self._edges: list[tuple[int, int]] = []
-        self._required = [True] * n
-        self._start_allowed = [True] * n
-        self._end_allowed = [True] * n
         self._answer = -2
         self._starts: list[int] = []
         self._ends: list[int] = []
@@ -50,24 +46,6 @@ class DAGPathCover:
         self._edges.append((u, v))
         self._answer = -2
         return edge_id
-
-    def set_required(self, v: int, required: bool) -> None:
-        """v の被覆を必須とするか設定する。O(1)。"""
-        assert 0 <= v < self._n
-        self._required[v] = bool(required)
-        self._answer = -2
-
-    def set_start_allowed(self, v: int, allowed: bool) -> None:
-        """v でパスを開始してよいか設定する。O(1)。"""
-        assert 0 <= v < self._n
-        self._start_allowed[v] = bool(allowed)
-        self._answer = -2
-
-    def set_end_allowed(self, v: int, allowed: bool) -> None:
-        """v でパスを終了してよいか設定する。O(1)。"""
-        assert 0 <= v < self._n
-        self._end_allowed[v] = bool(allowed)
-        self._answer = -2
 
     def _check_dag(self) -> None:
         n = self._n
@@ -85,32 +63,49 @@ class DAGPathCover:
         if len(queue) != n:
             raise ValueError("graph must be a DAG")
 
-    def solve(self) -> int:
-        """最小本数を返す。実行不能は -1。変更なしの再呼び出しは O(1)。"""
-        if self._answer != -2:
-            return self._answer
-        self._check_dag()
+    def _solve_matching(self) -> int:
         n = self._n
-        required = self._required
-        k = sum(required)
-        self._starts = [0] * n
-        self._ends = [0] * n
+        matching = BipartiteMatching(n, n)
+        for u, v in self._edges:
+            matching.add_edge(u, v)
+        self._answer = n - matching.solve()
+        self._starts = [int(v == -1) for v in matching.mate_right]
+        self._ends = [int(v == -1) for v in matching.mate_left]
         self._edge_flow = [0] * len(self._edges)
+        for edge_id in matching.matching_edge_ids():
+            self._edge_flow[edge_id] = 1
+        return self._answer
+
+    def solve(
+        self,
+        required: list[bool] | None = None,
+        start_allowed: list[bool] | None = None,
+        end_allowed: list[bool] | None = None,
+    ) -> int:
+        """最小本数を返す。実行不能は -1。
+
+        各引数は長さ n の bool 配列。None は全要素 True と同じ。
+        required は被覆必須、start_allowed/end_allowed は開始/終了の許可。
+        毎回再計算し、前回の条件を引き継がない。入力配列は変更・保持しない。
+        呼び出し開始時に前回の結果を無効化するため、失敗時も古い復元はできない。
+        """
+        self._answer = -2
+        n = self._n
+        if required is None:
+            required = [True] * n
+        if start_allowed is None:
+            start_allowed = [True] * n
+        if end_allowed is None:
+            end_allowed = [True] * n
+        assert len(required) == len(start_allowed) == len(end_allowed) == n
+        self._check_dag()
+        k = sum(required)
         if k == 0:
             self._answer = 0
             return 0
-
-        free = all(self._start_allowed) and all(self._end_allowed)
+        free = all(start_allowed) and all(end_allowed)
         if self._disjoint and k == n and free:
-            matching = BipartiteMatching(n, n)
-            for u, v in self._edges:
-                matching.add_edge(u, v)
-            self._answer = n - matching.solve()
-            self._starts = [int(v == -1) for v in matching.mate_right]
-            self._ends = [int(v == -1) for v in matching.mate_left]
-            for edge_id in matching.matching_edge_ids():
-                self._edge_flow[edge_id] = 1
-            return self._answer
+            return self._solve_matching()
 
         s, t = 2 * n, 2 * n + 1
         source, sink = 2 * n + 2, 2 * n + 3
@@ -120,13 +115,13 @@ class DAGPathCover:
         upper = 1 if self._disjoint else k
         for v in range(n):
             r = int(required[v])
-            if self._start_allowed[v]:
+            if start_allowed[v]:
                 start_ids[v] = g.add_edge(s, v, k)
                 if free:
                     g.change_edge(start_ids[v], k, r)
             # 下限 r は暗黙に保持。逆辺で取り消せるのは上乗せ分だけ。
             g.add_edge(v, n + v, upper - r)
-            if self._end_allowed[v]:
+            if end_allowed[v]:
                 end_ids[v] = g.add_edge(n + v, t, k)
                 if free:
                     g.change_edge(end_ids[v], k, r)
@@ -161,6 +156,8 @@ class DAGPathCover:
         """
         if self._answer < 0:
             raise RuntimeError("call solve() and check feasibility before paths()")
+        if self._answer == 0:
+            return []
         n = self._n
         adj = [[] for _ in range(n)]
         for i, (u, v) in enumerate(self._edges):
