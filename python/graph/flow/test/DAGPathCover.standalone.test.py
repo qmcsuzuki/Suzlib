@@ -1,143 +1,182 @@
 # competitive-verifier: STANDALONE
-
-from itertools import product
+from itertools import combinations_with_replacement, product
 from random import Random
-
 from python.graph.flow.DAGPathCover import DAGPathCover
 
 
-def brute(n, edges, required, starts, ends, disjoint):
-    adj = [[] for _ in range(n)]
-    for u, v in edges:
-        adj[u].append(v)
-    masks = set()
-    stack = [(v, 1 << v) for v in range(n) if starts[v]]
-    while stack:
-        v, mask = stack.pop()
-        if ends[v]:
-            masks.add(mask)
-        for w in adj[v]:
-            stack.append((w, mask | (1 << w)))
-    target = sum(1 << v for v in range(n) if required[v])
-    dp = [n + 1] * (1 << n)
-    dp[0] = 0
-    for used in range(1 << n):
-        for mask in masks:
-            if disjoint and used & mask:
-                continue
-            nxt = used | mask
-            dp[nxt] = min(dp[nxt], dp[used] + 1)
-    answer = min(dp[mask] for mask in range(1 << n) if mask & target == target)
-    return answer if answer <= n else -1
-
-
-def rejects(action, error):
+def rejects(fn, error=RuntimeError):
     try:
-        action()
+        fn()
     except error:
         return
-    raise AssertionError("invalid call accepted")
+    raise AssertionError('expected exception')
 
 
-def check(n, edges, required, starts, ends, disjoint):
-    g = DAGPathCover(n, disjoint)
-    rejects(g.paths, RuntimeError)
-    for i, (u, v) in enumerate(edges):
-        assert g.add_edge(u, v) == i
-    expected = brute(n, edges, required, starts, ends, disjoint)
-    actual = g.solve(required, starts, ends)
-    assert actual == expected, (n, edges, required, starts, ends, disjoint, actual, expected)
-    assert g.solve(required, starts, ends) == actual
-    if actual == -1:
-        rejects(g.paths, RuntimeError)
+def check(n, edges, required, weights, starts, ends, bc, ec, k, disjoint, once, exact, dense):
+    candidates = []
+    stack = [([v], bc[v]) for v in range(n) if starts[v]]
+    while stack:
+        vs, cost = stack.pop()
+        if ends[vs[-1]]:
+            candidates.append((vs, cost + ec[vs[-1]]))
+        for u, v, c in edges:
+            if u == vs[-1]:
+                stack.append((vs + [v], cost + c))
+    best = None
+    for count in ([k] if exact else range(k + 1)):
+        for chosen in combinations_with_replacement(range(len(candidates)), count):
+            used = [0] * n
+            cost = 0
+            for i in chosen:
+                vs, c = candidates[i]
+                cost += c
+                for v in vs:
+                    used[v] += 1
+            if disjoint and max(used, default=0) > 1:
+                continue
+            if any(r and not x for r, x in zip(required, used)):
+                continue
+            cost -= sum(w * (int(x > 0) if once else x) for w, x in zip(weights, used))
+            key = (cost, count)
+            if best is None or key < best:
+                best = key
+    expected = (-1, 0) if best is None else (best[1], best[0])
+    kw = {'path_count' if exact else 'path_limit': k}
+    g = DAGPathCover(n, vertex_disjoint=disjoint, required=required,
+                     vertex_gain=weights, gain_once=once, start_cost=bc, end_cost=ec,
+                     start_allowed=starts, end_allowed=ends, dense=dense, **kw)
+    for i, e in enumerate(edges):
+        assert g.add_edge(*e) == i
+    rejects(g.paths)
+    actual = g.solve()
+    assert actual == expected, (edges, required, weights, bc, ec, k, disjoint, once, exact, actual, expected)
+    rejects(g.solve)
+    if n:
+        rejects(lambda: g.add_edge(0, 0))
+    if actual[0] == -1:
+        rejects(g.paths)
+        rejects(g.edge_paths)
         return
-    paths = g.paths()
-    assert paths == g.paths()
-    assert len(paths) == actual
+    paths, edge_paths = g.paths(), g.edge_paths()
+    assert len(paths) == len(edge_paths) == actual[0]
     used = [0] * n
-    edge_set = set(edges)
-    for path in paths:
-        assert path and starts[path[0]] and ends[path[-1]]
-        assert len(set(path)) == len(path)
-        assert all((u, v) in edge_set for u, v in zip(path, path[1:]))
-        for v in path:
+    cost = 0
+    for vs, es in zip(paths, edge_paths):
+        assert vs and starts[vs[0]] and ends[vs[-1]]
+        cost += bc[vs[0]] + ec[vs[-1]]
+        assert len(es) + 1 == len(vs) == len(set(vs))
+        for u, v, i in zip(vs, vs[1:], es):
+            assert edges[i][:2] == (u, v)
+            cost += edges[i][2]
+        for v in vs:
             used[v] += 1
-    assert all(not required[v] or used[v] for v in range(n))
     assert not disjoint or max(used, default=0) <= 1
+    assert all(not r or x for r, x in zip(required, used))
+    cost -= sum(w * (int(x > 0) if once else x) for w, x in zip(weights, used))
+    assert cost == actual[1]
+    assert paths == g.paths() and edge_paths == g.edge_paths()
     if paths:
         paths[0].clear()
         assert g.paths()[0]
 
 
-# 3 頂点の全 DAG（固定トポロジカル順）と全設定。
-n = 3
-possible = [(0, 1), (0, 2), (1, 2)]
-for bits in product((False, True), repeat=3):
-    edges = [e for e, bit in zip(possible, bits) if bit]
-    for flags in product((False, True), repeat=9):
-        for disjoint in (False, True):
-            check(n, edges, flags[:3], flags[3:6], flags[6:], disjoint)
-
-# 頂点番号を並べ替え、多重辺も含めて大きめの DAG を比較。
-rng = Random(20261103)
-for _ in range(1500):
-    n = rng.randrange(8)
+rng = Random(1104)
+tests = 0
+for _ in range(200):
+    n = rng.randrange(6)
     order = list(range(n))
     rng.shuffle(order)
-    edges = [(order[i], order[j]) for i in range(n) for j in range(i + 1, n)
-             if rng.randrange(3) == 0]
+    edges = [(order[i], order[j], rng.randrange(-3, 4))
+             for i in range(n) for j in range(i + 1, n) if rng.randrange(3) == 0]
     if edges and rng.randrange(2):
-        edges.append(rng.choice(edges))
-    required = [bool(rng.randrange(2)) for _ in range(n)]
+        u, v, _ = rng.choice(edges)
+        edges.append((u, v, rng.randrange(-3, 4)))
     starts = [bool(rng.randrange(2)) for _ in range(n)]
     ends = [bool(rng.randrange(2)) for _ in range(n)]
-    for disjoint in (False, True):
-        check(n, edges, required, starts, ends, disjoint)
-        check(n, edges, required, [True] * n, [True] * n, disjoint)
-        check(n, edges, [True] * n, [True] * n, [True] * n, disjoint)
+    required = [bool(rng.randrange(2)) for _ in range(n)]
+    bc = [rng.randrange(-3, 4) for _ in range(n)]
+    ec = [rng.randrange(-3, 4) for _ in range(n)]
+    for disjoint, once, exact, dense in product((False, True), repeat=4):
+        weights = [rng.randrange(4) if once and not disjoint else rng.randrange(-3, 4)
+                   for _ in range(n)]
+        for k in range(4):
+            check(n, edges, required, weights, starts, ends, bc, ec, k, disjoint, once, exact, dense)
+            tests += 1
 
-# 引数の省略で条件がリセットされ、失敗時に古い結果を返さない。
-g = DAGPathCover(2)
-assert g.solve() == 2
-g.add_edge(0, 1)
-rejects(g.paths, RuntimeError)
-assert g.solve() == 1 and g.paths() == [[0, 1]]
-assert g.solve(start_allowed=[False, True]) == -1
-rejects(g.paths, RuntimeError)
-assert g.solve(required=[False, True], start_allowed=[False, True]) == 1
-assert g.paths() == [[1]]
-assert g.solve(required=[False, True], end_allowed=[True, False]) == -1
-rejects(g.paths, RuntimeError)
-assert g.solve(required=[False, False]) == 0 and g.paths() == []
-assert g.solve() == 1 and g.paths() == [[0, 1]]
-for name in ('required', 'start_allowed', 'end_allowed'):
-    rejects(lambda: g.solve(**{name: [True]}), AssertionError)
-    rejects(g.paths, RuntimeError)
-    assert g.solve() == 1
-required, starts, ends = [False, True], [True, True], [True, True]
-snapshot = (required[:], starts[:], ends[:])
-assert g.solve(required, starts, ends) == 1
-assert (required, starts, ends) == snapshot
-saved = g.paths()
-required[:] = starts[:] = ends[:] = [False, False]
-assert g.paths() == saved  # 呼び出し元の配列を保持しない。
-g.add_edge(1, 0)
-rejects(lambda: g.solve(required=[False, False]), ValueError)
-rejects(g.paths, RuntimeError)
-g = DAGPathCover(1)
-g.add_edge(0, 0)
+# PAST202107 M の3例。費用変換なしで全頂点被覆。
+for a, c, expected in [([4,25,1000000000,9,19,22],10,44),
+                        ([3,1,4,1,5],100,112),
+                        ([6708,1391,3108,7953,7797,2370,7699,1098,2362,2359],5301,17095)]:
+    for dense in (False, True):
+        g = DAGPathCover(len(a), start_cost=c, dense=dense)
+        for j in range(len(a)):
+            for i in range(j):
+                g.add_edge(i, j, abs(a[i]-a[j]))
+        assert g.solve()[1] == expected
+        assert sorted(v for p in g.paths() for v in p) == list(range(len(a)))
+
+# TDPC R の例1、および例2のSCC縮約後（成分 {2,5} の重み2）。
+for n, edges, weights, expected in [
+    (4, [(0,3),(1,3),(2,3)], [1]*4, 3),
+    (5, [(0,2),(1,2),(2,3),(2,4)], [1,1,2,1,1], 6),
+]:
+    g = DAGPathCover(n, vertex_disjoint=False, required=False, path_limit=2,
+                     start_cost=0, vertex_gain=weights)
+    for e in edges:
+        g.add_edge(*e)
+    assert g.solve()[1] == -expected
+
+# 通常のパス被覆、共有による改善、同費用なら本数最小。
+for disjoint, expected in [(True,3),(False,2)]:
+    g = DAGPathCover(5, vertex_disjoint=disjoint)
+    for e in [(0,2),(1,2),(2,3),(2,4)]:
+        g.add_edge(*e)
+    assert g.solve() == (expected, expected)
+for required, expected in [(True,(1,0)), (False,(0,0))]:
+    g = DAGPathCover(3, required=required, start_cost=0)
+    g.add_edge(0,1)
+    g.add_edge(1,2)
+    assert g.solve() == expected
+
+# 入力配列のコピー、空グラフ、失敗時の復元禁止、引数の検査。
+r = [True]
+b = [5]
+g = DAGPathCover(1, required=r, start_cost=b)
+r[0], b[0] = False, -100
+assert g.solve() == (1,5)
+assert DAGPathCover(0).solve() == (0,0)
+assert DAGPathCover(0, path_count=1).solve() == (-1,0)
+assert DAGPathCover(1, path_limit=0).solve() == (-1,0)
+g = DAGPathCover(1, start_allowed=[False])
+assert g.solve() == (-1,0)
+rejects(g.paths)
+rejects(lambda: DAGPathCover(1, path_count=1, path_limit=2), ValueError)
+rejects(lambda: DAGPathCover(2, required=[True]), AssertionError)
+rejects(lambda: DAGPathCover(1, vertex_disjoint=False, vertex_gain=-1), ValueError)
+for options in [dict(start_cost=-1),dict(end_cost=-1),dict(gain_once=False)]:
+    g = DAGPathCover(1, vertex_disjoint=False, **options)
+    rejects(g.solve, ValueError)
+g = DAGPathCover(2, vertex_disjoint=False)
+g.add_edge(0,1,-1)
 rejects(g.solve, ValueError)
+for edges in [[(0,0)], [(0,1),(1,0)]]:
+    g = DAGPathCover(2, required=False, path_limit=0)
+    for e in edges:
+        g.add_edge(*e)
+    rejects(g.solve, ValueError)
+    rejects(g.paths)
 
-# 再帰に依存しない長いパスの復元。3 分岐すべてを通す。
-for mode in range(3):
-    n = 5000
-    g = DAGPathCover(n, mode == 0)
-    for v in range(n - 1):
-        g.add_edge(v, v + 1)
-    starts = [True] * n
-    if mode == 2:
-        starts[1] = False
-    assert g.solve(start_allowed=starts) == 1
-    assert g.paths() == [list(range(n))]
-
-print("DAGPathCover: exhaustive, randomized, lifecycle and long-path tests passed")
+# 大きな整数と負の最適費用の復号。巨大な流量は一度に流せる。
+g = DAGPathCover(1, vertex_disjoint=False, path_count=10**6,
+                 start_cost=-10**30, gain_once=False, vertex_gain=7)
+assert g.solve() == (10**6, -(10**30+7)*10**6)
+# 非再帰復元は必須頂点を端点に限定して長さを検査。
+n = 2500
+r = [False]*n
+r[0] = r[-1] = True
+g = DAGPathCover(n, required=r)
+for v in range(n-1):
+    g.add_edge(v+1,v)
+assert g.solve() == (1,1)
+assert g.paths() == [list(range(n-1,-1,-1))]
+print('DAGPathCover:', tests, 'brute-force comparisons and regressions passed')
