@@ -103,6 +103,51 @@ for _ in range(200):
             check(n, edges, required, weights, starts, ends, bc, ec, k, disjoint, once, exact, dense)
             tests += 1
 
+# 特殊帰着を確実に通す。必須なし (点素・共有) / 点素全被覆。
+# 本数固定・本数上限、負費用、多重辺、復元を全探索と比較する。
+for _ in range(50):
+    n = rng.randrange(1, 6)
+    order = list(range(n))
+    rng.shuffle(order)
+    edges = [(order[i], order[j], rng.randrange(-4, 5))
+             for i in range(n) for j in range(i + 1, n)
+             if rng.randrange(2) == 0]
+    if edges:
+        u, v, _ = rng.choice(edges)
+        edges.append((u, v, rng.randrange(-4, 5)))
+    bc = [rng.randrange(-4, 5) for _ in range(n)]
+    ec = [rng.randrange(-4, 5) for _ in range(n)]
+    for required, disjoint in [([False]*n, True), ([False]*n, False),
+                               ([True]*n, True)]:
+        for once, exact, dense in product((False, True), repeat=3):
+            weights = [rng.randrange(5) if once and not disjoint
+                       else rng.randrange(-4, 5) for _ in range(n)]
+            for k in range(min(n + 1, 4)):
+                check(n, edges, required, weights, [True]*n, [True]*n,
+                      bc, ec, k, disjoint, once, exact, dense)
+                tests += 1
+
+# 全被覆は「初期単頂点パスからの結合」。同費用なら結合数最大。
+g = DAGPathCover(4, path_limit=4, start_cost=0)
+for u, v in [(0, 1), (1, 2), (2, 3)]:
+    g.add_edge(u, v)
+assert g.solve() == (1, 0)
+assert g.paths() == [[0, 1, 2, 3]]
+
+# 全被覆・本数上限の不可能判定。マッチング数が n-K に届かない。
+g = DAGPathCover(4, path_limit=1)
+g.add_edge(0, 1)
+assert g.solve() == (-1, 0)
+rejects(g.paths)
+
+# 始終点制限がある全被覆は一般帰着へフォールバック。
+g = DAGPathCover(3, path_count=1, start_allowed=[True, False, False],
+                 end_allowed=[False, False, True])
+g.add_edge(0, 1)
+g.add_edge(1, 2)
+assert g.solve() == (1, 1)
+assert g.paths() == [[0, 1, 2]]
+
 # PAST202107 M の3例。費用変換なしで全頂点被覆。
 for a, c, expected in [([4,25,1000000000,9,19,22],10,44),
                         ([3,1,4,1,5],100,112),
