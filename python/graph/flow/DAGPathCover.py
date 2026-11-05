@@ -27,13 +27,19 @@ class DAGPathCover:
         g.add_edge(1, 2)
         count, cost = g.solve()  # (2, -3)。最大報酬は -cost。
 
-    全ケースで DAGMCFGraph を使う。必須頂点の分割辺の下限1を収支へ移し、
-    未使用の本数枠を s→t のダミー辺に流すことで DAG のまま固定流量に帰着。
-    整数費用を (K+1) 倍し、開始辺に1を足して本数を第二目的とする。
-    二部マッチング、最大流、b-flow クラス、必須頂点への罰金は使わない。
+    条件によって帰着を切り替え、最適化には常に DAGMCFGraph を使う。
+    - 必須頂点なし: 通常の MCF。上限本数では min_cost_flow を使う。
+    - 点素・全頂点必須・始終点制限なし: 二部マッチングを MCF で解く。
+      初期状態は全頂点が単独パス。辺 u→v の結合費用は c_uv-C_u-B_v。
+      本数ちょうど K は n-K 個のマッチ、本数高々 K は n 単位の流量と
+      容量 K の s→t ダミー辺で表す。
+    - その他: 必須頂点の下限1を収支へ移す一般 MCF (超始点・超終点)。
+    整数費用を十分に拡大し、同費用ならパス本数を最小化する。
+    いずれも初期ネットワークは DAG で、必須頂点への罰金は使わない。
 
-    n 頂点 m 辺、実効本数上限 K、必須頂点数 R、最短路反復回数 A として
-    A <= K+R。構築 O(n+m)、空間 O(n+m)。solve の時間は sparse で
+    n 頂点 m 辺、実効本数上限 K、必須頂点数 R、増流回数上界 A として
+    必須なしは A<=K、点素全被覆は A<=n、一般の場合は A<=K+R。
+    構築 O(n+m)、空間 O(n+m)。solve の時間は sparse で
     O(n+m + A*(n+m+1)*log(n+m+2))、dense で O(n+m + A*((n+1)**2+m))。
     復元は総出力頂点数 L <= nK に対し O(n+m+L) 時間・空間。
     旧 DAGPathCover の solve 引数・整数返却と DAGPathOptimization は廃止。
@@ -115,6 +121,7 @@ class DAGPathCover:
             raise RuntimeError("solve() can only be called once")
         self._used = True
         n = self._n
+
         adj = [[] for _ in range(n)]
         indegree = [0] * n
         for u, v, _ in self._edges:
@@ -148,6 +155,93 @@ class DAGPathCover:
             self._count = 0
             return 0, 0
 
+        if not any(self._required):
+            return self._solve_optional(order, k)
+        if (self._disjoint and all(self._required)
+                and all(self._start_allowed) and all(self._end_allowed)):
+            return self._solve_full_cover(k)
+        return self._solve_general(order, k)
+
+    def _store(self, starts: list[int], ends: list[int],
+               edge_flow: list[int], cost: int) -> tuple[int, int]:
+        """各帰着で共通の復元用情報を保存する。"""
+        self._starts = starts
+        self._ends = ends
+        self._edge_flow = edge_flow
+        self._count = sum(starts)
+        return self._count, cost
+
+    def _solve_optional(self, order: list[int], k: int) -> tuple[int, int]:
+        """必須頂点なし。下限除去・超始終点・本数用ダミー辺を省く。"""
+        n = self._n
+        s, t = 0, 2 * n + 1
+        g = DAGMCFGraph(t + 1, s, t, dense=self._dense)
+        rank = [0] * n
+        for i, v in enumerate(order):
+            rank[v] = 2 * i + 1
+        scale = k + 1
+        starts = [-1] * n
+        ends = [-1] * n
+        for v in range(n):
+            vin = rank[v]
+            if self._start_allowed[v]:
+                starts[v] = g.add_edge(s, vin, k, self._start_cost[v] * scale + 1)
+            if self._end_allowed[v]:
+                ends[v] = g.add_edge(vin + 1, t, k, self._end_cost[v] * scale)
+            upper = 1 if self._disjoint or self._once else k
+            g.add_edge(vin, vin + 1, upper, -self._gain[v] * scale)
+            if not self._disjoint and self._once and k > 1:
+                g.add_edge(vin, vin + 1, k - 1, 0)
+        edge_ids = [g.add_edge(rank[u] + 1, rank[v], k, c * scale)
+                    for u, v, c in self._edges]
+        if self._exact is None:
+            flow, cost = g.min_cost_flow(k)
+        else:
+            flow, cost = g.flow(k)
+            if flow != k:
+                return -1, 0
+        start_flow = [g.get_edge(i).flow if i >= 0 else 0 for i in starts]
+        end_flow = [g.get_edge(i).flow if i >= 0 else 0 for i in ends]
+        edge_flow = [g.get_edge(i).flow for i in edge_ids]
+        count = sum(start_flow)
+        assert count == flow
+        return self._store(start_flow, end_flow, edge_flow, (cost - count) // scale)
+
+    def _solve_full_cover(self, k: int) -> tuple[int, int]:
+        """点素全被覆、始終点制限なし。単頂点パスから結合する二部 MCF。"""
+        n = self._n
+        s, t = 2 * n, 2 * n + 1
+        g = DAGMCFGraph(t + 1, s, t, dense=self._dense)
+        scale = n + 1
+        for v in range(n):
+            g.add_edge(s, v, 1, 0)
+            g.add_edge(n + v, t, 1, 0)
+        edge_ids = [g.add_edge(u, n + v, 1,
+                               (c - self._end_cost[u] - self._start_cost[v]) * scale - 1)
+                    for u, v, c in self._edges]
+        if self._exact is None:
+            # n 単位のうち、高々 k 単位を直通させる。残りはマッチング辺を通る。
+            g.add_edge(s, t, k, 0)
+            demand = n
+        else:
+            demand = n - k
+        flow, cost = g.flow(demand)
+        if flow != demand:
+            return -1, 0
+        edge_flow = [g.get_edge(i).flow for i in edge_ids]
+        starts = [1] * n
+        ends = [1] * n
+        for (u, v, _), f in zip(self._edges, edge_flow):
+            starts[v] -= f
+            ends[u] -= f
+        matched = sum(edge_flow)
+        base = sum(self._start_cost) + sum(self._end_cost) - sum(self._gain)
+        return self._store(starts, ends, edge_flow,
+                           base + (cost + matched) // scale)
+
+    def _solve_general(self, order: list[int], k: int) -> tuple[int, int]:
+        """一部だけ必須、または頂点共有。下限を収支へ移す一般 MCF。"""
+        n = self._n
         # 順序は source, s, 各頂点のin/out, t, sink。
         s, t = 0, 2 * n + 1
         source, sink = t + 1, t + 2
@@ -169,7 +263,6 @@ class DAGPathCover:
                 starts[v] = g.add_edge(s, vin, k, self._start_cost[v] * scale + 1)
             if self._end_allowed[v]:
                 ends[v] = g.add_edge(vin + 1, t, k, self._end_cost[v] * scale)
-            # 初回辺（または通過辺）の下限rを引く。固定費用も保存。
             upper = 1 if self._disjoint or self._once else k
             g.add_edge(vin, vin + 1, upper - r, -reward)
             if not self._disjoint and self._once and k > 1:
@@ -180,7 +273,7 @@ class DAGPathCover:
         edge_ids = [g.add_edge(rank[u] + 1, rank[v], k, c * scale)
                     for u, v, c in self._edges]
         if self._exact is None:
-            g.add_edge(s, t, k, 0)  # 使わない本数枠。
+            g.add_edge(s, t, k, 0)
         demand = 0
         for v, b in enumerate(balance):
             if b > 0:
@@ -191,11 +284,12 @@ class DAGPathCover:
         flow, cost = g.flow(demand)
         if flow != demand:
             return -1, 0
-        self._starts = [g.get_edge(i).flow if i >= 0 else 0 for i in starts]
-        self._ends = [g.get_edge(i).flow if i >= 0 else 0 for i in ends]
-        self._edge_flow = [g.get_edge(i).flow for i in edge_ids]
-        self._count = sum(self._starts)
-        return self._count, (base_cost + cost - self._count) // scale
+        start_flow = [g.get_edge(i).flow if i >= 0 else 0 for i in starts]
+        end_flow = [g.get_edge(i).flow if i >= 0 else 0 for i in ends]
+        edge_flow = [g.get_edge(i).flow for i in edge_ids]
+        count = sum(start_flow)
+        return self._store(start_flow, end_flow, edge_flow,
+                           (base_cost + cost - count) // scale)
 
     def paths(self) -> list[list[int]]:
         """直近の解の頂点列を独立なリストで返す。未計算・失敗後は RuntimeError。
