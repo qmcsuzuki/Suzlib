@@ -26,12 +26,20 @@ def check(n, edges, required, weights, starts, ends, bc, ec, k, disjoint, once, 
     for count in ([k] if exact else range(k + 1)):
         for chosen in combinations_with_replacement(range(len(candidates)), count):
             used = [0] * n
+            start_count = [0] * n
+            end_count = [0] * n
             cost = 0
             for i in chosen:
                 vs, c = candidates[i]
+                start_count[vs[0]] += 1
+                end_count[vs[-1]] += 1
                 cost += c
                 for v in vs:
                     used[v] += 1
+            if any(x > cap for x, cap in zip(start_count, starts)):
+                continue
+            if any(x > cap for x, cap in zip(end_count, ends)):
+                continue
             if disjoint and max(used, default=0) > 1:
                 continue
             if any(r and not x for r, x in zip(required, used)):
@@ -44,7 +52,7 @@ def check(n, edges, required, weights, starts, ends, bc, ec, k, disjoint, once, 
     kw = dict(path_count=k if exact else None, path_limit=None if exact else k)
     g = DAGPathCover(n, vertex_disjoint=disjoint, required=required,
                      vertex_gain=weights, gain_once=once, start_cost=bc, end_cost=ec,
-                     start_allowed=starts, end_allowed=ends, dense=dense, **kw)
+                     start_capacity=starts, end_capacity=ends, dense=dense, **kw)
     for i, e in enumerate(edges):
         assert g.add_edge(*e) == i
     rejects(g.paths)
@@ -60,9 +68,13 @@ def check(n, edges, required, weights, starts, ends, bc, ec, k, disjoint, once, 
     paths, edge_paths = g.paths(), g.edge_paths()
     assert len(paths) == len(edge_paths) == actual[0]
     used = [0] * n
+    start_count = [0] * n
+    end_count = [0] * n
     cost = 0
     for vs, es in zip(paths, edge_paths):
         assert vs and starts[vs[0]] and ends[vs[-1]]
+        start_count[vs[0]] += 1
+        end_count[vs[-1]] += 1
         cost += bc[vs[0]] + ec[vs[-1]]
         assert len(es) + 1 == len(vs) == len(set(vs))
         for u, v, i in zip(vs, vs[1:], es):
@@ -70,6 +82,8 @@ def check(n, edges, required, weights, starts, ends, bc, ec, k, disjoint, once, 
             cost += edges[i][2]
         for v in vs:
             used[v] += 1
+    assert all(x <= cap for x, cap in zip(start_count, starts))
+    assert all(x <= cap for x, cap in zip(end_count, ends))
     assert not disjoint or max(used, default=0) <= 1
     assert all(not r or x for r, x in zip(required, used))
     cost -= sum(w * (int(x > 0) if once else x) for w, x in zip(weights, used))
@@ -91,8 +105,8 @@ for _ in range(200):
     if edges and rng.randrange(2):
         u, v, _ = rng.choice(edges)
         edges.append((u, v, rng.randrange(-3, 4)))
-    starts = [bool(rng.randrange(2)) for _ in range(n)]
-    ends = [bool(rng.randrange(2)) for _ in range(n)]
+    starts = [rng.randrange(4) for _ in range(n)]
+    ends = [rng.randrange(4) for _ in range(n)]
     required = [bool(rng.randrange(2)) for _ in range(n)]
     bc = [rng.randrange(-3, 4) for _ in range(n)]
     ec = [rng.randrange(-3, 4) for _ in range(n)]
@@ -123,7 +137,7 @@ for _ in range(50):
             weights = [rng.randrange(5) if once and not disjoint
                        else rng.randrange(-4, 5) for _ in range(n)]
             for k in range(min(n + 1, 4)):
-                check(n, edges, required, weights, [True]*n, [True]*n,
+                check(n, edges, required, weights, [k]*n, [k]*n,
                       bc, ec, k, disjoint, once, exact, dense)
                 tests += 1
 
@@ -143,8 +157,8 @@ assert g.solve() == (-1, 0)
 rejects(g.paths)
 
 # 始終点制限がある全被覆は一般帰着へフォールバック。
-g = DAGPathCover(3, path_count=1, start_allowed=[True, False, False],
-                 end_allowed=[False, False, True],
+g = DAGPathCover(3, path_count=1, start_capacity=[1, 0, 0],
+                 end_capacity=[0, 0, 1],
                  vertex_disjoint=True, required=True, path_limit=None, start_cost=1, end_cost=0, vertex_gain=0, gain_once=True)
 g.add_edge(0, 1)
 g.add_edge(1, 2)
@@ -203,7 +217,7 @@ assert DAGPathCover(0, path_count=1,
                     vertex_disjoint=True, required=True, path_limit=None, start_cost=1, end_cost=0, vertex_gain=0, gain_once=True).solve() == (-1,0)
 assert DAGPathCover(1, path_limit=0,
                     vertex_disjoint=True, required=True, path_count=None, start_cost=1, end_cost=0, vertex_gain=0, gain_once=True).solve() == (-1,0)
-g = DAGPathCover(1, start_allowed=[False],
+g = DAGPathCover(1, start_capacity=[0],
                  vertex_disjoint=True, required=True, path_count=None, path_limit=None, start_cost=1, end_cost=0, vertex_gain=0, gain_once=True)
 assert g.solve() == (-1,0)
 rejects(g.paths)
@@ -245,3 +259,44 @@ for v in range(n-1):
 assert g.solve() == (1,1)
 assert g.paths() == [list(range(n-1,-1,-1))]
 print('DAGPathCover:', tests, 'brute-force comparisons and regressions passed')
+
+# 開始・終了上限は途中の共有とは独立。両方の指定形式と配列コピーも検査する。
+for dense, required in product((False, True), repeat=2):
+    def make(start_capacity, end_capacity, count=2):
+        return DAGPathCover(
+            3, vertex_disjoint=False, required=required,
+            path_count=count, path_limit=None, start_cost=0, end_cost=0,
+            vertex_gain=[1, 1, 1], gain_once=True,
+            start_capacity=start_capacity, end_capacity=end_capacity, dense=dense,
+        )
+
+    starts = [1, 1, 0]
+    g = make(starts, [0, 0, 2])
+    starts[0] = 0
+    g.add_edge(0, 2)
+    g.add_edge(1, 2)
+    assert g.solve() == (2, -3)
+    assert sorted(g.paths()) == [[0, 2], [1, 2]]
+    g = make([1, 1, 0], [0, 0, 1])
+    g.add_edge(0, 2)
+    g.add_edge(1, 2)
+    assert g.solve() == (-1, 0)
+
+    ends = [0, 1, 1]
+    g = make([2, 0, 0], ends)
+    ends[1] = 0
+    g.add_edge(0, 1)
+    g.add_edge(0, 2)
+    assert g.solve() == (2, -3)
+    assert sorted(g.paths()) == [[0, 1], [0, 2]]
+    g = make([1, 0, 0], [0, 1, 1])
+    g.add_edge(0, 1)
+    g.add_edge(0, 2)
+    assert g.solve() == (-1, 0)
+    assert make(1, 1, count=3).solve() == (3, -3)
+    assert make(0, None).solve() == (-1, 0)
+    assert make(None, 0).solve() == (-1, 0)
+    rejects(lambda: make(-1, None), AssertionError)
+    rejects(lambda: make(None, [0, -1, 1]), AssertionError)
+    rejects(lambda: make([1], None), AssertionError)
+print("Endpoint capacity regressions passed")

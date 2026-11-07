@@ -15,7 +15,7 @@ class DAGPathCover:
 
     条件によって帰着を切り替え、最適化には常に DAGMCFGraph を使う。
     - 必須頂点なし: 通常の MCF。上限本数では min_cost_flow を使う。
-    - 点素・全頂点必須・始終点制限なし: 二部マッチングを MCF で解く。
+    - 点素・全頂点必須・全頂点で開始終了可能: 二部マッチングを MCF で解く。
       初期状態は全頂点が単独パス。辺 u→v の結合費用は c_uv-C_u-B_v。
       本数ちょうど K は n-K 個のマッチ、本数高々 K は n 単位の流量と
       容量 K の s→t ダミー辺で表す。
@@ -36,8 +36,8 @@ class DAGPathCover:
         end_cost: int | list[int],
         vertex_gain: int | list[int],
         gain_once: bool,
-        start_allowed: list[bool] | None = None,
-        end_allowed: list[bool] | None = None,
+        start_capacity: int | list[int] | None = None,
+        end_capacity: int | list[int] | None = None,
         dense: bool = False,
     ) -> None:
         """費用・報酬は整数または長さnの整数配列。
@@ -49,7 +49,11 @@ class DAGPathCover:
         開始・終了・辺費用がすべて非負の場合のみ上限nとし、それ以外は指定必須。
         共有可かつ gain_once=True では頂点報酬は非負に限る。
         点素または gain_once=False なら負の頂点報酬も許す。
-        始終点許可は長さnのbool配列。None は全頂点許可。
+        start_capacity / end_capacity は各頂点で開始 / 終了できるパス数の上限。
+        None は個別の制限なし、非負整数は全頂点共通、長さnの整数配列は頂点ごと。
+        0 は禁止、1 は高々1本。途中の頂点共有は vertex_disjoint で指定する。
+        例: start_capacity=1, end_capacity=None は各始点を高々1回、終点は制限なし。
+        旧 start_allowed / end_allowed は廃止。許可は本数上限K、禁止は0へ置換する。
         """
         assert n >= 0
         if path_count is not None and path_limit is not None:
@@ -71,8 +75,13 @@ class DAGPathCover:
         self._start_cost = values(start_cost)
         self._end_cost = values(end_cost)
         self._gain = values(vertex_gain)
-        self._start_allowed = values(True if start_allowed is None else start_allowed)
-        self._end_allowed = values(True if end_allowed is None else end_allowed)
+        # -1 は個別制限なしの内部表現。入力の負容量は許さない。
+        self._start_capacity = values(-1 if start_capacity is None else start_capacity)
+        self._end_capacity = values(-1 if end_capacity is None else end_capacity)
+        if start_capacity is not None:
+            assert all(isinstance(c, int) and c >= 0 for c in self._start_capacity)
+        if end_capacity is not None:
+            assert all(isinstance(c, int) and c >= 0 for c in self._end_capacity)
         self._once = gain_once
         self._exact = path_count
         self._limit = path_limit
@@ -138,7 +147,7 @@ class DAGPathCover:
         if not any(self._required):
             return self._solve_optional(order, k)
         if (self._disjoint and all(self._required)
-                and all(self._start_allowed) and all(self._end_allowed)):
+                and all(self._start_capacity) and all(self._end_capacity)):
             return self._solve_full_cover(k)
         return self._solve_general(order, k)
 
@@ -164,10 +173,14 @@ class DAGPathCover:
         ends = [-1] * n
         for v in range(n):
             vin = rank[v]
-            if self._start_allowed[v]:
-                starts[v] = g.add_edge(s, vin, k, self._start_cost[v] * scale + 1)
-            if self._end_allowed[v]:
-                ends[v] = g.add_edge(vin + 1, t, k, self._end_cost[v] * scale)
+            start_cap = self._start_capacity[v]
+            end_cap = self._end_capacity[v]
+            if start_cap:
+                cap = k if start_cap < 0 else min(k, start_cap)
+                starts[v] = g.add_edge(s, vin, cap, self._start_cost[v] * scale + 1)
+            if end_cap:
+                cap = k if end_cap < 0 else min(k, end_cap)
+                ends[v] = g.add_edge(vin + 1, t, cap, self._end_cost[v] * scale)
             upper = 1 if self._disjoint or self._once else k
             g.add_edge(vin, vin + 1, upper, -self._gain[v] * scale)
             if not self._disjoint and self._once and k > 1:
@@ -188,7 +201,7 @@ class DAGPathCover:
         return self._store(start_flow, end_flow, edge_flow, (cost - count) // scale)
 
     def _solve_full_cover(self, k: int) -> tuple[int, int]:
-        """点素全被覆、始終点制限なし。単頂点パスから結合する二部 MCF。"""
+        """点素全被覆、全頂点で開始終了可能。単頂点パスから結合する二部 MCF。"""
         n = self._n
         s, t = 2 * n, 2 * n + 1
         g = DAGMCFGraph(t + 1, s, t, dense=self._dense)
@@ -239,10 +252,14 @@ class DAGPathCover:
             vin = rank[v]
             r = int(bool(self._required[v]))
             reward = self._gain[v] * scale
-            if self._start_allowed[v]:
-                starts[v] = g.add_edge(s, vin, k, self._start_cost[v] * scale + 1)
-            if self._end_allowed[v]:
-                ends[v] = g.add_edge(vin + 1, t, k, self._end_cost[v] * scale)
+            start_cap = self._start_capacity[v]
+            end_cap = self._end_capacity[v]
+            if start_cap:
+                cap = k if start_cap < 0 else min(k, start_cap)
+                starts[v] = g.add_edge(s, vin, cap, self._start_cost[v] * scale + 1)
+            if end_cap:
+                cap = k if end_cap < 0 else min(k, end_cap)
+                ends[v] = g.add_edge(vin + 1, t, cap, self._end_cost[v] * scale)
             upper = 1 if self._disjoint or self._once else k
             g.add_edge(vin, vin + 1, upper - r, -reward)
             if not self._disjoint and self._once and k > 1:
