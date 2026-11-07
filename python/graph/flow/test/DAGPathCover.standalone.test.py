@@ -41,7 +41,7 @@ def check(n, edges, required, weights, starts, ends, bc, ec, k, disjoint, once, 
             if best is None or key < best:
                 best = key
     expected = (-1, 0) if best is None else (best[1], best[0])
-    kw = {'path_count' if exact else 'path_limit': k}
+    kw = dict(path_count=k if exact else None, path_limit=None if exact else k)
     g = DAGPathCover(n, vertex_disjoint=disjoint, required=required,
                      vertex_gain=weights, gain_once=once, start_cost=bc, end_cost=ec,
                      start_allowed=starts, end_allowed=ends, dense=dense, **kw)
@@ -128,21 +128,24 @@ for _ in range(50):
                 tests += 1
 
 # 全被覆は「初期単頂点パスからの結合」。同費用なら結合数最大。
-g = DAGPathCover(4, path_limit=4, start_cost=0)
+g = DAGPathCover(4, path_limit=4, start_cost=0,
+                 vertex_disjoint=True, required=True, path_count=None, end_cost=0, vertex_gain=0, gain_once=True)
 for u, v in [(0, 1), (1, 2), (2, 3)]:
     g.add_edge(u, v)
 assert g.solve() == (1, 0)
 assert g.paths() == [[0, 1, 2, 3]]
 
 # 全被覆・本数上限の不可能判定。マッチング数が n-K に届かない。
-g = DAGPathCover(4, path_limit=1)
+g = DAGPathCover(4, path_limit=1,
+                 vertex_disjoint=True, required=True, path_count=None, start_cost=1, end_cost=0, vertex_gain=0, gain_once=True)
 g.add_edge(0, 1)
 assert g.solve() == (-1, 0)
 rejects(g.paths)
 
 # 始終点制限がある全被覆は一般帰着へフォールバック。
 g = DAGPathCover(3, path_count=1, start_allowed=[True, False, False],
-                 end_allowed=[False, False, True])
+                 end_allowed=[False, False, True],
+                 vertex_disjoint=True, required=True, path_limit=None, start_cost=1, end_cost=0, vertex_gain=0, gain_once=True)
 g.add_edge(0, 1)
 g.add_edge(1, 2)
 assert g.solve() == (1, 1)
@@ -153,7 +156,8 @@ for a, c, expected in [([4,25,1000000000,9,19,22],10,44),
                         ([3,1,4,1,5],100,112),
                         ([6708,1391,3108,7953,7797,2370,7699,1098,2362,2359],5301,17095)]:
     for dense in (False, True):
-        g = DAGPathCover(len(a), start_cost=c, dense=dense)
+        g = DAGPathCover(len(a), start_cost=c, dense=dense,
+                         vertex_disjoint=True, required=True, path_count=None, path_limit=None, end_cost=0, vertex_gain=0, gain_once=True)
         for j in range(len(a)):
             for i in range(j):
                 g.add_edge(i, j, abs(a[i]-a[j]))
@@ -166,19 +170,22 @@ for n, edges, weights, expected in [
     (5, [(0,2),(1,2),(2,3),(2,4)], [1,1,2,1,1], 6),
 ]:
     g = DAGPathCover(n, vertex_disjoint=False, required=False, path_limit=2,
-                     start_cost=0, vertex_gain=weights)
+                     start_cost=0, vertex_gain=weights,
+                     path_count=None, end_cost=0, gain_once=True)
     for e in edges:
         g.add_edge(*e)
     assert g.solve()[1] == -expected
 
 # 通常のパス被覆、共有による改善、同費用なら本数最小。
 for disjoint, expected in [(True,3),(False,2)]:
-    g = DAGPathCover(5, vertex_disjoint=disjoint)
+    g = DAGPathCover(5, vertex_disjoint=disjoint,
+                     required=True, path_count=None, path_limit=None, start_cost=1, end_cost=0, vertex_gain=0, gain_once=True)
     for e in [(0,2),(1,2),(2,3),(2,4)]:
         g.add_edge(*e)
     assert g.solve() == (expected, expected)
 for required, expected in [(True,(1,0)), (False,(0,0))]:
-    g = DAGPathCover(3, required=required, start_cost=0)
+    g = DAGPathCover(3, required=required, start_cost=0,
+                     vertex_disjoint=True, path_count=None, path_limit=None, end_cost=0, vertex_gain=0, gain_once=True)
     g.add_edge(0,1)
     g.add_edge(1,2)
     assert g.solve() == expected
@@ -186,26 +193,37 @@ for required, expected in [(True,(1,0)), (False,(0,0))]:
 # 入力配列のコピー、空グラフ、失敗時の復元禁止、引数の検査。
 r = [True]
 b = [5]
-g = DAGPathCover(1, required=r, start_cost=b)
+g = DAGPathCover(1, required=r, start_cost=b,
+                 vertex_disjoint=True, path_count=None, path_limit=None, end_cost=0, vertex_gain=0, gain_once=True)
 r[0], b[0] = False, -100
 assert g.solve() == (1,5)
-assert DAGPathCover(0).solve() == (0,0)
-assert DAGPathCover(0, path_count=1).solve() == (-1,0)
-assert DAGPathCover(1, path_limit=0).solve() == (-1,0)
-g = DAGPathCover(1, start_allowed=[False])
+assert DAGPathCover(0,
+                    vertex_disjoint=True, required=True, path_count=None, path_limit=None, start_cost=1, end_cost=0, vertex_gain=0, gain_once=True).solve() == (0,0)
+assert DAGPathCover(0, path_count=1,
+                    vertex_disjoint=True, required=True, path_limit=None, start_cost=1, end_cost=0, vertex_gain=0, gain_once=True).solve() == (-1,0)
+assert DAGPathCover(1, path_limit=0,
+                    vertex_disjoint=True, required=True, path_count=None, start_cost=1, end_cost=0, vertex_gain=0, gain_once=True).solve() == (-1,0)
+g = DAGPathCover(1, start_allowed=[False],
+                 vertex_disjoint=True, required=True, path_count=None, path_limit=None, start_cost=1, end_cost=0, vertex_gain=0, gain_once=True)
 assert g.solve() == (-1,0)
 rejects(g.paths)
-rejects(lambda: DAGPathCover(1, path_count=1, path_limit=2), ValueError)
-rejects(lambda: DAGPathCover(2, required=[True]), AssertionError)
-rejects(lambda: DAGPathCover(1, vertex_disjoint=False, vertex_gain=-1), ValueError)
+rejects(lambda: DAGPathCover(1, path_count=1, path_limit=2,
+                             vertex_disjoint=True, required=True, start_cost=1, end_cost=0, vertex_gain=0, gain_once=True), ValueError)
+rejects(lambda: DAGPathCover(2, required=[True],
+                             vertex_disjoint=True, path_count=None, path_limit=None, start_cost=1, end_cost=0, vertex_gain=0, gain_once=True), AssertionError)
+rejects(lambda: DAGPathCover(1, vertex_disjoint=False, vertex_gain=-1,
+                             required=True, path_count=None, path_limit=None, start_cost=1, end_cost=0, gain_once=True), ValueError)
 for options in [dict(start_cost=-1),dict(end_cost=-1),dict(gain_once=False)]:
-    g = DAGPathCover(1, vertex_disjoint=False, **options)
+    g = DAGPathCover(1, vertex_disjoint=False, start_cost=options.get("start_cost", 1), end_cost=options.get("end_cost", 0), gain_once=options.get("gain_once", True),
+                     required=True, path_count=None, path_limit=None, vertex_gain=0)
     rejects(g.solve, ValueError)
-g = DAGPathCover(2, vertex_disjoint=False)
+g = DAGPathCover(2, vertex_disjoint=False,
+                 required=True, path_count=None, path_limit=None, start_cost=1, end_cost=0, vertex_gain=0, gain_once=True)
 g.add_edge(0,1,-1)
 rejects(g.solve, ValueError)
 for edges in [[(0,0)], [(0,1),(1,0)]]:
-    g = DAGPathCover(2, required=False, path_limit=0)
+    g = DAGPathCover(2, required=False, path_limit=0,
+                     vertex_disjoint=True, path_count=None, start_cost=1, end_cost=0, vertex_gain=0, gain_once=True)
     for e in edges:
         g.add_edge(*e)
     rejects(g.solve, ValueError)
@@ -213,13 +231,15 @@ for edges in [[(0,0)], [(0,1),(1,0)]]:
 
 # 大きな整数と負の最適費用の復号。巨大な流量は一度に流せる。
 g = DAGPathCover(1, vertex_disjoint=False, path_count=10**6,
-                 start_cost=-10**30, gain_once=False, vertex_gain=7)
+                 start_cost=-10**30, gain_once=False, vertex_gain=7,
+                 required=True, path_limit=None, end_cost=0)
 assert g.solve() == (10**6, -(10**30+7)*10**6)
 # 非再帰復元は必須頂点を端点に限定して長さを検査。
 n = 2500
 r = [False]*n
 r[0] = r[-1] = True
-g = DAGPathCover(n, required=r)
+g = DAGPathCover(n, required=r,
+                 vertex_disjoint=True, path_count=None, path_limit=None, start_cost=1, end_cost=0, vertex_gain=0, gain_once=True)
 for v in range(n-1):
     g.add_edge(v+1,v)
 assert g.solve() == (1,1)

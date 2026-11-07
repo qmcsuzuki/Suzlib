@@ -6,26 +6,16 @@ from python.graph.flow.MinCostFlow import DAGMCFGraph
 class DAGPathCover:
     """DAG のパス集合について、開始費用 + 終了費用 + 辺費用 - 頂点報酬を最小化。
 
-    デフォルトは全頂点必須・点素・開始費用1なので、最小本数のパス被覆。
     条件はコンストラクタで確定し、辺を追加して solve() を一度だけ呼ぶ。
     成功時は (本数, 総費用)、実行不能は (-1, 0)。同費用なら本数最小。
     頂点番号は任意の 0..n-1。単頂点パス、多重辺、空グラフを許す。
     共有可では同じパスを複数回選べる。空パスは結果に含めない。
 
-    使用例:
-        g = DAGPathCover(3)
-        g.add_edge(0, 1)
-        g.add_edge(1, 2)
-        count, cost = g.solve()  # (1, 1)
-        paths = g.paths()       # [[0, 1, 2]]
-
-        # PAST202107 M 型: start_cost=C、辺費用 abs(A[j]-A[i])。
-        # TDPC R 型（SCC 縮約は呼び出し側）:
-        g = DAGPathCover(3, vertex_disjoint=False, required=False,
-                         path_limit=2, start_cost=0, vertex_gain=[1, 1, 1])
-        g.add_edge(0, 2)
-        g.add_edge(1, 2)
-        count, cost = g.solve()  # (2, -3)。最大報酬は -cost。
+    使用例（n: 頂点数、K: 本数、weights: 各頂点の報酬）:
+        # 点素パス被覆（全頂点を被覆し、本数最小。辺費用は0）
+        DAGPathCover(n, vertex_disjoint=True, required=True, path_count=None, path_limit=None, start_cost=1, end_cost=0, vertex_gain=0, gain_once=True)
+        # K本・頂点報酬は1回のみ（頂点共有可、被覆義務なし）
+        DAGPathCover(n, vertex_disjoint=False, required=False, path_count=K, path_limit=None, start_cost=0, end_cost=0, vertex_gain=weights, gain_once=True)
 
     条件によって帰着を切り替え、最適化には常に DAGMCFGraph を使う。
     - 必須頂点なし: 通常の MCF。上限本数では min_cost_flow を使う。
@@ -46,14 +36,14 @@ class DAGPathCover:
     """
 
     def __init__(
-        self, n: int, vertex_disjoint: bool = True, *,
-        required: bool | list[bool] | None = None,
-        path_count: int | None = None,
-        path_limit: int | None = None,
-        start_cost: int | list[int] = 1,
-        end_cost: int | list[int] = 0,
-        vertex_gain: int | list[int] = 0,
-        gain_once: bool = True,
+        self, n: int, vertex_disjoint: bool, *,
+        required: bool | list[bool] | None,
+        path_count: int | None,
+        path_limit: int | None,
+        start_cost: int | list[int],
+        end_cost: int | list[int],
+        vertex_gain: int | list[int],
+        gain_once: bool,
         start_allowed: list[bool] | None = None,
         end_allowed: list[bool] | None = None,
         dense: bool = False,
@@ -61,8 +51,10 @@ class DAGPathCover:
         """条件をコピーして保持する。費用・報酬は整数または長さnの整数配列。
 
         required=None/True は全頂点必須、False は義務なし、配列は頂点ごと。
-        path_count はちょうど、path_limit は高々の本数。併用不可。
-        本数指定なしは点素なら上限n。共有可では gain_once=True かつ
+        問題設定の引数はすべて必須。始終点制限と dense のみ省略可。
+        path_count はちょうど、path_limit は高々の本数。両方を明示し、
+        使用しない側には None を渡す。両方に整数を指定することは不可。
+        両方 None は点素なら上限n。共有可では gain_once=True かつ
         開始・終了・辺費用がすべて非負の場合のみ上限nとし、それ以外は指定必須。
         共有可かつ gain_once=True では頂点報酬は非負に限る。
         点素または gain_once=False なら負の頂点報酬も許す。
