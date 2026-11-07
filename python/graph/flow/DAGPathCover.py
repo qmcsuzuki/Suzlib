@@ -5,11 +5,7 @@ from python.graph.flow.MinCostFlow import DAGMCFGraph
 
 class DAGPathCover:
     """DAG のパス集合について、開始費用 + 終了費用 + 辺費用 - 頂点報酬を最小化。
-
-    条件はコンストラクタで確定し、辺を追加して solve() を一度だけ呼ぶ。
-    成功時は (本数, 総費用)、実行不能は (-1, 0)。同費用なら本数最小。
-    頂点番号は任意の 0..n-1。単頂点パス、多重辺、空グラフを許す。
-    共有可では同じパスを複数回選べる。空パスは結果に含めない。
+    成功時は (本数, 総費用)、実行不能は (-1, 0)。同費用なら本数最小。共有可では同じパスを複数回選べる。空パスは結果に含めない。
 
     使用例（n: 頂点数、K: 本数、weights: 各頂点の報酬）:
         # 点素パス被覆（全頂点を被覆し、本数最小。辺費用は0）
@@ -29,10 +25,6 @@ class DAGPathCover:
 
     n 頂点 m 辺、実効本数上限 K、必須頂点数 R、増流回数上界 A として
     必須なしは A<=K、点素全被覆は A<=n、一般の場合は A<=K+R。
-    構築 O(n+m)、空間 O(n+m)。solve の時間は sparse で
-    O(n+m + A*(n+m+1)*log(n+m+2))、dense で O(n+m + A*((n+1)**2+m))。
-    復元は総出力頂点数 L <= nK に対し O(n+m+L) 時間・空間。
-    旧 DAGPathCover の solve 引数・整数返却と DAGPathOptimization は廃止。
     """
 
     def __init__(
@@ -48,10 +40,9 @@ class DAGPathCover:
         end_allowed: list[bool] | None = None,
         dense: bool = False,
     ) -> None:
-        """条件をコピーして保持する。費用・報酬は整数または長さnの整数配列。
+        """費用・報酬は整数または長さnの整数配列。
 
         required=None/True は全頂点必須、False は義務なし、配列は頂点ごと。
-        問題設定の引数はすべて必須。始終点制限と dense のみ省略可。
         path_count はちょうど、path_limit は高々の本数。両方を明示し、
         使用しない側には None を渡す。両方に整数を指定することは不可。
         両方 None は点素なら上限n。共有可では gain_once=True かつ
@@ -105,10 +96,7 @@ class DAGPathCover:
         return i
 
     def solve(self) -> tuple[int, int]:
-        """(本数, 最小総費用) を返す。実行不能は (-1, 0)。一度だけ呼べる。
-
-        閉路（自己ループ含む）や共有可で必要な本数指定がない場合は ValueError。
-        """
+        """(本数, 最小総費用) を返す。実行不能は (-1, 0)。一度だけ呼べる。"""
         if self._used:
             raise RuntimeError("solve() can only be called once")
         self._used = True
