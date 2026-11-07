@@ -260,7 +260,7 @@ assert g.solve() == (1,1)
 assert g.paths() == [list(range(n-1,-1,-1))]
 print('DAGPathCover:', tests, 'brute-force comparisons and regressions passed')
 
-# 開始・終了上限は途中の共有とは独立。両方の指定形式と配列コピーも検査する。
+# 開始・終了上限は途中の共有とは独立。配列指定とコピーも検査する。
 for dense, required in product((False, True), repeat=2):
     def make(start_capacity, end_capacity, count=2):
         return DAGPathCover(
@@ -293,10 +293,12 @@ for dense, required in product((False, True), repeat=2):
     g.add_edge(0, 1)
     g.add_edge(0, 2)
     assert g.solve() == (-1, 0)
-    assert make(1, 1, count=3).solve() == (3, -3)
-    assert make(0, None).solve() == (-1, 0)
-    assert make(None, 0).solve() == (-1, 0)
-    rejects(lambda: make(-1, None), AssertionError)
+    assert make([1]*3, [1]*3, count=3).solve() == (3, -3)
+    assert make([0]*3, None).solve() == (-1, 0)
+    assert make(None, [0]*3).solve() == (-1, 0)
+    rejects(lambda: make(1, None), AssertionError)
+    rejects(lambda: make(None, 0), AssertionError)
+    rejects(lambda: make([-1]*3, None), AssertionError)
     rejects(lambda: make(None, [0, -1, 1]), AssertionError)
     rejects(lambda: make([1], None), AssertionError)
 print("Endpoint capacity regressions passed")

@@ -36,8 +36,8 @@ class DAGPathCover:
         end_cost: int | list[int],
         vertex_gain: int | list[int],
         gain_once: bool,
-        start_capacity: int | list[int] | None = None,
-        end_capacity: int | list[int] | None = None,
+        start_capacity: list[int] | None = None,
+        end_capacity: list[int] | None = None,
         dense: bool = False,
     ) -> None:
         """費用・報酬は整数または長さnの整数配列。
@@ -50,9 +50,9 @@ class DAGPathCover:
         共有可かつ gain_once=True では頂点報酬は非負に限る。
         点素または gain_once=False なら負の頂点報酬も許す。
         start_capacity / end_capacity は各頂点で開始 / 終了できるパス数の上限。
-        None は個別の制限なし、非負整数は全頂点共通、長さnの整数配列は頂点ごと。
-        0 は禁止、1 は高々1本。途中の頂点共有は vertex_disjoint で指定する。
-        例: start_capacity=1, end_capacity=None は各始点を高々1回、終点は制限なし。
+        指定する場合は長さnの非負整数配列。要素 i が頂点 i の上限を表す。
+        None は個別の制限なし。途中の頂点共有は vertex_disjoint で指定する。
+        例: start_capacity=[1]*n, end_capacity=None は各始点を高々1回、終点は制限なし。
         旧 start_allowed / end_allowed は廃止。許可は本数上限K、禁止は0へ置換する。
         """
         assert n >= 0
@@ -76,12 +76,14 @@ class DAGPathCover:
         self._end_cost = values(end_cost)
         self._gain = values(vertex_gain)
         # -1 は個別制限なしの内部表現。入力の負容量は許さない。
-        self._start_capacity = values(-1 if start_capacity is None else start_capacity)
-        self._end_capacity = values(-1 if end_capacity is None else end_capacity)
         if start_capacity is not None:
-            assert all(isinstance(c, int) and c >= 0 for c in self._start_capacity)
+            assert isinstance(start_capacity, list) and len(start_capacity) == n
+            assert all(isinstance(c, int) and c >= 0 for c in start_capacity)
         if end_capacity is not None:
-            assert all(isinstance(c, int) and c >= 0 for c in self._end_capacity)
+            assert isinstance(end_capacity, list) and len(end_capacity) == n
+            assert all(isinstance(c, int) and c >= 0 for c in end_capacity)
+        self._start_capacity = [-1] * n if start_capacity is None else start_capacity.copy()
+        self._end_capacity = [-1] * n if end_capacity is None else end_capacity.copy()
         self._once = gain_once
         self._exact = path_count
         self._limit = path_limit
