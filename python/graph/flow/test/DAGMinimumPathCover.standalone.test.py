@@ -13,52 +13,39 @@ def rejects(fn, error=RuntimeError):
     raise AssertionError('expected exception')
 
 
-def check(n, edges, disjoint=True, required=None, starts=None, ends=None):
-    req = [True] * n if required is None else required
-    sc = [n] * n if starts is None else starts
-    ec = [n] * n if ends is None else ends
+def check(n, edges):
     candidates = []
-    stack = [[v] for v in range(n) if sc[v]]
+    stack = [[v] for v in range(n) ]
     while stack:
         path = stack.pop()
-        if ec[path[-1]]:
-            candidates.append(path)
+        candidates.append(path)
         for u, v in set(edges):
             if u == path[-1]:
                 stack.append(path + [v])
 
     def valid(paths):
-        used, begin, end = [0] * n, [0] * n, [0] * n
+        used = [0] * n
         for path in paths:
-            begin[path[0]] += 1
-            end[path[-1]] += 1
             for v in path:
                 used[v] += 1
-        return (all(not r or used[v] for v, r in enumerate(req))
-                and (not disjoint or all(x <= 1 for x in used))
-                and all(x <= c for x, c in zip(begin, sc))
-                and all(x <= c for x, c in zip(end, ec)))
+        return used == [1] * n
 
     expected = -1
     # 同じパスの重複は最小解では不要。
-    for k in range(sum(req) + 1):
+    for k in range(n + 1):
         if any(valid(paths) for paths in combinations(candidates, k)):
             expected = k
             break
-    g = DAGMinimumPathCover(n, disjoint, required=required,
-                            start_capacity=starts, end_capacity=ends)
+    g = DAGMinimumPathCover(n)
     for i, (u, v) in enumerate(edges):
         assert g.add_edge(u, v) == i
     rejects(g.paths)
     rejects(g.edge_paths)
     result = g.solve()
-    assert result == expected, (n, edges, disjoint, req, sc, ec, result, expected)
+    assert result == expected, (n, edges, result, expected)
     rejects(g.solve)
     if n:
         rejects(lambda: g.add_edge(0, 0))
-    if result < 0:
-        rejects(g.paths)
-        return
     paths, edge_paths = g.paths(), g.edge_paths()
     assert len(paths) == len(edge_paths) == result
     assert valid(paths)
@@ -75,15 +62,11 @@ check(0, [])
 check(1, [])
 # X 字型。点素では3本、共有可では2本。
 x = [(0, 2), (1, 2), (2, 3), (2, 4)]
-for disjoint in (False, True):
-    check(5, x, disjoint)
-    check(5, x, disjoint, starts=[1, 1, 0, 0, 0], ends=[0, 0, 0, 1, 1])
+check(5, x)
 check(3, [(2, 0), (2, 0), (0, 1)])
-check(3, [(2, 0), (0, 1)], False, [False, True, False], [0, 0, 1], [0, 1, 0])
-check(2, [(0, 1)], starts=[0, 0])
-check(2, [(0, 1)], required=[False, False], starts=[0, 0])
+check(4, [])
 for edges in ([(0, 0)], [(0, 1), (1, 0)]):
-    g = DAGMinimumPathCover(2, required=[False, False])
+    g = DAGMinimumPathCover(2)
     for e in edges:
         g.add_edge(*e)
     rejects(g.solve, ValueError)
@@ -98,10 +81,7 @@ for _ in range(400):
              if rng.randrange(3) == 0]
     if edges and rng.randrange(3) == 0:
         edges.append(edges[0])
-    check(n, edges, bool(rng.randrange(2)),
-          None if rng.randrange(3) == 0 else [bool(rng.randrange(2)) for _ in range(n)],
-          None if rng.randrange(3) == 0 else [rng.randrange(3) for _ in range(n)],
-          None if rng.randrange(3) == 0 else [rng.randrange(3) for _ in range(n)])
+    check(n, edges)
 
 # 非再帰の復元と基本形の大きめの入力。
 n = 5000
