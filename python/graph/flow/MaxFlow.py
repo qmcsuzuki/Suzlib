@@ -371,3 +371,26 @@ class MFGraph:
                     visited[u] = True
                     stack.append(u)
         return visited
+
+    def min_cut_partition(self, s: int, t: int) -> list[int]:
+        """最大流後の残余グラフで各頂点を3分類する。O(V+E) 時間、O(V) 追加空間。
+
+        0: s から到達可能、2: t に到達可能、1: どちらでもない。
+        s-t 最大流を流し切った後に呼ぶ。残余 s-t パスがあれば AssertionError。
+        グラフの状態は変更しない。
+        使用例: g.flow(s, t); group = g.min_cut_partition(s, t)
+        """
+        assert 0 <= s < self._n and 0 <= t < self._n and s != t
+        group = [0 if reached else 1 for reached in self.min_cut(s)]
+        assert group[t] == 1, "call flow(s, t) to completion first"
+        g, to, cap = self._g, self._to, self._cap
+        group[t] = 2
+        stack = [t]
+        while stack:
+            v = stack.pop()
+            for i in g[v]:
+                u = to[i]
+                if cap[i ^ 1] > 0 and group[u] == 1:
+                    group[u] = 2
+                    stack.append(u)
+        return group
