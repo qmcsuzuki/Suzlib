@@ -20,12 +20,20 @@ class DAGMinimumPathCover:
     n 頂点 m 辺に対し、基本形 O((n+m) sqrt(n))、一般形 O(n^2(n+m))、
     空間 O(n+m)。復元は O(n+m+出力長)。
 
-    使用例:
-        g = DAGMinimumPathCover(3)
-        g.add_edge(0, 1)
-        g.add_edge(1, 2)
-        assert g.solve() == 1
-        assert g.paths() == [[0, 1, 2]]
+    使用例（n: 頂点数、edges: 有向辺 (u, v) の列）:
+        # 点素パス被覆（全頂点を被覆し、本数最小）
+        g = DAGMinimumPathCover(n, vertex_disjoint=True)
+        # 頂点共有可で全頂点を被覆
+        g = DAGMinimumPathCover(n, vertex_disjoint=False)
+        # 指定頂点だけ必須、各始点を高々1回使用（required: 長さnのbool配列）
+        g = DAGMinimumPathCover(n, vertex_disjoint=False, required=required, start_capacity=[1]*n)
+
+        # 上のいずれかで初期化後
+        for u, v in edges:
+            g.add_edge(u, v)
+        count = g.solve()  # 最小本数。実行不能なら -1
+        if count != -1:
+            paths = g.paths()  # 各パスの頂点列
     """
 
     def __init__(self, n: int, vertex_disjoint: bool = True, *,
