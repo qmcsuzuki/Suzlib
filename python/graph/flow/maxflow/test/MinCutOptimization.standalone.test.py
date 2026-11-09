@@ -3,7 +3,7 @@
 from itertools import product
 from random import Random
 
-from python.graph.flow.MinCutOptimization import MinCutOptimization
+from python.graph.flow.maxflow.MinCutOptimization import MinCutOptimization
 
 
 def brute_force(

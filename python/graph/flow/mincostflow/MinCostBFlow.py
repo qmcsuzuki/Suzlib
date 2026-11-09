@@ -2,7 +2,7 @@
 
 from typing import NamedTuple
 
-from python.graph.flow.MinCostFlow import MCFGraph
+from python.graph.flow.mincostflow.MinCostFlow import MCFGraph
 
 
 class MinCostBFlow:

@@ -2,8 +2,8 @@
 from random import Random
 from functools import lru_cache
 
-from python.graph.flow.VertexCapacitatedPaths import VertexCapacitatedPaths
-from python.graph.flow.MaxFlow import MFGraph
+from python.graph.flow.maxflow.VertexCapacitatedPaths import VertexCapacitatedPaths
+from python.graph.flow.maxflow.MaxFlow import MFGraph
 
 
 def rejects(fn):

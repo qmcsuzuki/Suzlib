@@ -1,7 +1,7 @@
 # competitive-verifier: STANDALONE
 from random import Random
 
-from python.graph.flow.MaxFlow import MFGraph
+from python.graph.flow.maxflow.MaxFlow import MFGraph
 
 
 def check(n, edges, s, t):

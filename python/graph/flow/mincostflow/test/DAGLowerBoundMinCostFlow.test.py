@@ -1,6 +1,6 @@
 # competitive-verifier: PROBLEM https://atcoder.jp/contests/bogosortcontest_div2/tasks/bogosortcontest_div2_g
 
-from python.graph.flow.DAGLowerBoundMinCostFlow import DAGLowerBoundMinCostFlow
+from python.graph.flow.mincostflow.DAGLowerBoundMinCostFlow import DAGLowerBoundMinCostFlow
 
 
 def main() -> None:

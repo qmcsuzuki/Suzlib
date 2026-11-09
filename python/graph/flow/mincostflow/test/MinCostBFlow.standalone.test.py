@@ -3,7 +3,7 @@
 from itertools import product
 from random import Random
 
-from python.graph.flow.MinCostBFlow import MinCostBFlow
+from python.graph.flow.mincostflow.MinCostBFlow import MinCostBFlow
 
 
 def rejects(action):

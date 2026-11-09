@@ -2,7 +2,7 @@
 
 from typing import NamedTuple
 
-from python.graph.flow.MaxFlow import MFGraph
+from python.graph.flow.maxflow.MaxFlow import MFGraph
 
 
 class BFlow:

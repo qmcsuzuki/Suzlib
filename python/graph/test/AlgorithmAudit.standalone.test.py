@@ -3,7 +3,7 @@
 from itertools import product
 from random import Random
 
-from python.graph.flow.MinCostFlow import MCFGraph, DAGMCFGraph
+from python.graph.flow.mincostflow.MinCostFlow import MCFGraph, DAGMCFGraph
 from python.graph.SCC import find_SCC
 from python.graph.matching.BipartiteMatching import BipartiteMatching
 from python.graph.matching.BipartiteMatchingStructure import matching_structure, NEVER, SOMETIMES, ALWAYS

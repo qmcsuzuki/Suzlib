@@ -3,8 +3,8 @@
 from itertools import product
 from random import Random
 
-from python.graph.flow.BFlow import BFlow
-from python.graph.flow.LowerBoundSTFlow import LowerBoundSTFlow
+from python.graph.flow.maxflow.BFlow import BFlow
+from python.graph.flow.maxflow.LowerBoundSTFlow import LowerBoundSTFlow
 
 
 def enumerate_flows(n, edges):

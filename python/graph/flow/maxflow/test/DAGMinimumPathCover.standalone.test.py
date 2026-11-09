@@ -2,7 +2,7 @@
 from itertools import combinations
 from random import Random
 
-from python.graph.flow.DAGMinimumPathCover import DAGMinimumPathCover
+from python.graph.flow.maxflow.DAGMinimumPathCover import DAGMinimumPathCover
 
 
 def rejects(fn, error=RuntimeError):

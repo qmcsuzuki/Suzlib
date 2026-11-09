@@ -1,6 +1,6 @@
 # competitive-verifier: TITLE 頂点容量付き最大本数パス集合（有向・無向）
 
-from python.graph.flow.MaxFlow import MFGraph
+from python.graph.flow.maxflow.MaxFlow import MFGraph
 
 
 class VertexCapacitatedPaths:

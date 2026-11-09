@@ -1,6 +1,6 @@
 # competitive-verifier: TITLE 下限付き s-t フロー
 
-from python.graph.flow.BFlow import BFlow
+from python.graph.flow.maxflow.BFlow import BFlow
 
 
 class LowerBoundSTFlow:

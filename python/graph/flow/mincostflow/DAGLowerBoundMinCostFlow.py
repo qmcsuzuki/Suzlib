@@ -2,7 +2,7 @@
 
 from typing import NamedTuple
 
-from python.graph.flow.MinCostFlow import DAGMCFGraph
+from python.graph.flow.mincostflow.MinCostFlow import DAGMCFGraph
 
 
 class DAGLowerBoundMinCostFlow:

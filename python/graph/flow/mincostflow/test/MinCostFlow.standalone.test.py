@@ -3,7 +3,7 @@
 from itertools import product
 from random import Random
 
-from python.graph.flow.MinCostFlow import MCFGraph, DAGMCFGraph
+from python.graph.flow.mincostflow.MinCostFlow import MCFGraph, DAGMCFGraph
 
 
 def brute_flow(n, edges, s, t):

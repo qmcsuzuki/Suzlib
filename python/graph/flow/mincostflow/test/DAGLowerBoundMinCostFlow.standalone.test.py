@@ -2,7 +2,7 @@
 from itertools import product
 from random import Random
 
-from python.graph.flow.DAGLowerBoundMinCostFlow import DAGLowerBoundMinCostFlow
+from python.graph.flow.mincostflow.DAGLowerBoundMinCostFlow import DAGLowerBoundMinCostFlow
 
 
 def rejects(fn, error=RuntimeError):

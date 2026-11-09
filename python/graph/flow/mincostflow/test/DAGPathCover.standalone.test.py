@@ -1,7 +1,7 @@
 # competitive-verifier: STANDALONE
 from itertools import combinations_with_replacement, product
 from random import Random
-from python.graph.flow.DAGPathCover import DAGPathCover
+from python.graph.flow.mincostflow.DAGPathCover import DAGPathCover
 
 
 def rejects(fn, error=RuntimeError):

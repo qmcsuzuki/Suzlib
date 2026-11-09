@@ -1,6 +1,6 @@
 # competitive-verifier: TITLE DAG の最小費用パス被覆・パス選択
 
-from python.graph.flow.MinCostFlow import DAGMCFGraph
+from python.graph.flow.mincostflow.MinCostFlow import DAGMCFGraph
 
 
 class DAGPathCover:
