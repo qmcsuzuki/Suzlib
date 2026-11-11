@@ -100,10 +100,10 @@ if __name__ == "__main__":
                     penalties.append((i, j, penalty))
 
                 if rng.randrange(8) == 0:
-                    opt.add_implication(i, j)
+                    opt.add_if1then1(i, j)
                     implications.append((i, j))
                 if rng.randrange(10) == 0:
-                    opt.add_implication(j, i)
+                    opt.add_if0then0(i, j)
                     implications.append((j, i))
 
         for i in range(n):
@@ -165,7 +165,10 @@ if __name__ == "__main__":
                 key = (min(i, j), max(i, j))
                 tables.setdefault(key, [0] * 4)[2 if i < j else 1] += cost
         for i, j in implications:
-            opt.add_implication(i, j)
+            if i < j:
+                opt.add_if0then0(j, i)
+            else:
+                opt.add_if1then1(i, j)
         for i, value in forces:
             opt.force(i, value)
 
@@ -285,8 +288,12 @@ if __name__ == "__main__":
             opt.add_penalty(i, j, amount)
             penalties.append((i, j, amount))
             if rng.randrange(3) == 0:
-                opt.add_implication(i, j)
-                implications.append((i, j))
+                if rng.randrange(2):
+                    opt.add_if1then1(i, j)
+                    implications.append((i, j))
+                else:
+                    opt.add_if0then0(i, j)
+                    implications.append((j, i))
             if rng.randrange(3) == 0:
                 value = bool(rng.randrange(2))
                 opt.force(i, value)
