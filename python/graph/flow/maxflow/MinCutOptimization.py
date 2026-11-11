@@ -156,12 +156,19 @@ class MinCutOptimization:
             self._graph.add_edge(i, j, penalty)
             self._finite_cap_sum += penalty
 
-    def add_implication(self, i: int, j: int) -> None:
+    def add_if1then1(self, i: int, j: int) -> None:
         """x_i=True なら x_j=True を強制する。"""
         self._check_variable(i)
         self._check_variable(j)
         if i != j:
             self._hard_edges.append((i, j))
+
+    def add_if0then0(self, i: int, j: int) -> None:
+        """x_i=False なら x_j=False を強制する。"""
+        self._check_variable(i)
+        self._check_variable(j)
+        if i != j:
+            self._hard_edges.append((j, i))
 
     def force(self, i: int, value: bool) -> None:
         """x_i=value を強制する。"""
