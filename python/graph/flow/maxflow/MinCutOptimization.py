@@ -165,10 +165,7 @@ class MinCutOptimization:
 
     def add_if0then0(self, i: int, j: int) -> None:
         """x_i=False なら x_j=False を強制する。"""
-        self._check_variable(i)
-        self._check_variable(j)
-        if i != j:
-            self._hard_edges.append((j, i))
+        self.add_if1then1(j, i)
 
     def force(self, i: int, value: bool) -> None:
         """x_i=value を強制する。"""
