@@ -403,24 +403,7 @@ class BipartiteMatching:
 
     def increment_edge(self, left: int, right: int) -> bool:
         """最大マッチング構築後に辺を1本追加し、サイズが増えたかを返す。"""
-        if not self._solved:
-            raise RuntimeError("call solve() before increment_edge()")
-        assert 0 <= left < self.n_left
-        assert 0 <= right < self.n_right
-        self._materialize_adjacency()
-        assert self.g is not None
-        self._edges.append((left << self._edge_shift) | right)
-        self.g[left].append(right)
-        self._csr_built = False
-
-        if self.size == min(self.n_left, self.n_right):
-            return False
-        if self.mate_left[left] == -1 and self.mate_right[right] == -1:
-            self.mate_left[left] = right
-            self.mate_right[right] = left
-            self.size += 1
-            return True
-        return self._augment_once()
+        return self.increment_edges_from_left(left, [right])
 
     def increment_edges_from_left(self, left: int, rights: list[int]) -> bool:
         """最大マッチング構築後に一つの左頂点から複数辺を追加し、サイズが増えたかを返す。"""
