@@ -94,12 +94,14 @@ class VertexCapacitatedPaths:
         source, sink = 2*n, 2*n+1
         g = MFGraph(2*n+2)
         vertex_ids = [g.add_edge(2*v, 2*v+1, vc[v]) for v in range(n)]
+        mapping = [-1] * n
         for v in range(n):
             if sc[v]:
                 g.add_edge(source, 2*v, sc[v])
+                mapping.append(-1)
             if ec[v]:
                 g.add_edge(2*v+1, sink, ec[v])
-        mapping = [-1] * len(g.edges())
+                mapping.append(-1)
         pairs = []
         for i, (u, v, c, undirected) in enumerate(self._edges):
             a = g.add_edge(2*u+1, 2*v, c)
