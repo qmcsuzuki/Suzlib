@@ -134,6 +134,16 @@ class BipartiteMatching:
         twos = [left for left in range(n_left) if degree_left[left] == 2]
         twos += [n_left + right for right in range(n_right) if degree_right[right] == 2]
 
+        def update_neighbors(vertex, offsets, neighbors, degrees, offset):
+            for i in range(offsets[vertex], offsets[vertex + 1]):
+                w = neighbors[i]
+                if degrees[w]:
+                    degrees[w] -= 1
+                    if degrees[w] == 1:
+                        leaves.append(offset + w)
+                    elif degrees[w] == 2:
+                        twos.append(offset + w)
+
         added = 0
         scan = 0
         m = len(to)
@@ -147,22 +157,6 @@ class BipartiteMatching:
 
             if leaves:
                 v = leaves.pop()
-                if v < n_left:
-                    left = v
-                    right = -1
-                    for i in range(start[left], start[left + 1]):
-                        w = to[i]
-                        if degree_right[w]:
-                            right = w
-                            break
-                else:
-                    right = v - n_left
-                    left = -1
-                    for i in range(rstart[right], rstart[right + 1]):
-                        w = rto[i]
-                        if degree_left[w]:
-                            left = w
-                            break
             else:
                 while scan < n_left and degree_left[scan] == 0:
                     scan += 1
@@ -177,29 +171,31 @@ class BipartiteMatching:
                     twos.pop()
                 v = twos.pop() if twos else scan
 
-                if v < n_left:
-                    left = v
-                    right = -1
-                    best = m + 1
-                    for i in range(start[left], start[left + 1]):
-                        w = to[i]
-                        degree = degree_right[w]
-                        if 0 < degree < best:
-                            right = w
-                            best = degree
-                else:
-                    right = v - n_left
-                    left = -1
-                    best = m + 1
-                    for i in range(rstart[right], rstart[right + 1]):
-                        w = rto[i]
-                        degree = degree_left[w]
-                        if 0 < degree < best:
-                            left = w
-                            best = degree
+            if v < n_left:
+                vertex = v
+                offsets, neighbors = start, to
+                own_degree, other_degree = degree_left, degree_right
+            else:
+                vertex = v - n_left
+                offsets, neighbors = rstart, rto
+                own_degree, other_degree = degree_right, degree_left
 
-            if left == -1 or right == -1:
-                continue
+            is_leaf = own_degree[vertex] == 1
+            best = m + 1
+            partner = -1
+            for i in range(offsets[vertex], offsets[vertex + 1]):
+                w = neighbors[i]
+                degree = other_degree[w]
+                if 0 < degree < best:
+                    partner = w
+                    best = degree
+                    if is_leaf or best == 1:
+                        break
+
+            if v < n_left:
+                left, right = vertex, partner
+            else:
+                left, right = partner, vertex
 
             mate_left[left] = right
             mate_right[right] = left
@@ -207,22 +203,8 @@ class BipartiteMatching:
             degree_left[left] = 0
             degree_right[right] = 0
 
-            for i in range(start[left], start[left + 1]):
-                w = to[i]
-                if degree_right[w]:
-                    degree_right[w] -= 1
-                    if degree_right[w] == 1:
-                        leaves.append(n_left + w)
-                    elif degree_right[w] == 2:
-                        twos.append(n_left + w)
-            for i in range(rstart[right], rstart[right + 1]):
-                w = rto[i]
-                if degree_left[w]:
-                    degree_left[w] -= 1
-                    if degree_left[w] == 1:
-                        leaves.append(w)
-                    elif degree_left[w] == 2:
-                        twos.append(w)
+            update_neighbors(left, start, to, degree_right, n_left)
+            update_neighbors(right, rstart, rto, degree_left, 0)
 
         return added
 
