@@ -1,92 +1,87 @@
-# competitive-verifier: TITLE DAG の最小本数点素パス被覆
+# competitive-verifier: TITLE 下限付き最小流による DAG の最小パス被覆
 
-from python.graph.matching.BipartiteMatching import BipartiteMatching
+from python.graph.flow.maxflow.LowerBoundSTFlow import LowerBoundSTFlow
+from python.graph.topological_sort import topological_sort
+
+
+def _minimum_cover_flow(n, edges, lower, disjoint):
+    adj = [[] for _ in range(n)]
+    for u, v in edges:
+        adj[u].append(v)
+    if topological_sort(adj) is None:
+        raise ValueError("graph must be a DAG")
+    s, t = 2 * n, 2 * n + 1
+    # 各頂点を単独で覆う解より大きく取り、最小流で上限が効かないようにする。
+    upper = sum(lower) + 1
+    g = LowerBoundSTFlow(t + 1, s, t)
+    for v, demand in enumerate(lower):
+        g.add_edge(s, v, 0, upper)
+        g.add_edge(v, n + v, demand, 1 if disjoint else upper)
+        g.add_edge(n + v, t, 0, upper)
+    for u, v in edges:
+        g.add_edge(n + u, v, 0, upper)
+    if not g.solve():
+        raise RuntimeError("singleton paths must form a feasible cover")
+    return g.minimize(), g
 
 
 class DAGMinimumPathCover:
-    """DAG の全頂点をちょうど1回ずつ被覆するパスの最小本数。
-
-    単頂点パスを許す。頂点番号のトポロジカル順は不要。
-    元の辺 u→v を二部グラフの左u→右vに移し、最大マッチングを求める。
-    答えは n - マッチング数。n 頂点 m 辺に対し O((n+m) sqrt(n)) 時間、
-    O(n+m) 空間。パス復元は O(n)。
-
-    使用例（n: 頂点数、edges: 有向辺 (u, v) の列）:
-        g = DAGMinimumPathCover(n)
-        for u, v in edges:
-            g.add_edge(u, v)
-        count = g.solve()  # 最小本数
-        paths = g.paths()  # 各パスの頂点列
+    """元の DAG の辺で全頂点を覆う最小本数とパス列。
+    disjoint=True で点素、False で頂点共有可。単頂点パスも許す。
+    solve は下限付き最小流（最大流を高々2回）。復元は O(n+m+出力長)。
     """
 
-    def __init__(self, n: int) -> None:
-        """n 頂点の空の DAG を作る。"""
+    def __init__(self, n: int, *, disjoint: bool = True) -> None:
         assert n >= 0
         self._n = n
-        self._edges: list[tuple[int, int]] = []
+        self._disjoint = disjoint
+        self._edges = []
         self._used = False
-        self._count = -1
-        self._starts: list[int] = []
-        self._next_edge: list[int] = []
+        self._flow = None
 
     def add_edge(self, u: int, v: int) -> int:
-        """有向辺を追加し辺IDを返す。多重辺可、solve 前のみ。償却 O(1)。"""
         if self._used:
             raise RuntimeError("call add_edge() before solve()")
         assert 0 <= u < self._n and 0 <= v < self._n
-        i = len(self._edges)
         self._edges.append((u, v))
-        return i
+        return len(self._edges) - 1
 
     def solve(self) -> int:
-        """最小本数を返す。DAG でなければ ValueError。1回限定。"""
         if self._used:
             raise RuntimeError("solve() can only be called once")
         self._used = True
+        count, self._flow = _minimum_cover_flow(
+            self._n, self._edges, [1] * self._n, self._disjoint)
+        return count
+
+    def _paths(self, edge_ids):
+        if self._flow is None:
+            raise RuntimeError("call solve() before paths()")
         n = self._n
-        adj = [[] for _ in range(n)]
-        indegree = [0] * n
-        for u, v in self._edges:
-            adj[u].append(v)
-            indegree[v] += 1
-        order = [v for v in range(n) if indegree[v] == 0]
-        for u in order:
-            for v in adj[u]:
-                indegree[v] -= 1
-                if indegree[v] == 0:
-                    order.append(v)
-        if len(order) != n:
-            raise ValueError("graph must be a DAG")
-        g = BipartiteMatching(n, n)
-        for u, v in self._edges:
-            g.add_edge(u, v)
-        self._count = n - g.solve()
-        has_prev = [False] * n
-        self._next_edge = [-1] * n
-        for i in g.matching_edge_ids():
-            u, v = self._edges[i]
-            has_prev[v] = True
-            self._next_edge[u] = i
-        self._starts = [v for v in range(n) if not has_prev[v]]
-        return self._count
+        outgoing = [[] for _ in range(n)]
+        remaining = []
+        for i, (u, v) in enumerate(self._edges):
+            amount = self._flow.get_edge(3 * n + i).flow
+            remaining.append(amount)
+            if amount:
+                outgoing[u].append(i)
+        paths = []
+        for start in range(n):
+            for _ in range(self._flow.get_edge(3 * start).flow):
+                u = start
+                path = [] if edge_ids else [u]
+                while outgoing[u]:
+                    i = outgoing[u][-1]
+                    remaining[i] -= 1
+                    if not remaining[i]:
+                        outgoing[u].pop()
+                    u = self._edges[i][1]
+                    path.append(i if edge_ids else u)
+                paths.append(path)
+        return paths
 
     def paths(self) -> list[list[int]]:
-        """解の頂点列を独立なリストで返す。solve 成功後のみ。O(n)。"""
         return self._paths(False)
 
     def edge_paths(self) -> list[list[int]]:
-        """paths と同順の辺ID列。単頂点パスは空列。solve 成功後のみ。O(n)。"""
         return self._paths(True)
-
-    def _paths(self, edge_ids: bool) -> list[list[int]]:
-        if self._count < 0:
-            raise RuntimeError("call solve() before paths()")
-        result = []
-        for v in self._starts:
-            path = [] if edge_ids else [v]
-            while self._next_edge[v] != -1:
-                i = self._next_edge[v]
-                v = self._edges[i][1]
-                path.append(i if edge_ids else v)
-            result.append(path)
-        return result
