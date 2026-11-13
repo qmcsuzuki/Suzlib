@@ -1,34 +1,19 @@
 # competitive-verifier: TITLE DAG の最大重み反鎖
 
-from python.graph.flow.maxflow.MaxFlow import MFGraph
-from python.graph.matching.BipartiteMatching import BipartiteMatching
+from python.graph.flow.maxflow.DAGMinimumPathCover import _minimum_cover_flow
 
 
 class DAGMaximumAntichain:
-    """DAG 上で、互いに到達できない頂点集合の重み和を最大化する。
-
-    weights は非負整数の列。省略時は全頂点の重みを 1 とする。
-    transitive=True は、到達可能な相異なる全頂点対が辺として
-    与えられることを呼び出し側が保証する指定。
-    重み省略かつ transitive=True なら二部マッチングで O((n+m)√n) 時間。
-    それ以外は 2n+2 頂点、3n+m 辺の最大流を 1 回解く。空間は O(n+m)。
-
-    使用例:
-        g = DAGMaximumAntichain(n, weights)
-        for u, v in edges:
-            g.add_edge(u, v)
-        value = g.solve()
-        vertices = g.antichain()
+    """元の DAG の辺と非負整数重みから最大重み反鎖を求める。
+    重み省略時はすべて 1。最大流を高々2回呼び、復元は O(n+m)。
     """
 
-    def __init__(self, n: int, weights: list[int] | None = None, *,
-                 transitive: bool = False) -> None:
+    def __init__(self, n: int, weights: list[int] | None = None) -> None:
         assert n >= 0
         if weights is not None:
             assert len(weights) == n and all(isinstance(w, int) and w >= 0 for w in weights)
         self._n = n
-        self._weights = None if weights is None else list(weights)
-        self._transitive = transitive
+        self._weights = [1] * n if weights is None else list(weights)
         self._edges: list[tuple[int, int]] = []
         self._antichain: list[int] | None = None
 
@@ -45,33 +30,26 @@ class DAGMaximumAntichain:
         if self._antichain is not None:
             raise RuntimeError("solve() can only be called once")
         n = self._n
-        weights = self._weights
-        if weights is None and self._transitive:
-            matching = BipartiteMatching(n, n)
-            for u, v in self._edges:
-                matching.add_edge(u, v)
-            size = n - matching.solve()
-            left, right = matching.max_independent_set()
-            in_right = set(right)
-            self._antichain = [v for v in left if v in in_right]
-            return size
-
-        if weights is None:
-            weights = [1] * n
-        total = sum(weights)
-        inf = total + 1
-        s = 2 * n
-        t = s + 1
-        graph = MFGraph(t + 1)
-        for v, w in enumerate(weights):
-            graph.add_edge(s, v, w)
-            graph.add_edge(n + v, t, w)
-            graph.add_edge(n + v, v, inf)
-        for u, v in self._edges:
-            graph.add_edge(u, n + v, inf)
-        value = total - graph.flow(s, t)
-        side = graph.min_cut(s)
-        self._antichain = [v for v in range(n) if side[v] and not side[n + v]]
+        value, graph = _minimum_cover_flow(n, self._edges, self._weights, False)
+        residual = [[] for _ in range(2 * n + 2)]
+        for u, v, lower, upper, flow in graph.edges():
+            if flow < upper:
+                residual[u].append(v)
+            if flow > lower:
+                residual[v].append(u)
+        # t から到達できる側へ入る頂点分割辺は下限に一致する。
+        # 元の DAG の辺と分割辺は順方向に残るため、これらの頂点は反鎖をなす。
+        t = 2 * n + 1
+        seen = [False] * len(residual)
+        seen[t] = True
+        stack = [t]
+        while stack:
+            u = stack.pop()
+            for v in residual[u]:
+                if not seen[v]:
+                    seen[v] = True
+                    stack.append(v)
+        self._antichain = [v for v in range(n) if not seen[v] and seen[n + v]]
         return value
 
     def antichain(self) -> list[int]:
