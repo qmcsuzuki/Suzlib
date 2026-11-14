@@ -150,20 +150,14 @@ if __name__ == "__main__":
         for i, (c0, c1) in enumerate(unary):
             opt.add_cost_false(i, c0)
             opt.add_cost_true(i, c1)
-        tables = {}
         for i, j, costs in pairwise:
             opt.add_pairwise(i, j, *costs)
-            if i > j:
-                i, j = j, i
-                costs = [costs[0], costs[2], costs[1], costs[3]]
-            total = tables.setdefault((i, j), [0] * 4)
-            for k in range(4):
-                total[k] += costs[k]
         for i, j, cost in penalties:
             opt.add_penalty(i, j, cost)
-            if i != j:
-                key = (min(i, j), max(i, j))
-                tables.setdefault(key, [0] * 4)[2 if i < j else 1] += cost
+        # 各項を個別に反転判定する。合算して表現可能なだけでは不十分。
+        items = list(pairwise)
+        items.extend((i, j, (0, 0, cost, 0))
+                     for i, j, cost in penalties if i != j and cost)
         for i, j in implications:
             if i < j:
                 opt.add_if0then0(j, i)
@@ -178,7 +172,7 @@ if __name__ == "__main__":
             if any(flip[i] != flip[j] for i, j in implications):
                 continue
             valid = True
-            for (i, j), costs in tables.items():
+            for i, j, costs in items:
                 transformed = [costs[((a ^ flip[i]) << 1) | (b ^ flip[j])]
                                for a, b in product(range(2), repeat=2)]
                 if transformed[0] + transformed[3] > transformed[1] + transformed[2]:
@@ -206,11 +200,18 @@ if __name__ == "__main__":
         assert all(x[i] == value for i, value in forces)
 
     check_auto(0, [], [])
-    # 合算前は反転条件が矛盾する。逆順登録と penalty の相殺も含む。
+    # 合算すれば表現可能でも、個々の項の反転条件が矛盾すれば拒否する。
     check_auto(2, [[0, 2], [3, 0]],
                [(0, 1, [0, 0, 3, 0]), (1, 0, [0, 0, 0, 1])])
     check_auto(2, [[0, 2], [3, 0]], [(1, 0, [0, 0, -5, 0])],
                [(1, 0, 5)])
+    check_auto(2, [[0, 0]] * 2,
+               [(0, 1, [0, 0, 0, 1]), (0, 1, [0, 0, 1, 0])])
+    # 同じ組・逆順での複数登録も、反転条件が一致すれば許す。
+    check_auto(2, [[0, 2], [3, 0]],
+               [(0, 1, [0, 0, 3, 0]), (1, 0, [0, 4, 0, 0])])
+    check_auto(2, [[0, 0]] * 2,
+               [(0, 1, [2, 0, 0, 2]), (1, 0, [3, 0, 0, 3])])
     # 逆 Monge の奇数閉路は反転不能。偶数閉路は可能。
     for n in (3, 4):
         check_auto(n, [[0, 0] for _ in range(n)],
@@ -245,11 +246,12 @@ if __name__ == "__main__":
                         costs[3] = costs[1] + costs[2] - costs[0] - rng.randrange(6)
                         mask = (flip[i] << 1) | flip[j]
                         costs = [costs[k ^ mask] for k in range(4)]
-                    # 非劣モジュラな項への分割も許されることを検証。
-                    part = [rng.randint(-8, 8) for _ in range(4)]
-                    rest = [costs[k] - part[k] for k in range(4)]
-                    pairwise.append((i, j, part))
-                    pairwise.append((j, i, [rest[0], rest[2], rest[1], rest[3]]))
+                    # 同じ変数対への複数項と逆順登録を検証する。
+                    for _ in range(rng.randrange(1, 4)):
+                        if rng.randrange(2):
+                            pairwise.append((i, j, costs[:]))
+                        else:
+                            pairwise.append((j, i, [costs[0], costs[2], costs[1], costs[3]]))
                 if not planted or flip[i] == flip[j]:
                     if rng.randrange(5) == 0:
                         penalties.append((j, i, rng.randrange(6)))
