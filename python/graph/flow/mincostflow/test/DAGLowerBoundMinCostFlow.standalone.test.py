@@ -27,13 +27,13 @@ def check(n, s, t, amount, edges):
         if balance == target and (best is None or cost < best):
             best = cost
     for dense in (False, True):
-        g = DAGLowerBoundMinCostFlow(n, s, t, amount, dense=dense)
+        g = DAGLowerBoundMinCostFlow(n, s, t, dense=dense)
         for i, e in enumerate(edges):
             assert g.add_edge(*e) == i
         rejects(g.edges)
-        result = g.solve()
+        result = g.solve(amount)
         assert result == ((-1, 0) if best is None else (amount, best)), (edges, result, best)
-        rejects(g.solve)
+        rejects(lambda: g.solve(amount))
         rejects(lambda: g.add_edge(s, t, 0, 1, 0))
         if best is None:
             rejects(g.edges)
@@ -71,18 +71,21 @@ check(2, 0, 1, 1, [])
 check(3, 0, 2, 5, [(0, 1, 2, 7, 3), (1, 2, 1, 6, -4)])
 check(4, 0, 3, 1, [(0, 3, 0, 1, 0), (1, 2, 1, 1, -10)])
 for dense in (False, True):
-    g = DAGLowerBoundMinCostFlow(2, 1, 0, 10**18, dense=dense)
+    g = DAGLowerBoundMinCostFlow(2, 1, 0, dense=dense)
     g.add_edge(1, 0, 10**18 - 1, 10**18 + 1, -10**30)
-    assert g.solve() == (10**18, -10**48)
+    assert g.solve(10**18) == (10**18, -10**48)
     assert g.get_edge(0).flow == 10**18
 for edges in [[(0, 0)], [(0, 1), (1, 0)]]:
-    g = DAGLowerBoundMinCostFlow(2, 0, 1, 0)
+    g = DAGLowerBoundMinCostFlow(2, 0, 1)
     for u, v in edges:
         g.add_edge(u, v, 0, 0, -1)
-    rejects(g.solve, ValueError)
-rejects(lambda: DAGLowerBoundMinCostFlow(2, 0, 0, 0), AssertionError)
-rejects(lambda: DAGLowerBoundMinCostFlow(2, 0, 1, -1), AssertionError)
-g = DAGLowerBoundMinCostFlow(2, 0, 1, 0)
+    rejects(lambda: g.solve(0), ValueError)
+rejects(lambda: DAGLowerBoundMinCostFlow(2, 0, 0), AssertionError)
+g = DAGLowerBoundMinCostFlow(2, 0, 1)
+rejects(lambda: g.solve(-1), AssertionError)
+rejects(lambda: g.flow(-1), AssertionError)
+rejects(lambda: g.min_cost_flow(-1), AssertionError)
+g = DAGLowerBoundMinCostFlow(2, 0, 1)
 rejects(lambda: g.add_edge(0, 1, 2, 1, 0), AssertionError)
 print("DAGLowerBoundMinCostFlow: 2008 brute-force comparisons and regressions passed")
 
@@ -116,10 +119,10 @@ for _ in range(500):
         feasible = [x for x in candidates if limit is None or x[0] <= limit]
         key = (lambda x: (-x[0], x[1])) if method == "flow" else (lambda x: (x[1], x[0]))
         expected = min(feasible, key=key) if feasible else (-1, 0)
-        g = DAGLowerBoundMinCostFlow(n, s, t, flow=limit, dense=dense)
+        g = DAGLowerBoundMinCostFlow(n, s, t, dense=dense)
         for e in edges:
             g.add_edge(*e)
-        result = getattr(g, method)()
+        result = getattr(g, method)(limit)
         assert result == expected, (edges, s, t, limit, method, result, expected)
         rejects(g.flow)
         rejects(g.min_cost_flow)
@@ -140,15 +143,15 @@ for _ in range(500):
 
 # 正費用でも下限分は必須。同費用なら min_cost_flow は流量最小。
 for method, expected in [("solve", (5, 0)), ("flow", (5, 0)), ("min_cost_flow", (2, 0))]:
-    g = DAGLowerBoundMinCostFlow(2, 0, 1, flow=5)
+    g = DAGLowerBoundMinCostFlow(2, 0, 1)
     g.add_edge(0, 1, 2, 8, 0)
-    assert getattr(g, method)() == expected
+    assert getattr(g, method)(5) == expected
 for method, expected in [("flow", (8, 24)), ("min_cost_flow", (2, 6))]:
     g = DAGLowerBoundMinCostFlow(2, 0, 1)
     g.add_edge(0, 1, 2, 8, 3)
     assert getattr(g, method)() == expected
 g = DAGLowerBoundMinCostFlow(2, 0, 1)
-rejects(g.solve, ValueError)
+rejects(lambda: g.solve(None), ValueError)
 assert g.min_cost_flow() == (0, 0)
 for method, expected in [("flow", (10**18, 10**48)), ("min_cost_flow", (1, 10**30))]:
     g = DAGLowerBoundMinCostFlow(2, 0, 1)
