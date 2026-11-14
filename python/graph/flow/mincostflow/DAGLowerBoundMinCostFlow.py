@@ -31,9 +31,11 @@ class DAGLowerBoundMinCostFlow:
 
     通常の DAGMCFGraph へ直接帰着する。超始点 S、超終点 T を追加し、
     S→s と t→T に容量 F を張る。元の辺 u→v (下限 l、上限 h、費用 c) は
-    容量 h-l・費用 c の辺と、容量 l・費用0の S→v, u→T に置き換える。
-    F+sum(l) 単位流せば補助辺が全て飽和する。元の流量は l を足し戻し、
-    費用には sum(l*c) を足す。初期ネットワークは DAG のまま。
+    容量 h-l・費用 c の辺に置き換え、下限 l は b(u)-=l, b(v)+=l と集計する。
+    b(v)>0 なら S→v、b(v)<0 なら v→T に容量 |b(v)| の補助辺を張る。
+    F+sum(max(b(v),0)) 単位流せば補助辺が全て飽和する。
+    元の流量は l を足し戻し、費用には sum(l*c) を足す。
+    初期ネットワークは DAG のまま。
 
     流量可変では容量 F の s→t ダミー辺で未使用分を流す。
     flow はダミー費用 sum((h-l)*abs(c))+1 で実流量を優先する。
@@ -41,7 +43,7 @@ class DAGLowerBoundMinCostFlow:
     t が s よりトポロジカル順で先なら正の s-t 流は存在せず、可変時は F=0。
     返す費用は元の辺流量から計算する。
 
-    n 頂点 m 辺、D=F+sum(l)、増流回数 A<=D として、構築 O(n+m)。
+    n 頂点 m 辺、D=F+sum(max(b(v),0))、増流回数 A<=D として、構築 O(n+m)。
     solve は sparse で O(n+m+(A+1)*(n+m+1)*log(n+m+2))、
     dense で O(n+m+(A+1)*((n+1)**2+m))。空間 O(n+m)。
     D は指定流量 F と異なり、巨大容量は1回の増流でまとめて流す場合もある。
@@ -127,16 +129,20 @@ class DAGLowerBoundMinCostFlow:
         source, sink = n, n + 1
         g = DAGMCFGraph(n + 2, source, sink, dense=self._dense)
         # 元の辺を先に登録し、元の辺IDと内部の辺IDを一致させる。
-        demand = limit
+        balance = [0] * n
         for u, v, lower, upper, cost in self._edges:
             g.add_edge(rank[u], rank[v], upper - lower, cost * scale)
-            demand += lower
+            balance[u] -= lower
+            balance[v] += lower
         g.add_edge(source, rank[self._s], limit, 0)
         g.add_edge(rank[self._t], sink, limit, 0)
-        for u, v, lower, _, _ in self._edges:
-            if lower:
-                g.add_edge(source, rank[v], lower, 0)
-                g.add_edge(rank[u], sink, lower, 0)
+        demand = limit
+        for v, b in enumerate(balance):
+            if b > 0:
+                g.add_edge(source, rank[v], b, 0)
+                demand += b
+            elif b < 0:
+                g.add_edge(rank[v], sink, -b, 0)
         dummy = -1
         if mode and limit:
             dummy_cost = -1 if mode == 2 else (
