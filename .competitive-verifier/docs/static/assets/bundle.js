@@ -298,6 +298,37 @@
     const place = h ? h : pre;
     place.insertAdjacentElement("afterend", btn);
 
+    const bundleCopy = document.createElement("button");
+    bundleCopy.type = "button";
+    bundleCopy.textContent = "Bundle and Copy";
+    bundleCopy.style.cssText = btn.style.cssText;
+    bundleCopy.style.marginLeft = "8px";
+    btn.insertAdjacentElement("afterend", bundleCopy);
+
+    bundleCopy.addEventListener("click", async () => {
+      bundleCopy.disabled = true;
+      bundleCopy.textContent = "Bundling...";
+      try {
+        const bundled = bundleFrom(location.href);
+        if (window.ClipboardItem && navigator.clipboard?.write) {
+          // Safari でもクリック中にコピーを開始し、本文は取得後に渡す。
+          const data = bundled.then(text => new Blob([text], { type: "text/plain" }));
+          await navigator.clipboard.write([new ClipboardItem({ "text/plain": data })]);
+        } else {
+          await navigator.clipboard.writeText(await bundled);
+        }
+        bundleCopy.textContent = "Copied!";
+        setTimeout(() => {
+          bundleCopy.textContent = "Bundle and Copy";
+          bundleCopy.disabled = false;
+        }, 1000);
+      } catch (e) {
+        bundleCopy.textContent = "Bundle and Copy";
+        bundleCopy.disabled = false;
+        alert(String(e.message || e));
+      }
+    });
+
     btn.addEventListener("click", async () => {
       btn.disabled = true;
       const old = btn.textContent;
