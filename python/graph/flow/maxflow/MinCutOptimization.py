@@ -5,7 +5,8 @@ from python.graph.flow.maxflow.MaxFlow import MFGraph
 
 class MinCutOptimization:
     """s-t 最小カットで解ける 0/1 最適化問題を構築する。
-    auto_flip=True では、自動的に内部的に変数を反転する。入力・返り値はすべて元の変数の意味で指定する。
+    auto_flip=True では、各二変数項が個別に Monge となるよう内部で変数を反転する。
+    複数の項の相殺は考慮しない。入力・返り値はすべて元の変数の意味で指定する。
     all 報酬・any ペナルティは auto_flip=False 専用。
     補助頂点は内部で管理し、solve() は元の n 変数だけを返す。
 
@@ -19,7 +20,7 @@ class MinCutOptimization:
         """n 個の bool 変数 x_0, ..., x_{n-1} を持つ問題を初期化する。"""
         assert 0 <= n
         self._auto_flip = auto_flip
-        self._pair_costs: dict[tuple[int, int], list[int]] = {}
+        self._pair_costs: list[tuple[int, int, int, int, int, int]] = []
         self._n = n
         self._s = n
         self._t = n + 1
@@ -124,24 +125,13 @@ class MinCutOptimization:
         cost_tt: int,
     ) -> None:
         """二変数 (x_i, x_j) のコストを加える (i != j)。
-        既定では monge性 cost_ff + cost_tt <= cost_ft + cost_tf を要求する。
+        auto_flip=False では Monge 性を要求する。True では各項を個別に反転判定する。
         """
         self._check_variable(i)
         self._check_variable(j)
         assert i != j
         if self._auto_flip:
-            if i > j:
-                i, j = j, i
-                cost_ft, cost_tf = cost_tf, cost_ft
-            key = (i, j)
-            if key not in self._pair_costs:
-                self._pair_costs[key] = [cost_ff, cost_ft, cost_tf, cost_tt]
-            else:
-                costs = self._pair_costs[key]
-                costs[0] += cost_ff
-                costs[1] += cost_ft
-                costs[2] += cost_tf
-                costs[3] += cost_tt
+            self._pair_costs.append((i, j, cost_ff, cost_ft, cost_tf, cost_tt))
         else:
             self._add_submodular(i, j, cost_ff, cost_ft, cost_tf, cost_tt)
 
@@ -179,7 +169,7 @@ class MinCutOptimization:
     def _prepare_auto_flip(self) -> list[int]:
         n = self._n
         adjacency = [[] for _ in range(n)]
-        for (i, j), (ff, ft, tf, tt) in self._pair_costs.items():
+        for i, j, ff, ft, tf, tt in self._pair_costs:
             delta = ft + tf - ff - tt
             if delta:
                 parity = int(delta < 0)
@@ -212,7 +202,8 @@ class MinCutOptimization:
                 self._cost_false[i], self._cost_true[i] = (
                     self._cost_true[i], self._cost_false[i]
                 )
-        for (i, j), costs in self._pair_costs.items():
+        for i, j, ff, ft, tf, tt in self._pair_costs:
+            costs = (ff, ft, tf, tt)
             mask = (flip[i] << 1) | flip[j]
             self._add_submodular(
                 i, j, costs[mask], costs[1 ^ mask],
