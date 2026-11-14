@@ -7,16 +7,17 @@ class DAGLowerBoundMinCostFlow:
     """DAG 上の上下限付き st 最小費用流
 
     容量・指定流量は非負整数、費用は整数（負も可）。
-    - g.solve(): 指定量ちょうど
-    - g.flow(): 上限内で流量最大・その中で費用最小
-    - g.min_cost_flow(): 上限内で費用最小・同費用なら流量最小
+    - g.solve(F): 流量 F ちょうど
+    - g.flow(F): 流量 F 以下で最大・その中で費用最小
+    - g.min_cost_flow(F): 流量 F 以下で費用最小・同費用なら流量最小
+    flow / min_cost_flow は F を省略すると上限なし
     (実際の総流量, 最小費用)を返す、実行不能時は (-1, 0)
 
     使用例:
-        g = DAGLowerBoundMinCostFlow(3, s=0, t=2, flow=5)
+        g = DAGLowerBoundMinCostFlow(3, s=0, t=2)
         g.add_edge(0, 1, lower=2, upper=7, cost=3)
         g.add_edge(1, 2, lower=1, upper=6, cost=-4)
-        assert g.solve() == (5, -5)
+        assert g.solve(5) == (5, -5)
         assert [e.flow for e in g.edges()] == [5, 5]
         # 同じインスタンスでは1種類だけ呼ぶ。各用途で新しく構築する。
 
@@ -31,15 +32,12 @@ class DAGLowerBoundMinCostFlow:
         flow: int
         cost: int
 
-    def __init__(self, n: int, s: int, t: int, flow: int | None = None,
-                 dense: bool = False) -> None:
-        """頂点数、始終点、指定量または上限を指定する。dense は密 Dijkstra の選択。"""
+    def __init__(self, n: int, s: int, t: int, dense: bool = False) -> None:
+        """頂点数と始終点を指定する。dense は密 Dijkstra の選択。"""
         assert 0 <= s < n and 0 <= t < n and s != t
-        assert flow is None or flow >= 0
         self._n = n
         self._s = s
         self._t = t
-        self._flow = flow
         self._dense = dense
         self._edges: list[tuple[int, int, int, int, int]] = []
         self._edge_flow: list[int] = []
@@ -57,23 +55,24 @@ class DAGLowerBoundMinCostFlow:
         self._edges.append((src, dst, lower, upper, cost))
         return i
 
-    def solve(self) -> tuple[int, int]:
-        """指定量ちょうどで費用最小。flow=None は ValueError。実行不能は (-1, 0)。"""
-        if self._flow is None:
+    def solve(self, flow: int) -> tuple[int, int]:
+        """指定量ちょうどで費用最小。実行不能は (-1, 0)。"""
+        if flow is None:
             raise ValueError("specify flow for exact-flow solve()")
-        return self._solve(0)
+        return self._solve(0, flow)
 
-    def flow(self) -> tuple[int, int]:
+    def flow(self, flow_limit: int | None = None) -> tuple[int, int]:
         """指定上限内で流量最大、その中で費用最小。実行不能は (-1, 0)。"""
-        return self._solve(1)
+        return self._solve(1, flow_limit)
 
-    def min_cost_flow(self) -> tuple[int, int]:
+    def min_cost_flow(self, flow_limit: int | None = None) -> tuple[int, int]:
         """指定上限内で費用最小、同費用なら流量最小。実行不能は (-1, 0)。"""
-        return self._solve(2)
+        return self._solve(2, flow_limit)
 
-    def _solve(self, mode: int) -> tuple[int, int]:
+    def _solve(self, mode: int, flow_limit: int | None) -> tuple[int, int]:
         if self._used:
             raise RuntimeError("solve / flow / min_cost_flow can only be called once")
+        assert flow_limit is None or flow_limit >= 0
         self._used = True
         n = self._n
         adj = [[] for _ in range(n)]
@@ -93,7 +92,7 @@ class DAGLowerBoundMinCostFlow:
         for i, v in enumerate(order):
             rank[v] = i
 
-        limit = self._flow
+        limit = flow_limit
         if limit is None:
             limit = sum(e[3] for e in self._edges if e[0] == self._s)
         if mode and rank[self._s] > rank[self._t]:
