@@ -1,21 +1,16 @@
 # competitive-verifier: TITLE DAG の上下限付き最小費用流
 
 from typing import NamedTuple
-
 from python.graph.flow.mincostflow.MinCostFlow import DAGMCFGraph
 
-
 class DAGLowerBoundMinCostFlow:
-    """DAG 上で、各辺の上下限を守る s-t 最小費用流。
+    """DAG 上の上下限付き st 最小費用流
 
-    頂点番号は任意の 0..n-1。容量・指定流量は非負整数、費用は整数（負も可）。
-    多重辺を許す。自己ループを含む閉路は容量0の辺も含めて拒否する。
-    solve / flow / min_cost_flow は合わせて1回限定。
-    solve: 指定量ちょうど、flow: 上限内で流量最大・その中で費用最小、
-    min_cost_flow: 上限内で費用最小・同費用なら流量最小。
-    成功時 (実際の総流量, 最小費用)、実行不能時 (-1, 0)。
-    コンストラクタの flow は solve では指定量、他の2つでは上限。
-    None は上限なし（s から出る辺の上限和を使用）。solve には整数指定が必要。
+    容量・指定流量は非負整数、費用は整数（負も可）。
+    - g.solve(): 指定量ちょうど
+    - g.flow(): 上限内で流量最大・その中で費用最小
+    - g.min_cost_flow(): 上限内で費用最小・同費用なら流量最小
+    (実際の総流量, 最小費用)を返す、実行不能時は (-1, 0)
 
     使用例:
         g = DAGLowerBoundMinCostFlow(3, s=0, t=2, flow=5)
@@ -24,30 +19,8 @@ class DAGLowerBoundMinCostFlow:
         assert g.solve() == (5, -5)
         assert [e.flow for e in g.edges()] == [5, 5]
         # 同じインスタンスでは1種類だけ呼ぶ。各用途で新しく構築する。
-        # g.solve()          : ちょうど5
-        # g.flow()           : 5以下で流量最大、その中で費用最小
-        # g.min_cost_flow()  : 5以下で費用最小、同費用なら流量最小
-        # 上限なしは DAGLowerBoundMinCostFlow(n, s, t) として後者2つを使う。
 
-    通常の DAGMCFGraph へ直接帰着する。超始点 S、超終点 T を追加し、
-    S→s と t→T に容量 F を張る。元の辺 u→v (下限 l、上限 h、費用 c) は
-    容量 h-l・費用 c の辺に置き換え、下限 l は b(u)-=l, b(v)+=l と集計する。
-    b(v)>0 なら S→v、b(v)<0 なら v→T に容量 |b(v)| の補助辺を張る。
-    F+sum(max(b(v),0)) 単位流せば補助辺が全て飽和する。
-    元の流量は l を足し戻し、費用には sum(l*c) を足す。
-    初期ネットワークは DAG のまま。
-
-    流量可変では容量 F の s→t ダミー辺で未使用分を流す。
-    flow はダミー費用 sum((h-l)*abs(c))+1 で実流量を優先する。
-    min_cost_flow は元費用を F+1 倍、ダミー費用を -1 とし同費用なら実流量最小。
-    t が s よりトポロジカル順で先なら正の s-t 流は存在せず、可変時は F=0。
-    返す費用は元の辺流量から計算する。
-
-    n 頂点 m 辺、D=F+sum(max(b(v),0))、増流回数 A<=D として、構築 O(n+m)。
-    solve は sparse で O(n+m+(A+1)*(n+m+1)*log(n+m+2))、
-    dense で O(n+m+(A+1)*((n+1)**2+m))。空間 O(n+m)。
-    D は指定流量 F と異なり、巨大容量は1回の増流でまとめて流す場合もある。
-    get_edge は O(1)、edges は O(m)。成功後のみ取得可、補助辺は含めない。
+    流量は D=F+sum(max(b(v),0)) なので大きくなる場合もある
     """
 
     class Edge(NamedTuple):
