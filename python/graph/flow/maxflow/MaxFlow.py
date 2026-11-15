@@ -68,8 +68,7 @@ class MFGraph:
         return [[self._to[i] for i in lst if self._cap[i] > 0] for lst in self._g]
 
     def path_decomposition(self, s: int, t: int) -> list[tuple[int, list[int]]]:
-        """現在の s-t フローを st パスの和に分解し、(流量, 辺番号列) のリストを返す
-        """
+        """循環流を除いた s-t パス分解を (流量, 辺番号列) のリストで返す。"""
         n = self._n
         assert 0 <= s < n
         assert 0 <= t < n
