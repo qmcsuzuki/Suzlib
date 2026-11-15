@@ -1,4 +1,4 @@
-<p><small>J = 外部ジャッジ、S = standalone</small></p>
+<p><small>左：外部ジャッジ　右：standalone（✓ 通過、× 失敗、– 対象なし、… 未判定）</small></p>
 {%- for top in page.data.top -%}
 <h2>{{ top.type }}</h2>
 {%- for category in top.categories -%}
@@ -17,7 +17,20 @@
             {%- capture link_title -%}{{name | xml_escape }}{%- endcapture -%}
         {%- endif -%}
         {%- assign badge = site.data.verification_badges[item.path] -%}
-        <li><a href="{{ item.path | relative_url }}">{{ site.icons[item.icon] }}<span style="font-family: monospace; font-size: 1em; white-space: nowrap"{% if badge %} title="{{ badge.sources | escape }}"{% endif %}>{% if badge.label contains 'J' %}J{% else %}&nbsp;{% endif %}{% if badge.label contains 'S' %}S{% else %}&nbsp;{% endif %}</span> {{ link_title }}</a></li>
+        {%- assign show_slots = badge -%}
+        {%- if item.icon contains '_WA' or item.icon == 'TEST_WRONG_ANSWER' -%}
+            {%- unless badge.judge == '×' or badge.standalone == '×' -%}
+                {%- assign show_slots = false -%}
+            {%- endunless -%}
+        {%- endif -%}
+        <li><a href="{{ item.path | relative_url }}"><span class="verification-marks">
+            {%- if show_slots -%}
+                <span data-mark="{{ badge.judge }}" title="外部ジャッジ">{{ badge.judge }}</span>
+                <span data-mark="{{ badge.standalone }}" title="standalone">{{ badge.standalone }}</span>
+            {%- else -%}
+                <span class="verification-overall">{{ site.icons[item.icon] }}</span>
+            {%- endif -%}
+        </span> {{ link_title }}</a></li>
     {%- endfor -%}
 </ul>
 {%- endfor -%}
