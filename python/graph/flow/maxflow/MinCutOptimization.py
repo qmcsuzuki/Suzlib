@@ -86,21 +86,11 @@ class MinCutOptimization:
             self._hard_edges.extend((i, z) for i in indices)
         self._finite_cap_sum += amount
 
-    def add_unary(self, i: int, cost_false: int, cost_true: int) -> None:
+    def add_unary_cost(self, i: int, cost_false: int, cost_true: int) -> None:
         """x_i=False / True のときのコストをそれぞれ加える。"""
         self._check_variable(i)
         self._cost_false[i] += cost_false
         self._cost_true[i] += cost_true
-
-    def add_cost_true(self, i: int, cost: int) -> None:
-        """x_i=True のとき cost を加える。"""
-        self._check_variable(i)
-        self._cost_true[i] += cost
-
-    def add_cost_false(self, i: int, cost: int) -> None:
-        """x_i=False のとき cost を加える。"""
-        self._check_variable(i)
-        self._cost_false[i] += cost
 
     def add_penalty(self, i: int, j: int, cost: int) -> None:
         """x_i=True, x_j=False のとき cost を加える。"""
@@ -146,16 +136,15 @@ class MinCutOptimization:
             self._graph.add_edge(i, j, penalty)
             self._finite_cap_sum += penalty
 
-    def add_if1then1(self, i: int, j: int) -> None:
-        """x_i=True なら x_j=True を強制する。"""
+    def add_implication(self, i: int, j: int, value: bool) -> None:
+        """x_i が value なら x_j も value であることを強制する。"""
         self._check_variable(i)
         self._check_variable(j)
+        assert value in (False, True)
+        if not value:
+            i, j = j, i
         if i != j:
             self._hard_edges.append((i, j))
-
-    def add_if0then0(self, i: int, j: int) -> None:
-        """x_i=False なら x_j=False を強制する。"""
-        self.add_if1then1(j, i)
 
     def force(self, i: int, value: bool) -> None:
         """x_i=value を強制する。"""

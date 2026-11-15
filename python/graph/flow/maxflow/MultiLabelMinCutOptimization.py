@@ -27,7 +27,7 @@ class MultiLabelMinCutOptimization:
         self._cut = MinCutOptimization(self._start[-1])
         for start, end in zip(self._start, self._start[1:]):
             for u in range(start + 1, end):
-                self._cut.add_if1then1(u, u - 1)
+                self._cut.add_implication(u, u - 1, True)
 
     def _count(self, i: int) -> int:
         assert 0 <= i < len(self._start) - 1
@@ -46,7 +46,7 @@ class MultiLabelMinCutOptimization:
         assert len(costs) == self._count(i)
         self._cut.add_constant(costs[0])
         for a in range(1, len(costs)):
-            self._cut.add_cost_true(self._start[i] + a - 1, costs[a] - costs[a - 1])
+            self._cut.add_unary_cost(self._start[i] + a - 1, 0, costs[a] - costs[a - 1])
 
     def add_penalty_ge_lt(self, i: int, a: int, j: int, b: int, cost: int) -> None:
         """x_i >= a かつ x_j < b のとき cost >= 0 を加える。1 <= a < k_i, 1 <= b < k_j。"""
@@ -54,7 +54,7 @@ class MultiLabelMinCutOptimization:
 
     def add_if_ge_then_ge(self, i: int, a: int, j: int, b: int) -> None:
         """x_i >= a なら x_j >= b を強制する。1 <= a < k_i, 1 <= b < k_j。"""
-        self._cut.add_if1then1(self._threshold(i, a), self._threshold(j, b))
+        self._cut.add_implication(self._threshold(i, a), self._threshold(j, b), True)
 
     def add_ge(self, i: int, j: int) -> None:
         """x_i >= x_j を強制する。O(min(k_i, k_j))。"""

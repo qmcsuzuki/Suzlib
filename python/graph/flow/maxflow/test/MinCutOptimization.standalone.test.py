@@ -65,17 +65,17 @@ if __name__ == "__main__":
         for i in range(n):
             cost_false = rng.randint(-5, 5)
             cost_true = rng.randint(-5, 5)
-            opt.add_unary(i, cost_false, cost_true)
+            opt.add_unary_cost(i, cost_false, cost_true)
             unary[i][0] += cost_false
             unary[i][1] += cost_true
 
             if rng.randrange(2):
                 cost = rng.randint(-3, 3)
-                opt.add_cost_true(i, cost)
+                opt.add_unary_cost(i, 0, cost)
                 unary[i][1] += cost
             if rng.randrange(2):
                 cost = rng.randint(-3, 3)
-                opt.add_cost_false(i, cost)
+                opt.add_unary_cost(i, cost, 0)
                 unary[i][0] += cost
 
         for i in range(n):
@@ -100,10 +100,10 @@ if __name__ == "__main__":
                     penalties.append((i, j, penalty))
 
                 if rng.randrange(8) == 0:
-                    opt.add_if1then1(i, j)
+                    opt.add_implication(i, j, True)
                     implications.append((i, j))
                 if rng.randrange(10) == 0:
-                    opt.add_if0then0(i, j)
+                    opt.add_implication(i, j, False)
                     implications.append((j, i))
 
         for i in range(n):
@@ -148,8 +148,7 @@ if __name__ == "__main__":
     def check_auto(n, unary, pairwise, penalties=(), implications=(), forces=()):
         opt = MinCutOptimization(n, auto_flip=True)
         for i, (c0, c1) in enumerate(unary):
-            opt.add_cost_false(i, c0)
-            opt.add_cost_true(i, c1)
+            opt.add_unary_cost(i, c0, c1)
         for i, j, costs in pairwise:
             opt.add_pairwise(i, j, *costs)
         for i, j, cost in penalties:
@@ -160,9 +159,9 @@ if __name__ == "__main__":
                      for i, j, cost in penalties if i != j and cost)
         for i, j in implications:
             if i < j:
-                opt.add_if0then0(j, i)
+                opt.add_implication(j, i, False)
             else:
-                opt.add_if1then1(i, j)
+                opt.add_implication(i, j, True)
         for i, value in forces:
             opt.force(i, value)
 
@@ -272,7 +271,7 @@ if __name__ == "__main__":
         opt.add_constant(constant)
         unary = [[rng.randint(-5, 5), rng.randint(-5, 5)] for _ in range(n)]
         for i, costs in enumerate(unary):
-            opt.add_unary(i, *costs)
+            opt.add_unary_cost(i, *costs)
         groups = []
         penalties = []
         implications = []
@@ -291,10 +290,10 @@ if __name__ == "__main__":
             penalties.append((i, j, amount))
             if rng.randrange(3) == 0:
                 if rng.randrange(2):
-                    opt.add_if1then1(i, j)
+                    opt.add_implication(i, j, True)
                     implications.append((i, j))
                 else:
-                    opt.add_if0then0(i, j)
+                    opt.add_implication(i, j, False)
                     implications.append((j, i))
             if rng.randrange(3) == 0:
                 value = bool(rng.randrange(2))
