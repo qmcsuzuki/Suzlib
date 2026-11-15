@@ -15,11 +15,11 @@ class DAGMaximumAntichain:
         self._n = n
         self._weights = [1] * n if weights is None else list(weights)
         self._edges: list[tuple[int, int]] = []
-        self._antichain: list[int] | None = None
+        self._solved = False
 
     def add_edge(self, u: int, v: int) -> int:
         """DAG の辺 u→v を追加し、辺 ID を返す。solve 前のみ。"""
-        if self._antichain is not None:
+        if self._solved:
             raise RuntimeError("call add_edge() before solve()")
         assert 0 <= u < self._n and 0 <= v < self._n
         self._edges.append((u, v))
@@ -27,7 +27,7 @@ class DAGMaximumAntichain:
 
     def solve(self) -> tuple[int, list[int]]:
         """最大重みと反鎖の頂点列を返す。入力が DAG であることを仮定する。1 回限定。"""
-        if self._antichain is not None:
+        if self._solved:
             raise RuntimeError("solve() can only be called once")
         n = self._n
         value, graph = _minimum_cover_flow(n, self._edges, self._weights, False)
@@ -49,11 +49,5 @@ class DAGMaximumAntichain:
                 if not seen[v]:
                     seen[v] = True
                     stack.append(v)
-        self._antichain = [v for v in range(n) if not seen[v] and seen[n + v]]
-        return value, self.antichain()
-
-    def antichain(self) -> list[int]:
-        """solve 後、最大重みを達成する反鎖を頂点番号の昇順で返す。"""
-        if self._antichain is None:
-            raise RuntimeError("call solve() before antichain()")
-        return self._antichain.copy()
+        self._solved = True
+        return value, [v for v in range(n) if not seen[v] and seen[n + v]]
