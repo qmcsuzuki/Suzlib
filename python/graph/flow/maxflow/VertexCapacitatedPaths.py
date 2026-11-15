@@ -6,15 +6,8 @@ from python.graph.flow.maxflow.MaxFlow import MFGraph
 class VertexCapacitatedPaths:
     """頂点・辺・開始・終了容量の範囲で、単純パスの本数を最大化する。
 
-    一般の有向・無向混在グラフに対応。端点ペアの指定、費用、被覆義務は扱わない。
-    各容量は非負整数。同じパスも容量の範囲で複数回選べる。
+    一般の有向・無向混在グラフに対応。各容量は非負整数。同じパスも容量の範囲で複数回選べる。
     vertex_capacity は端点を含む使用本数、start/end_capacity は開始/終了本数。
-    開始・終了可能な頂点の途中通過も許す。両方が正なら単頂点パスも許す。
-    無向辺は両方向の合計使用本数を制限し、解では逆向き利用を相殺する。
-
-    n 頂点 m 辺を O(n+m) サイズの最大流に帰着。solve は一般に
-    O(n^2(n+m)) 時間、O(n+m) 空間。復元は初回 O((n+m)^2)、
-    以降は出力サイズに比例。同一パスの重複も paths/edge_paths では展開する。
 
     使用例（端点以外を共有しない S-T パスを高々 K 本）:
         g = VertexCapacitatedPaths.st(n, S, T, path_limit=K)
