@@ -21,7 +21,8 @@ class DAGLowerBoundMinCostFlow:
         assert [e.flow for e in g.edges()] == [5, 5]
         # 同じインスタンスでは1種類だけ呼ぶ。各用途で新しく構築する。
 
-    流量は D=F+sum(max(b(v),0)) なので大きくなる場合もある
+    各頂点 v で、流入辺の下限の和から流出辺の下限の和を引いた値を b(v) とする。
+    補助グラフで流す量は、指定量（または上限）F に sum(max(b(v), 0) for v in V) を足した値。
     """
 
     class Edge(NamedTuple):
