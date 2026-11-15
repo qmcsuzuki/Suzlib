@@ -31,16 +31,13 @@ class MFGraph:
 
     def add_vertex(self) -> int:
         """孤立頂点を追加して頂点番号を返す。償却 O(1)。既存の辺・流量は保持する。"""
-        v = self._n
         self._g.append([])
         self._n += 1
-        return v
+        return self._n - 1
 
     def add_edge(self, src: int, dst: int, cap: int) -> int:
         """src から dst への容量 cap の辺を追加し、辺番号を返す。"""
-        assert 0 <= src < self._n
-        assert 0 <= dst < self._n
-        assert 0 <= cap
+        assert 0 <= src < self._n and 0 <= dst < self._n and 0 <= cap
         edge_id = len(self._to) >> 1
         i = len(self._to)
         self._g[src].append(i)
@@ -68,15 +65,10 @@ class MFGraph:
 
     def residual_graph(self) -> list[list[int]]:
         """正の残余容量を持つ辺からなる隣接リストを返す。"""
-        g = self._g
-        to = self._to
-        cap = self._cap
-        return [[to[i] for i in g[v] if cap[i] > 0] for v in range(self._n)]
+        return [[self._to[i] for i in lst if self._cap[i] > 0] for lst in self._g]
 
     def path_decomposition(self, s: int, t: int) -> list[tuple[int, list[int]]]:
-        """現在の実行可能な s-t フローを (流量, 辺番号列) の和に分解する。
-
-        閉路上の循環流は返さず、グラフの状態は変更しない。
+        """現在の s-t フローを st パスの和に分解し、(流量, 辺番号列) のリストを返す
         """
         n = self._n
         assert 0 <= s < n
@@ -340,8 +332,6 @@ class MFGraph:
         lost = current - new_cap
         self.change_edge(i, new_cap, new_cap)
         if lost:
-            # 迂回を流し切ったので、残る指定辺の流れは循環には含まれない。
-            # 指定辺の流量を lost 減らして生じた収支のずれを解消する。
             if e.src != s:
                 canceled = self.flow(e.src, s, lost)
                 assert canceled == lost
@@ -373,12 +363,8 @@ class MFGraph:
         return visited
 
     def min_cut_partition(self, s: int, t: int) -> list[int]:
-        """最大流後の残余グラフで各頂点を3分類する。O(V+E) 時間、O(V) 追加空間。
-
-        0: s から到達可能、2: t に到達可能、1: どちらでもない。
-        s-t 最大流を流し切った後に呼ぶ。残余 s-t パスがあれば AssertionError。
-        グラフの状態は変更しない。
-        使用例: g.flow(s, t); group = g.min_cut_partition(s, t)
+        """最大流後の残余グラフで各頂点を3分類する。
+        0: s から到達可能 1: どちらでもない 2: t に到達可能
         """
         assert 0 <= s < self._n and 0 <= t < self._n and s != t
         group = [0 if reached else 1 for reached in self.min_cut(s)]
