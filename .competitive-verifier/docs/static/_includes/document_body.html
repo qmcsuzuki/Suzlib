@@ -1,0 +1,4 @@
+{%- assign badge = site.data.verification_badges[include.data.path] -%}
+{%- if badge -%}<p><small>検証元：{{ badge.sources | escape }}</small></p>{%- endif -%}
+{%- include dependencies.html data=include.data -%}
+{%- include code_and_testcases.html data=include.data -%}

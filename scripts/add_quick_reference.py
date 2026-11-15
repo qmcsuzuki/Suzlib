@@ -9,6 +9,8 @@ import os
 import re
 from pathlib import Path
 
+from verification_badges import write_verification_badges
+
 SRC_ROOT = Path(os.environ.get("SRC_ROOT", "python"))
 DOC_ROOT = Path(os.environ.get("DOC_ROOT", "_jekyll"))
 BEGIN = "<!-- BEGIN QUICK REFERENCE -->"
@@ -214,6 +216,7 @@ def should_skip(src_path: Path) -> bool:
 
 
 def main() -> None:
+    write_verification_badges(DOC_ROOT, SRC_ROOT)
     updated = 0
     for src_path in sorted(SRC_ROOT.rglob("*.py")):
         if should_skip(src_path):
