@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Literal
+from typing import Callable, Literal
 
 from python.graph.flow.maxflow.MinCutOptimization import MinCutOptimization
 
@@ -109,6 +109,37 @@ class MultiLabelMinCutOptimization:
         """weight * abs(x_i - x_j) を加える。weight >= 0。O(k_i + k_j)。"""
         self.add_penalty_ge(i, j, 0, weight)
         self.add_penalty_ge(j, i, 0, weight)
+
+    def add_convex_diff(self, i: int, j: int, g: Callable[[int], int]) -> None:
+        """有限な整数値をとる離散凸関数 g について g(x_i - x_j) を加える。O(k_i k_j)。"""
+        rows, cols = self._count(i), self._count(j)
+        if i == j:
+            cost = g(0)
+            assert isinstance(cost, int)
+            self.add_constant(cost)
+            return
+        values = [g(d) for d in range(1 - cols, rows)]
+        assert all(isinstance(v, int) for v in values), "g must return integers"
+        assert all(values[t - 1] + values[t + 1] >= 2 * values[t]
+                   for t in range(1, len(values) - 1)), "g must be convex"
+        # 行 a は g(a), g(a-1), ..., g(a-cols+1)。
+        self.add_pairwise(i, j, [values[a:a + cols][::-1] for a in range(rows)])
+
+    def add_reward_all_ge(self, conditions: list[tuple[int, int]], reward: int) -> None:
+        """(i, a) の条件がすべて x_i >= a なら報酬を与える。1 <= a < k_i。"""
+        self._cut.add_reward_all_true([self._threshold(i, a) for i, a in conditions], reward)
+
+    def add_reward_all_lt(self, conditions: list[tuple[int, int]], reward: int) -> None:
+        """(i, a) の条件がすべて x_i < a なら報酬を与える。1 <= a < k_i。"""
+        self._cut.add_reward_all_false([self._threshold(i, a) for i, a in conditions], reward)
+
+    def add_penalty_any_ge(self, conditions: list[tuple[int, int]], cost: int) -> None:
+        """(i, a) の条件がいずれかが x_i >= a ならペナルティを与える。1 <= a < k_i。"""
+        self._cut.add_penalty_any_true([self._threshold(i, a) for i, a in conditions], cost)
+
+    def add_penalty_any_lt(self, conditions: list[tuple[int, int]], cost: int) -> None:
+        """(i, a) の条件がいずれかが x_i < a ならペナルティを与える。1 <= a < k_i。"""
+        self._cut.add_penalty_any_false([self._threshold(i, a) for i, a in conditions], cost)
 
     def add_pairwise(self, i: int, j: int, costs: list[list[int | Literal["inf"]]]) -> None:
         """costs[x_i][x_j] を加える。i == j では対角成分だけを使う。
