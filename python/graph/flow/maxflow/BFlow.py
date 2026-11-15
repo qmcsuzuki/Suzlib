@@ -59,11 +59,7 @@ class BFlow:
         return i
 
     def solve(self) -> bool:
-        """実行可能解を構築する。解がなければ False。成否によらず1回限定。
-
-        下限を需給へ移し、補助始点・終点間の最大流で判定する。
-        補助辺は判定後に順逆とも無効化する。
-        """
+        """実行可能解を構築する。解がなければ False。成否によらず1回限定。"""
         assert not self._solved
         self._solved = True
         if sum(self._balance) != 0:
@@ -94,18 +90,18 @@ class BFlow:
         return BFlow.Edge(e.src, e.dst, lower, lower + e.cap, lower + e.flow)
 
     def edges(self) -> list[Edge]:
-        """現在の解の元の辺を追加順に返す。O(E)。成功後のみ。"""
+        """現在の解の元の辺を追加順に返す。"""
         assert self._feasible
         return [self.get_edge(i) for i in range(len(self._lower))]
 
     def maximize_edge(self, i: int) -> int:
-        """辺 i の流量を最大化し、増分ではなく最大値を返す。解も更新する。"""
+        """辺 i の流量を最大化するフローを作り、その最大値を返す"""
         assert self._feasible
         assert 0 <= i < len(self._lower)
         return self._lower[i] + self._graph.increase_edge(i)
 
     def minimize_edge(self, i: int) -> int:
-        """辺 i の流量を最小化し、減少量ではなく最小値を返す。解も更新する。"""
+        """辺 i の流量を最小化するフローを作り、その最小値を返す"""
         assert self._feasible
         assert 0 <= i < len(self._lower)
         return self._lower[i] + self._graph.decrease_edge(i)
