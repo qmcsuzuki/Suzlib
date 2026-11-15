@@ -4,8 +4,9 @@ from python.graph.matching.BipartiteMatching import BipartiteMatching
 
 
 class DAGMaximumAntichain:
-    """重みなし最大反鎖。到達可能な相異なる全頂点対を add_edge する。
-    solve は最大サイズと反鎖の頂点列を返す。O((n+m)√n) 時間。
+    """重みなし最大反鎖を O((n+m)√n) 時間で求める。
+    add_edge した辺が推移閉包をなすことが前提
+    solve は最大サイズと反鎖の頂点列を返す。
     """
 
     def __init__(self, n: int) -> None:
