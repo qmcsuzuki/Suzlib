@@ -41,12 +41,28 @@ class MultiLabelMinCutOptimization:
         """定数項を加える。"""
         self._cut.add_constant(cost)
 
-    def add_unary(self, i: int, costs: list[int]) -> None:
-        """costs[x_i] を加える。O(k_i)。"""
-        assert len(costs) == self._count(i)
-        self._cut.add_constant(costs[0])
-        for a in range(1, len(costs)):
-            self._cut.add_unary_cost(self._start[i] + a - 1, 0, costs[a] - costs[a - 1])
+    def add_unary(self, i: int, costs: list[int | Literal["inf"]]) -> None:
+        """costs[x_i] を加える。"inf" はそのラベルを禁止する。O(k_i)。"""
+        k = self._count(i)
+        assert len(costs) == k
+        if all(cost == "inf" for cost in costs):
+            raise ValueError("unary costs must have a finite entry")
+        prev = 0
+        for a, cost in enumerate(costs):
+            if cost == "inf":
+                # x_i = a を除くため、x_i >= a なら x_i >= a+1 を強制する。
+                if a == 0:
+                    self._cut.force(self._threshold(i, 1), True)
+                elif a == k - 1:
+                    self._cut.force(self._threshold(i, a), False)
+                else:
+                    self.add_if_ge_then_ge(i, a, i, a + 1)
+                continue
+            if a == 0:
+                self.add_constant(cost)
+            elif cost != prev:
+                self._cut.add_unary_cost(self._threshold(i, a), 0, cost - prev)
+            prev = cost
 
     def add_penalty_ge_lt(self, i: int, a: int, j: int, b: int, cost: int) -> None:
         """x_i >= a かつ x_j < b のとき cost >= 0 を加える。1 <= a < k_i, 1 <= b < k_j。"""
@@ -56,13 +72,43 @@ class MultiLabelMinCutOptimization:
         """x_i >= a なら x_j >= b を強制する。1 <= a < k_i, 1 <= b < k_j。"""
         self._cut.add_implication(self._threshold(i, a), self._threshold(j, b), True)
 
-    def add_ge(self, i: int, j: int) -> None:
-        """x_i >= x_j を強制する。O(min(k_i, k_j))。"""
+    def add_ge(self, i: int, j: int, d: int = 0) -> None:
+        """x_i >= x_j + d を強制する。単独で実行不能なら ValueError。O(min(k_i, k_j))。"""
         rows, cols = self._count(i), self._count(j)
-        for a in range(1, min(rows, cols)):
-            self.add_if_ge_then_ge(j, a, i, a)
-        if rows < cols:
-            self._cut.force(self._threshold(j, rows), False)
+        if d >= rows or (i == j and d > 0):
+            raise ValueError("infeasible difference bound")
+        if i == j:
+            return
+        if d > 0:
+            self._cut.force(self._threshold(i, d), True)
+        for a in range(max(1, 1 - d), min(cols, rows - d)):
+            self.add_if_ge_then_ge(j, a, i, a + d)
+        if rows - d < cols:
+            self._cut.force(self._threshold(j, rows - d), False)
+
+    def add_penalty_ge(self, i: int, j: int, d: int, weight: int) -> None:
+        """x_i >= x_j + d の違反量 max(0, x_j + d - x_i) に weight >= 0 を掛けて加える。O(k_i + k_j)。"""
+        rows, cols = self._count(i), self._count(j)
+        assert weight >= 0
+        if i == j:
+            self.add_constant(max(0, d) * weight)
+            return
+        if weight == 0 or cols - 1 + d <= 0:
+            return
+        # x_i < t <= x_j + d となる整数 t を数える。
+        for t in range(1, min(rows, d + 1)):
+            self._cut.add_unary_cost(self._threshold(i, t), weight, 0)
+        for a in range(max(1, 1 - d), min(cols, rows - d)):
+            self.add_penalty_ge_lt(j, a, i, a + d, weight)
+        # t >= rows では x_i < t が常に成立する。
+        self.add_constant(max(0, d - rows + 1) * weight)
+        for a in range(max(1, rows - d), cols):
+            self._cut.add_unary_cost(self._threshold(j, a), 0, weight)
+
+    def add_abs_diff(self, i: int, j: int, weight: int) -> None:
+        """weight * abs(x_i - x_j) を加える。weight >= 0。O(k_i + k_j)。"""
+        self.add_penalty_ge(i, j, 0, weight)
+        self.add_penalty_ge(j, i, 0, weight)
 
     def add_pairwise(self, i: int, j: int, costs: list[list[int | Literal["inf"]]]) -> None:
         """costs[x_i][x_j] を加える。i == j では対角成分だけを使う。
@@ -73,8 +119,6 @@ class MultiLabelMinCutOptimization:
         assert len(costs) == rows and all(len(row) == cols for row in costs)
         if i == j:
             diagonal = [row[a] for a, row in enumerate(costs)]
-            if "inf" in diagonal:
-                raise ValueError("diagonal costs must be finite")
             self.add_unary(i, diagonal)
             return
 
