@@ -36,12 +36,8 @@
 
 .verification-marks {
   display: inline-grid;
-  grid-template-columns: repeat(2, 1.1em);
+  grid-template-columns: repeat(2, 20px);
   text-align: center;
-  font-weight: bold;
-  color: #46535c;
 }
-.verification-marks [data-mark="✓"] { color: #247043; }
-.verification-marks [data-mark="×"] { color: #b42318; }
 .verification-marks [data-mark="–"] { color: #888; }
 .verification-overall { grid-column: span 2; }
