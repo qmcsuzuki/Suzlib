@@ -1,4 +1,4 @@
-<p><small>S = standalone、J = 外部ジャッジ</small></p>
+<p><small>J = 外部ジャッジ、S = standalone</small></p>
 {%- for top in page.data.top -%}
 <h2>{{ top.type }}</h2>
 {%- for category in top.categories -%}
@@ -17,7 +17,7 @@
             {%- capture link_title -%}{{name | xml_escape }}{%- endcapture -%}
         {%- endif -%}
         {%- assign badge = site.data.verification_badges[item.path] -%}
-        <li><a href="{{ item.path | relative_url }}">{{ site.icons[item.icon] }}{% if badge %}<sup title="{{ badge.sources | escape }}">{{ badge.label }}</sup>{% endif %} {{ link_title }}</a></li>
+        <li><a href="{{ item.path | relative_url }}">{{ site.icons[item.icon] }}<span style="font-family: monospace; font-size: 1em; white-space: nowrap"{% if badge %} title="{{ badge.sources | escape }}"{% endif %}>{% if badge.label contains 'J' %}J{% else %}&nbsp;{% endif %}{% if badge.label contains 'S' %}S{% else %}&nbsp;{% endif %}</span> {{ link_title }}</a></li>
     {%- endfor -%}
 </ul>
 {%- endfor -%}
