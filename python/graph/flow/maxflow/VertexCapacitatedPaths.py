@@ -11,11 +11,9 @@ class VertexCapacitatedPaths:
 
     使用例（端点以外を共有しない S-T パスを高々 K 本）:
         g = VertexCapacitatedPaths.st(n, S, T, path_limit=K)
-        for u, v in edges:
-            g.add_undirected_edge(u, v)  # 有向辺なら add_edge
+        g.add_undirected_edge(u, v)  # 有向辺なら add_edge
         count = g.solve()
-        if count == K:
-            paths = g.paths()
+        paths = g.paths()
 
     複数終点の例（S から A, B へ各1本、S 以外は共有不可）:
         vc, sc, ec = [1]*n, [0]*n, [0]*n
@@ -23,7 +21,6 @@ class VertexCapacitatedPaths:
         ec[A] = ec[B] = 1
         g = VertexCapacitatedPaths(n, vertex_capacity=vc,
                 start_capacity=sc, end_capacity=ec, path_limit=2)
-        # 最短路条件があれば、利用側で最短路 DAG の辺だけを追加する。
     """
 
     def __init__(self, n: int, *, vertex_capacity: list[int],
