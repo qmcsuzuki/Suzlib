@@ -4,14 +4,10 @@ from python.graph.matching.BipartiteMatching import BipartiteMatching
 
 
 class DAGMinimumPathCover:
-    """DAG の全頂点をちょうど1回ずつ被覆するパスの最小本数。
+    """DAG の全頂点をちょうど1回ずつ被覆するパスの最小本数を O((n+m) sqrt(n)) 時間で求める
+    内部でトポロジカルソートするので頂点順は任意
 
-    単頂点パスを許す。頂点番号のトポロジカル順は不要。
-    元の辺 u→v を二部グラフの左u→右vに移し、最大マッチングを求める。
-    答えは n - マッチング数。n 頂点 m 辺に対し O((n+m) sqrt(n)) 時間、
-    O(n+m) 空間。パス復元は O(n)。
-
-    使用例（n: 頂点数、edges: 有向辺 (u, v) の列）:
+    使用例:
         g = DAGMinimumPathCover(n)
         for u, v in edges:
             g.add_edge(u, v)
