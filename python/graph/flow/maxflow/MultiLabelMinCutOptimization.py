@@ -66,7 +66,7 @@ class MultiLabelMinCutOptimization:
 
     def add_pairwise(self, i: int, j: int, costs: list[list[int | Literal["inf"]]]) -> None:
         """costs[x_i][x_j] を加える。i == j では対角成分だけを使う。
-        "inf" は a < b の全成分、または a > b の全成分を禁止するときに使える。
+        "inf" は右上または左下に広がる階段状の禁止領域に使える。有限成分を 1 個以上必要とする。
         O(k_i k_j) 時間。Monge 不等式が狭義の隣接 2 x 2 小行列ごとに 1 辺を追加する。
         """
         rows, cols = self._count(i), self._count(j)
@@ -78,22 +78,29 @@ class MultiLabelMinCutOptimization:
             self.add_unary(i, diagonal)
             return
 
-        triangular = any("inf" in row for row in costs)
-        if triangular:
-            # 禁止領域を上三角にそろえる。入力行列は書き換えない。
-            upper = cols > 1 and costs[0][1] == "inf"
-            if not upper:
+        widths = []
+        if any("inf" in row for row in costs):
+            # 転置で禁止領域を右上にそろえ、各行の有限な接頭部の長さを求める。
+            if costs[0][-1] != "inf":
                 costs = list(zip(*costs))
                 i, j = j, i
                 rows, cols = cols, rows
-            if any((value == "inf") != (a < b)
-                   for a, row in enumerate(costs) for b, value in enumerate(row)):
-                raise ValueError('"inf" must fill exactly one strict triangle')
             costs = [list(row) for row in costs]
-            # 禁止領域の横差分を直下の行から引き継ぎ、Monge 不等式を等号にする。
+            for row in costs:
+                w = row.index("inf") if "inf" in row else cols
+                if any(v != "inf" for v in row[w:]) or (widths and w < widths[-1]):
+                    raise ValueError('"inf" must form a one-sided staircase')
+                widths.append(w)
+            if widths[-1] == 0:
+                raise ValueError("pairwise costs must have a finite entry")
+
+            # 横差分を下から引き継ぐ。全成分が禁止の行は直下の行をコピーする。
             for a in range(rows - 1, -1, -1):
                 row = costs[a]
-                for b in range(a + 1, cols):
+                if widths[a] == 0:
+                    costs[a] = costs[a + 1].copy()
+                    continue
+                for b in range(widths[a], cols):
                     delta = costs[a + 1][b] - costs[a + 1][b - 1] if a + 1 < rows else 0
                     row[b] = row[b - 1] + delta
 
@@ -103,8 +110,17 @@ class MultiLabelMinCutOptimization:
             assert all(prev[b] - prev[b - 1] >= curr[b] - curr[b - 1]
                        for b in range(1, cols)), "pairwise costs must be Monge"
 
-        if triangular:
-            self.add_ge(i, j)
+        if widths:
+            # 幅が増える境界ごとに x_j >= 旧幅 ⇒ x_i >= a を課す。
+            for a in range(1, rows):
+                w = widths[a - 1]
+                if w < widths[a]:
+                    if w == 0:
+                        self._cut.force(self._threshold(i, a), True)
+                    else:
+                        self.add_if_ge_then_ge(j, w, i, a)
+            if widths[-1] < cols:
+                self._cut.force(self._threshold(j, widths[-1]), False)
 
         # 最終列と先頭行が単項部分。右上隅は二重に数えるので引く。
         self.add_unary(i, [row[-1] for row in costs])
