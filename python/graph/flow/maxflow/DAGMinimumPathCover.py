@@ -5,6 +5,7 @@ from python.graph.topological_sort import topological_sort
 
 
 def _minimum_cover_flow(n, edges, lower, disjoint):
+    """各頂点の被覆回数の下限を満たす最小流量と求解済みのグラフを返す。"""
     adj = [[] for _ in range(n)]
     for u, v in edges:
         adj[u].append(v)
@@ -32,6 +33,7 @@ class DAGMinimumPathCover:
     """
 
     def __init__(self, n: int, *, disjoint: bool = True) -> None:
+        """n 頂点の DAG を初期化し、disjoint=True ならパス間の頂点共有を禁止する。"""
         assert n >= 0
         self._n = n
         self._disjoint = disjoint
@@ -40,6 +42,7 @@ class DAGMinimumPathCover:
         self._flow = None
 
     def add_edge(self, u: int, v: int) -> int:
+        """solve 前に辺 u→v を追加し、0 始まりの辺番号を返す。"""
         if self._used:
             raise RuntimeError("call add_edge() before solve()")
         assert 0 <= u < self._n and 0 <= v < self._n
@@ -47,6 +50,7 @@ class DAGMinimumPathCover:
         return len(self._edges) - 1
 
     def solve(self) -> int:
+        """全頂点を覆うパスの最小本数を返す。呼び出しは1回限り。"""
         if self._used:
             raise RuntimeError("solve() can only be called once")
         self._used = True
@@ -55,6 +59,7 @@ class DAGMinimumPathCover:
         return count
 
     def _paths(self, edge_ids):
+        """求解済みのフローから各パスを復元し、edge_ids に応じて辺番号列または頂点列で返す。"""
         if self._flow is None:
             raise RuntimeError("call solve() before paths()")
         n = self._n
@@ -81,7 +86,9 @@ class DAGMinimumPathCover:
         return paths
 
     def paths(self) -> list[list[int]]:
+        """solve 後、最小パス被覆の各パスを頂点列で返す。"""
         return self._paths(False)
 
     def edge_paths(self) -> list[list[int]]:
+        """solve 後、最小パス被覆の各パスを辺番号列で返す。単頂点パスは空リストになる。"""
         return self._paths(True)
