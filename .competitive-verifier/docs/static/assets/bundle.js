@@ -288,22 +288,29 @@
     btn.type = "button";
     btn.textContent = "Bundle";
     btn.setAttribute("data-suzlib-bundle", "1");
-    btn.style.margin = "8px 0";
+    btn.style.margin = "0";
     btn.style.padding = "6px 10px";
     btn.style.border = "1px solid #888";
     btn.style.borderRadius = "6px";
     btn.style.background = "#f7f7f7";
     btn.style.cursor = "pointer";
 
-    const place = h ? h : pre;
-    place.insertAdjacentElement("afterend", btn);
+    const toolbar = document.createElement("div");
+    toolbar.style.cssText = "display:flex; flex-wrap:wrap; align-items:center; gap:8px 24px; margin:8px 0";
+    const secondary = document.createElement("div");
+    secondary.style.cssText = "display:flex; align-items:center; margin-left:auto";
+    secondary.appendChild(btn);
+    (h || pre).insertAdjacentElement(h ? "afterend" : "beforebegin", toolbar);
 
     const bundleCopy = document.createElement("button");
     bundleCopy.type = "button";
     bundleCopy.textContent = "Bundle and Copy";
     bundleCopy.style.cssText = btn.style.cssText;
-    bundleCopy.style.marginLeft = "8px";
-    btn.insertAdjacentElement("afterend", bundleCopy);
+    bundleCopy.style.background = "#1756a9";
+    bundleCopy.style.borderColor = "#1756a9";
+    bundleCopy.style.color = "#fff";
+    bundleCopy.style.fontWeight = "600";
+    toolbar.append(bundleCopy, secondary);
 
     bundleCopy.addEventListener("click", async () => {
       bundleCopy.disabled = true;
