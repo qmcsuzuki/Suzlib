@@ -8,14 +8,9 @@ from python.graph.flow.maxflow.MaxFlow import MFGraph
 class BFlow:
     """流出量 - 流入量 = balance を満たす整数フロー。
 
-    正の balance は供給、負は需要。辺は 0 <= lower <= flow <= upper。
-    solve は1回だけ呼べる。成功後は指定辺の最適化を何度でも行える。
-    solve と各最適化は最大流を高々1回呼ぶ。一般に O(V^2 (E+V)) 時間、
-    O(V+E) 空間。前回最適化した辺の流量は固定しない。
-    全頂点の balance が0なら上下限付き循環流。自己ループ・多重辺も扱える。
-    辺・需給の追加は solve 前、最適化・解の取得は solve 成功後のみ。
-    get_edge は O(1)、edges は O(E)。補助辺は含めず、下限を足し戻した
-    src, dst, lower, upper, flow を返す。取得済みの値は後の最適化で変わらない。
+    辺には流量下限/上限 (lower/upper) を指定できる
+    頂点には需給 balance を指定できる（正なら供給、負なら需要）
+    solve 後は指定辺の最適化を何度でも行える。
 
     使用例:
         g = BFlow(3)
@@ -26,9 +21,7 @@ class BFlow:
         e = g.add_edge(0, 2, 0, 2)
         if g.solve():
             assert g.maximize_edge(e) == 2
-            maximum_edges = g.edges()
             assert g.minimize_edge(e) == 0
-            minimum_edges = g.edges()
     """
 
     class Edge(NamedTuple):
