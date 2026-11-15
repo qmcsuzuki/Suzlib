@@ -25,8 +25,8 @@ class DAGMaximumAntichain:
         self._edges.append((u, v))
         return len(self._edges) - 1
 
-    def solve(self) -> int:
-        """最大重みを返す。入力が DAG であることを仮定する。1 回限定。"""
+    def solve(self) -> tuple[int, list[int]]:
+        """最大重みと反鎖の頂点列を返す。入力が DAG であることを仮定する。1 回限定。"""
         if self._antichain is not None:
             raise RuntimeError("solve() can only be called once")
         n = self._n
@@ -50,7 +50,7 @@ class DAGMaximumAntichain:
                     seen[v] = True
                     stack.append(v)
         self._antichain = [v for v in range(n) if not seen[v] and seen[n + v]]
-        return value
+        return value, self.antichain()
 
     def antichain(self) -> list[int]:
         """solve 後、最大重みを達成する反鎖を頂点番号の昇順で返す。"""
