@@ -63,15 +63,14 @@ check(1, [])
 # X 字型。点素では3本、共有可では2本。
 x = [(0, 2), (1, 2), (2, 3), (2, 4)]
 check(5, x)
-g = DAGMinimumPathCover(5, disjoint=False, weights=[2, 1, 0, 2, 1])
+g = DAGMinimumPathCover(5, disjoint=False)
 for e in x:
     g.add_edge(*e)
-assert g.solve() == 3
+assert g.solve() == 2
 assert g.antichain() in ([0, 1], [3, 4])
 paths = g.paths()
-assert len(paths) == 3
-assert all(sum(v in path for path in paths) >= w
-           for v, w in enumerate([2, 1, 0, 2, 1]))
+assert len(paths) == 2
+assert {v for path in paths for v in path} == set(range(5))
 assert all(e in x for path in paths for e in zip(path, path[1:]))
 assert g.antichain() in ([0, 1], [3, 4])
 check(3, [(2, 0), (2, 0), (0, 1)])
