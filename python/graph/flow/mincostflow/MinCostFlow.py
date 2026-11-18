@@ -44,6 +44,9 @@ class MCFGraph:
         assert 0 <= dst < self._n
         assert 0 <= cap
         assert 0 <= cost
+        return self._add_edge(src, dst, cap, cost)
+
+    def _add_edge(self, src: int, dst: int, cap: int, cost: int) -> int:
         m = len(self._edges)
         e = MCFGraph._Edge(dst, cap, cost)
         re = MCFGraph._Edge(src, 0, -cost)
@@ -91,7 +94,7 @@ class MCFGraph:
         get_edge / edges で最適解の各辺の流量を取得できる。
         非負コストなので、このクラスでは常に (0, 0) となる。
         """
-        return self._slope(s, t, flow_limit, 0)[-1]
+        return self._slope(s, t, flow_limit, minimize_cost=True)[-1]
 
     def slope(
         self,
@@ -109,9 +112,10 @@ class MCFGraph:
         s: int,
         t: int,
         flow_limit: int | None,
-        marginal_limit: int | None = None,
+        *,
+        dual: list[int] | None = None,
+        minimize_cost: bool = False,
     ) -> list[tuple[int, int]]:
-        # 限界費用が marginal_limit 以上なら、増流する前に停止する。
         assert not self._used
         n = self._n
         g = self._g
@@ -124,7 +128,8 @@ class MCFGraph:
             assert 0 <= flow_limit
         self._used = True
 
-        dual = [0] * n
+        if dual is None:
+            dual = [0] * n
         prev: list[MCFGraph._Edge | None] = [None] * n
 
         def refine_dual_sparse() -> bool:
@@ -213,8 +218,9 @@ class MCFGraph:
             if not refine_dual():
                 break
 
-            c = -dual[s]
-            if marginal_limit is not None and c >= marginal_limit:
+            # 更新後の最短路の各辺は reduced cost が 0。
+            c = dual[t] - dual[s]
+            if minimize_cost and c >= 0:
                 break
 
             f = flow_limit - flow
@@ -260,11 +266,7 @@ class DAGMCFGraph:
         self._n = n
         self._s = s
         self._t = t
-        self._dense = dense
-        self._edges: list[tuple[int, int, int, int]] = []
-        self._g: MCFGraph | None = None
-        self._potential: list[int] | None = None
-        self._used = False
+        self._graph = MCFGraph(n, dense=dense)
 
     def _rank(self, v: int) -> int:
         if v == self._s:
@@ -275,35 +277,22 @@ class DAGMCFGraph:
 
     def add_edge(self, src: int, dst: int, cap: int, cost: int) -> int:
         """DAG の順方向へ容量 cap、単位費用 cost の辺を追加し、辺番号を返す。"""
-        assert self._g is None
+        assert not self._graph._used
         assert 0 <= src < self._n
         assert 0 <= dst < self._n
         assert 0 <= cap
         assert self._rank(src) < self._rank(dst)
-        self._edges.append((src, dst, cap, cost))
-        return len(self._edges) - 1
+        return self._graph._add_edge(src, dst, cap, cost)
 
     def get_edge(self, i: int) -> Edge:
         """i 番目に追加した辺を元のコストで返す。"""
-        assert 0 <= i < len(self._edges)
-        src, dst, cap, cost = self._edges[i]
-        if self._g is None:
-            return DAGMCFGraph.Edge(src, dst, cap, 0, cost)
-        e = self._g.get_edge(i)
-        return DAGMCFGraph.Edge(e.src, e.dst, e.cap, e.flow, cost)
+        return self._graph.get_edge(i)
 
     def edges(self) -> list[Edge]:
         """追加した全ての辺を、元のコストで追加順に返す。"""
-        return [self.get_edge(i) for i in range(len(self._edges))]
+        return self._graph.edges()
 
-    def _build(self) -> None:
-        if self._g is not None:
-            return
-
-        adj: list[list[tuple[int, int]]] = [[] for _ in range(self._n)]
-        for src, dst, _, cost in self._edges:
-            adj[src].append((dst, cost))
-
+    def _initial_dual(self) -> list[int]:
         # 仮想 source から全頂点へ費用 0 の辺を張った最短距離。
         potential = [0] * self._n
         order = [self._s]
@@ -311,19 +300,10 @@ class DAGMCFGraph:
         order.append(self._t)
         for src in order:
             p = potential[src]
-            for dst, cost in adj[src]:
-                nd = p + cost
-                if nd < potential[dst]:
-                    potential[dst] = nd
-
-        graph = MCFGraph(self._n, dense=self._dense)
-        for src, dst, cap, cost in self._edges:
-            reduced_cost = cost + potential[src] - potential[dst]
-            assert 0 <= reduced_cost
-            graph.add_edge(src, dst, cap, reduced_cost)
-
-        self._g = graph
-        self._potential = potential
+            for e in self._graph._g[src]:
+                if e.cap > 0 and p + e.cost < potential[e.dst]:
+                    potential[e.dst] = p + e.cost
+        return potential
 
     def flow(self, flow_limit: int | None = None) -> tuple[int, int]:
         """flow_limit 以下で流せる最大量まで流し、その (流量, 最小費用) を元のコストで返す。"""
@@ -350,17 +330,8 @@ class DAGMCFGraph:
         flow_limit: int | None,
         minimize_cost: bool = False,
     ) -> list[tuple[int, int]]:
-        assert not self._used
-        self._build()
-        self._used = True
-
-        graph = self._g
-        potential = self._potential
-        assert graph is not None
-        assert potential is not None
-        shift = potential[self._s] - potential[self._t]
-        # 元の限界費用は変換後の限界費用 - shift。
-        result = graph._slope(
-            self._s, self._t, flow_limit, shift if minimize_cost else None
+        assert not self._graph._used
+        return self._graph._slope(
+            self._s, self._t, flow_limit, dual=self._initial_dual(),
+            minimize_cost=minimize_cost,
         )
-        return [(flow, cost - flow * shift) for flow, cost in result]
