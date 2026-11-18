@@ -29,18 +29,14 @@ def _minimum_cover_flow(n, edges, lower, disjoint):
 class DAGMinimumPathCover:
     """元の DAG の辺で全頂点を覆う最小本数とパス列。
     disjoint=True で点素、False で頂点共有可。単頂点パスも許す。
-    共有可なら weights[v] 回以上 v を覆い、同じ解から最大重み反鎖も復元できる。
+    頂点共有を許す場合は、同じ解から最大反鎖も復元できる。
     solve は下限付き最小流（最大流を高々2回）。復元は O(n+m+出力長)。
     """
 
-    def __init__(self, n: int, *, disjoint: bool = True, weights: list[int] | None = None) -> None:
+    def __init__(self, n: int, *, disjoint: bool = True) -> None:
         """n 頂点の DAG を初期化し、disjoint=True ならパス間の頂点共有を禁止する。"""
         assert n >= 0
-        if weights is not None:
-            assert len(weights) == n and all(isinstance(w, int) and w >= 0 for w in weights)
-            if disjoint:
-                raise ValueError("weights require disjoint=False")
-        self._weights = [1] * n if weights is None else list(weights)
+        self._weights = [1] * n
         self._n = n
         self._disjoint = disjoint
         self._edges = []
