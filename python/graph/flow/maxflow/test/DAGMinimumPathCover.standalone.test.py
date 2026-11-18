@@ -2,6 +2,7 @@
 from itertools import combinations
 from random import Random
 
+from python.graph.flow.maxflow.DAGMaximumAntichain import DAGMaximumAntichain
 from python.graph.flow.maxflow.DAGMinimumPathCover import DAGMinimumPathCover
 
 
@@ -63,7 +64,7 @@ check(1, [])
 # X 字型。点素では3本、共有可では2本。
 x = [(0, 2), (1, 2), (2, 3), (2, 4)]
 check(5, x)
-g = DAGMinimumPathCover(5, disjoint=False)
+g = DAGMaximumAntichain(5)
 for e in x:
     g.add_edge(*e)
 assert g.solve() == 2
