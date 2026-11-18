@@ -1,4 +1,4 @@
-# competitive-verifier: TITLE 下限付き最小流による DAG の最小パス被覆
+# competitive-verifier: TITLE 下限付き最小流による DAG の最小パス被覆と最大重み反鎖
 
 from python.graph.flow.maxflow.LowerBoundSTFlow import LowerBoundSTFlow
 from python.graph.topological_sort import topological_sort
@@ -29,12 +29,18 @@ def _minimum_cover_flow(n, edges, lower, disjoint):
 class DAGMinimumPathCover:
     """元の DAG の辺で全頂点を覆う最小本数とパス列。
     disjoint=True で点素、False で頂点共有可。単頂点パスも許す。
+    共有可なら weights[v] 回以上 v を覆い、同じ解から最大重み反鎖も復元できる。
     solve は下限付き最小流（最大流を高々2回）。復元は O(n+m+出力長)。
     """
 
-    def __init__(self, n: int, *, disjoint: bool = True) -> None:
+    def __init__(self, n: int, *, disjoint: bool = True, weights: list[int] | None = None) -> None:
         """n 頂点の DAG を初期化し、disjoint=True ならパス間の頂点共有を禁止する。"""
         assert n >= 0
+        if weights is not None:
+            assert len(weights) == n and all(isinstance(w, int) and w >= 0 for w in weights)
+            if disjoint:
+                raise ValueError("weights require disjoint=False")
+        self._weights = [1] * n if weights is None else list(weights)
         self._n = n
         self._disjoint = disjoint
         self._edges = []
@@ -55,7 +61,7 @@ class DAGMinimumPathCover:
             raise RuntimeError("solve() can only be called once")
         self._used = True
         count, self._flow = _minimum_cover_flow(
-            self._n, self._edges, [1] * self._n, self._disjoint)
+            self._n, self._edges, self._weights, self._disjoint)
         return count
 
     def _paths(self, edge_ids):
@@ -92,3 +98,30 @@ class DAGMinimumPathCover:
     def edge_paths(self) -> list[list[int]]:
         """solve 後、最小パス被覆の各パスを辺番号列で返す。単頂点パスは空リストになる。"""
         return self._paths(True)
+
+    def antichain(self) -> list[int]:
+        """solve 後、最大重みを達成する反鎖の頂点列を復元する。"""
+        if self._flow is None:
+            raise RuntimeError("call solve() before antichain()")
+        if self._disjoint:
+            raise ValueError("antichain() requires disjoint=False")
+        n = self._n
+        residual = [[] for _ in range(2 * n + 2)]
+        for u, v, lower, upper, flow in self._flow.edges():
+            if flow < upper:
+                residual[u].append(v)
+            if flow > lower:
+                residual[v].append(u)
+        # t から到達できる側へ入る頂点分割辺は下限に一致する。
+        # 元の DAG の辺と分割辺は順方向に残るため、これらの頂点は反鎖をなす。
+        t = 2 * n + 1
+        seen = [False] * len(residual)
+        seen[t] = True
+        stack = [t]
+        while stack:
+            u = stack.pop()
+            for v in residual[u]:
+                if not seen[v]:
+                    seen[v] = True
+                    stack.append(v)
+        return [v for v in range(n) if not seen[v] and seen[n + v]]
