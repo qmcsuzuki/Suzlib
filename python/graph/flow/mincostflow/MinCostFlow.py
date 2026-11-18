@@ -81,7 +81,7 @@ class MCFGraph:
         flow_limit: int | None = None,
     ) -> tuple[int, int]:
         """flow_limit 以下で流せる最大量まで流し、その (流量, 最小費用) を返す。"""
-        return self.slope(s, t, flow_limit)[-1]
+        return self._flow(s, t, flow_limit)
 
     def min_cost_flow(
         self,
@@ -94,7 +94,7 @@ class MCFGraph:
         get_edge / edges で最適解の各辺の流量を取得できる。
         非負コストなので、このクラスでは常に (0, 0) となる。
         """
-        return self._slope(s, t, flow_limit, minimize_cost=True)[-1]
+        return self._flow(s, t, flow_limit, minimize_cost=True)
 
     def slope(
         self,
@@ -105,9 +105,11 @@ class MCFGraph:
         """各流量に対する最小費用の折れ線の頂点を返す。
         最後の点の流量は flow_limit 以下で流せる最大流量であり、そのフローを保持する。
         """
-        return self._slope(s, t, flow_limit)
+        points = [(0, 0)]
+        self._flow(s, t, flow_limit, points=points)
+        return points
 
-    def _slope(
+    def _flow(
         self,
         s: int,
         t: int,
@@ -115,7 +117,8 @@ class MCFGraph:
         *,
         dual: list[int] | None = None,
         minimize_cost: bool = False,
-    ) -> list[tuple[int, int]]:
+        points: list[tuple[int, int]] | None = None,
+    ) -> tuple[int, int]:
         assert not self._used
         n = self._n
         g = self._g
@@ -213,7 +216,6 @@ class MCFGraph:
         flow = 0
         cost = 0
         prev_cost_per_flow: int | None = None
-        result = [(flow, cost)]
         while flow < flow_limit:
             if not refine_dual():
                 break
@@ -240,12 +242,13 @@ class MCFGraph:
 
             flow += f
             cost += f * c
-            if c == prev_cost_per_flow:
-                result.pop()
-            result.append((flow, cost))
-            prev_cost_per_flow = c
+            if points is not None:
+                if c == prev_cost_per_flow:
+                    points.pop()
+                points.append((flow, cost))
+                prev_cost_per_flow = c
 
-        return result
+        return flow, cost
 
 
 class DAGMCFGraph:
@@ -307,14 +310,14 @@ class DAGMCFGraph:
 
     def flow(self, flow_limit: int | None = None) -> tuple[int, int]:
         """flow_limit 以下で流せる最大量まで流し、その (流量, 最小費用) を元のコストで返す。"""
-        return self.slope(flow_limit)[-1]
+        return self._flow(flow_limit)
 
     def min_cost_flow(self, flow_limit: int | None = None) -> tuple[int, int]:
         """流量も選んで費用を最小化し、元のコストで (総流量, 総費用) を返す。
         流量は 0 以上 flow_limit 以下（None は上限なし）。同費用なら流量最小。
         get_edge / edges で最適解の各辺の流量を取得できる。
         """
-        return self._slope(flow_limit, True)[-1]
+        return self._flow(flow_limit, minimize_cost=True)
 
     def slope(
         self,
@@ -323,15 +326,18 @@ class DAGMCFGraph:
         """各流量に対する最小費用の折れ線の頂点を、元のコストで返す。
         最後の点に対応する最大流量のフローを保持する。
         """
-        return self._slope(flow_limit)
+        points = [(0, 0)]
+        self._flow(flow_limit, points=points)
+        return points
 
-    def _slope(
+    def _flow(
         self,
         flow_limit: int | None,
         minimize_cost: bool = False,
-    ) -> list[tuple[int, int]]:
+        points: list[tuple[int, int]] | None = None,
+    ) -> tuple[int, int]:
         assert not self._graph._used
-        return self._graph._slope(
+        return self._graph._flow(
             self._s, self._t, flow_limit, dual=self._initial_dual(),
-            minimize_cost=minimize_cost,
+            minimize_cost=minimize_cost, points=points,
         )
