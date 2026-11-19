@@ -22,7 +22,7 @@ class DAGLowerBoundMinCostFlow:
         # 同じインスタンスでは1種類だけ呼ぶ。各用途で新しく構築する。
 
     各頂点 v で、流入辺の下限の和から流出辺の下限の和を引いた値を b(v) とする。
-    補助グラフで流す量は、指定量（または上限）F に sum(max(b(v), 0) for v in V) を足した値。
+    b(s) に指定量（または上限）F を加え、b(t) から F を引いた後、正の b(v) の和を流す。
     """
 
     class Edge(NamedTuple):
@@ -107,9 +107,9 @@ class DAGLowerBoundMinCostFlow:
             g.add_edge(rank[u], rank[v], upper - lower, cost * scale)
             balance[u] -= lower
             balance[v] += lower
-        g.add_edge(source, rank[self._s], limit, 0)
-        g.add_edge(rank[self._t], sink, limit, 0)
-        demand = limit
+        balance[self._s] += limit
+        balance[self._t] -= limit
+        demand = 0
         for v, b in enumerate(balance):
             if b > 0:
                 g.add_edge(source, rank[v], b, 0)
