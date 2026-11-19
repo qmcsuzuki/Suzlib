@@ -24,6 +24,64 @@ def brute_flow(n, edges, s, t):
     return costs
 
 
+def brute_bflow(n, edges):
+    """需給ベクトルごとの最小費用。"""
+    best = {}
+    for flows in product(*(range(cap + 1) for _, _, cap, _ in edges)):
+        balance = [0] * n
+        cost = 0
+        for (u, v, _, c), f in zip(edges, flows):
+            balance[u] -= f
+            balance[v] += f
+            cost += c * f
+        key = tuple(balance)
+        if key not in best or cost < best[key]:
+            best[key] = cost
+    return best
+
+
+def check_repeated(n, edges, rng):
+    """始終点・上限・メソッドを変えて連続で呼び、累積フローの最適性を確かめる。"""
+    best = brute_bflow(n, edges)
+    for dense in (False, True):
+        g = MCFGraph(n, dense)
+        for e in edges:
+            g.add_edge(*e)
+        balance = [0] * n
+        total = 0
+        for _ in range(4):
+            s, t = rng.sample(range(n), 2)
+            limit = rng.choice((None, 0, 1, 2, 5))
+            method = rng.choice(('flow', 'min_cost_flow', 'slope'))
+            before = total
+            result = getattr(g, method)(s, t, limit)
+            f, c = result[-1] if method == 'slope' else result
+            # 追加量 x ごとの最小費用差。
+            options = {}
+            for x in range(sum(cap for _, _, cap, _ in edges) + 1):
+                b = balance.copy()
+                b[s] -= x
+                b[t] += x
+                if (limit is None or x <= limit) and tuple(b) in best:
+                    options[x] = best[tuple(b)] - before
+            if method == 'min_cost_flow':
+                assert (f, c) == min(options.items(), key=lambda item: (item[1], item[0]))
+            else:
+                assert f == max(options) and c == options[f]
+            if method == 'slope':
+                assert all(options[x] == y for x, y in result)
+            balance[s] -= f
+            balance[t] += f
+            total += c
+            assert sum(e.flow * e.cost for e in g.edges()) == total
+            p = g.potential()
+            for e in g.edges():
+                if e.flow < e.cap:
+                    assert e.cost + p[e.src] - p[e.dst] >= 0
+                if e.flow:
+                    assert -e.cost + p[e.dst] - p[e.src] >= 0
+
+
 def check(n, edges, s, t):
     expected = brute_flow(n, edges, s, t)
     for dense in (False, True):
@@ -138,3 +196,17 @@ if __name__ == '__main__':
         edges = [(rng.randrange(n), rng.randrange(n), rng.randrange(3), rng.randrange(6))
                  for _ in range(rng.randrange(8))]
         check(n, edges, 0, n - 1)
+    # 連続呼び出し: 閉路ありの非負費用と、番号をシャッフルした負費用 DAG。
+    rng = Random(20261120)
+    for it in range(300):
+        n = rng.randrange(2, 6)
+        perm = list(range(n))
+        rng.shuffle(perm)
+        edges = []
+        for _ in range(rng.randrange(1, 6)):
+            if it % 2:
+                i, j = sorted(rng.sample(range(n), 2))
+                edges.append((perm[i], perm[j], rng.randrange(3), rng.randrange(-5, 6)))
+            else:
+                edges.append((rng.randrange(n), rng.randrange(n), rng.randrange(3), rng.randrange(6)))
+        check_repeated(n, edges, rng)
