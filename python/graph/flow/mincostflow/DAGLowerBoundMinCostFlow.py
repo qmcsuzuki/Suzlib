@@ -93,7 +93,10 @@ class DAGLowerBoundMinCostFlow:
             limit = sum(e[3] for e in self._edges if e[0] == self._s)
         if mode and rank[self._s] > rank[self._t]:
             limit = 0
-        scale = limit + 1 if mode == 2 else 1
+        # min_cost_flow は費用を2倍し、ダミー辺に費用 -1 を付けて同費用なら流量最小にする。
+        # 単純閉路はダミー辺を高々1回通るので、実費用が負の閉路は 2c+1 < 0 のまま負で、
+        # 実費用0で流量を減らす閉路だけが -1 になる。上限 F に依存しない倍率で足りる。
+        scale = 2 if mode == 2 else 1
         g = MinCostBFlow(n, dense=self._dense, dag=True)
         # 元の辺を先に登録し、元の辺IDと内部の辺IDを一致させる。
         # 番号をトポロジカル順に振り直し、初期ポテンシャルを1パスで求める。
