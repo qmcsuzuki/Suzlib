@@ -1,6 +1,7 @@
 # competitive-verifier: TITLE DAG の最小費用パス被覆・パス選択
 
 from python.graph.flow.mincostflow.DAGLowerBoundMinCostFlow import DAGLowerBoundMinCostFlow
+from python.graph.flow.mincostflow.MinCostFlow import MCFGraph
 
 
 class DAGPathCover:
@@ -13,13 +14,15 @@ class DAGPathCover:
         # K本・頂点報酬は1回のみ（頂点共有可、被覆義務なし）
         DAGPathCover(n, vertex_disjoint=False, required=False, path_count=K, path_limit=None, start_cost=0, end_cost=0, vertex_gain=weights, gain_once=True)
 
-    最適化には DAGLowerBoundMinCostFlow を使い、ネットワークは常に DAG のまま。
-    - 点素・全頂点必須・全頂点で開始終了可能: 二部マッチングに帰着する。
+    ネットワークは常に DAG のまま。K=0 と点素で本数ちょうど K>n は早期終了する。
+    - 点素・全頂点必須・全頂点で開始終了可能: 二部マッチングに帰着し、
+      全辺の下限が0なので MCFGraph を直接使う。
       初期状態は全頂点が単独パス。辺 u→v の結合費用は c_uv-C_u-B_v。
       本数ちょうど K は n-K 個のマッチ、本数高々 K は n 単位の流量と
       容量 K の s→t 直通辺で表す。
     - その他: 頂点を in/out に分割し、必須頂点の in→out 辺に下限1を付けた
-      s-t 流。本数ちょうど K は solve(K)、高々 K は min_cost_flow(K)。
+      s-t 流を DAGLowerBoundMinCostFlow で解く。本数ちょうど K は solve(K)、
+      高々 K は min_cost_flow(K)。
 
     同費用なら本数最小とするための費用拡大は、上限 K に依存しない。
     - 分割グラフ: 本数 = s-t 流量なので、DAGLowerBoundMinCostFlow.min_cost_flow
@@ -128,13 +131,40 @@ class DAGPathCover:
             ):
                 raise ValueError("specify path_count or path_limit for this shared-path problem")
             k = n
-        if self._disjoint and self._exact is None:
+        if self._disjoint:
+            if self._exact is not None and k > n:
+                self._check_dag()
+                return -1, 0
             k = min(k, n)
+        if k == 0:
+            self._check_dag()
+            if any(self._required):
+                return -1, 0
+            self._count = 0
+            return 0, 0
         if (self._disjoint and all(self._required)
-                and all(self._start_capacity) and all(self._end_capacity)
-                and k <= n):
+                and all(self._start_capacity) and all(self._end_capacity)):
+            self._check_dag()
             return self._solve_full_cover(k)
+        # 分割グラフの DAG 判定は DAGLowerBoundMinCostFlow が行う。
         return self._solve_lower_bound(k)
+
+    def _check_dag(self) -> None:
+        """元のグラフが DAG でなければ ValueError。O(n+m)。"""
+        n = self._n
+        adj = [[] for _ in range(n)]
+        indegree = [0] * n
+        for u, v, _ in self._edges:
+            adj[u].append(v)
+            indegree[v] += 1
+        order = [v for v in range(n) if indegree[v] == 0]
+        for u in order:
+            for v in adj[u]:
+                indegree[v] -= 1
+                if indegree[v] == 0:
+                    order.append(v)
+        if len(order) != n:
+            raise ValueError("graph must be a DAG")
 
     def _store(self, starts: list[int], ends: list[int],
                edge_flow: list[int], cost: int) -> tuple[int, int]:
@@ -181,39 +211,30 @@ class DAGPathCover:
         return self._store(start_flow, end_flow, edge_flow, cost)
 
     def _solve_full_cover(self, k: int) -> tuple[int, int]:
-        """点素全被覆、全頂点で開始終了可能。単頂点パスから結合する二部 MCF。"""
+        """点素全被覆、全頂点で開始終了可能。単頂点パスから結合する二部 MCF。
+
+        全辺の下限が0なので MCFGraph を直接使う。DAG 判定は呼び出し側で行う。
+        """
         n = self._n
-        indegree = [0] * n
-        adj = [[] for _ in range(n)]
-        for u, v, _ in self._edges:
-            adj[u].append(v)
-            indegree[v] += 1
-        order = [v for v in range(n) if indegree[v] == 0]
-        for u in order:
-            for v in adj[u]:
-                indegree[v] -= 1
-                if indegree[v] == 0:
-                    order.append(v)
-        if len(order) != n:
-            raise ValueError("graph must be a DAG")
-        s, t = 0, 2 * n + 1
-        g = DAGLowerBoundMinCostFlow(t + 1, s, t, dense=self._dense)
+        s, t = 2 * n, 2 * n + 1
+        g = MCFGraph(t + 1, dense=self._dense)
         join = [c - self._end_cost[u] - self._start_cost[v] for u, v, c in self._edges]
+        # 番号順 s, 左, 右, t がトポロジカル順で、初期ポテンシャルは1パス。
+        for v in range(n):
+            g.add_edge(s, v, 1, 0)
+            g.add_edge(n + v, t, 1, 0)
         if self._exact is None:
             # n 単位を、マッチング辺か高々 k 単位の直通辺で流す。
             # 結合費用を2倍し直通辺を費用1にすると、同費用ならマッチ数最大。
-            edge_ids = [g.add_edge(u + 1, n + v + 1, 0, 1, 2 * c)
+            edge_ids = [g.add_edge(u, n + v, 1, 2 * c)
                         for (u, v, _), c in zip(self._edges, join)]
-            g.add_edge(s, t, 0, k, 1)
+            g.add_edge(s, t, k, 1)
             demand = n
         else:
-            edge_ids = [g.add_edge(u + 1, n + v + 1, 0, 1, c)
+            edge_ids = [g.add_edge(u, n + v, 1, c)
                         for (u, v, _), c in zip(self._edges, join)]
             demand = n - k
-        for v in range(n):
-            g.add_edge(s, v + 1, 0, 1, 0)
-            g.add_edge(n + v + 1, t, 0, 1, 0)
-        if g.solve(demand)[0] < 0:
+        if g.flow(s, t, demand)[0] != demand:
             return -1, 0
         edge_flow = [g.get_edge(i).flow for i in edge_ids]
         starts = [1] * n
