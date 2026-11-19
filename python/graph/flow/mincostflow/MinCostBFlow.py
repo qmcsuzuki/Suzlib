@@ -15,15 +15,23 @@ class MinCostBFlow:
     成功時 (True, 最小費用)、実行不能時 (False, 0) を返す。
     get_edge / edges は成功後のみ。元の辺を追加順に、元の向き・費用で返す。
 
-    非負費用辺は下限、負費用辺は上限まで流した状態を基準にする。
-    負費用辺は逆向き・費用 -cost の辺に置き換え、残りの需給を補助始点・
-    終点間の MCFGraph で満たす。初期残余費用は全て非負。
+    dag=False（既定）では、非負費用辺は下限、負費用辺は上限まで流した状態を
+    基準にする。負費用辺は逆向き・費用 -cost の辺に置き換え、残りの需給を
+    補助始点・終点間の MCFGraph で満たす。初期残余費用は全て非負。
     変換後の流量 x から、非負費用辺は lower+x、負費用辺は upper-x と復元。
+
+    dag=True では負費用辺も反転せず、全辺を下限まで流した状態を基準にする。
+    負費用辺は MCFGraph の初期ポテンシャルで扱い、上限まで流すことはない。
+    正容量の負費用辺がある場合、upper > lower の辺全体が DAG であることを要し、
+    閉路があれば solve で AssertionError。負閉路・負費用の自己ループは不可。
+    頂点番号がトポロジカル順なら、初期ポテンシャルの計算は O(n+m) の1パス。
 
     n 頂点 m 辺、変換後の総供給量 D、増流回数 A<=D として、
     構築 O(n+m)、solve は sparse で O(n+m+(A+1)*(n+m+1)*log(n+m+2))、
     dense で O(n+m+(A+1)*((n+1)**2+m))。空間 O(n+m)。
-    D は元の供給量とは異なり、辺の上下限にも依存する。
+    D は「指定した需給 + 基準状態の流量による需給」の正の部分の和。
+    dag=False では負費用辺の upper が D に入る。dag=True では下限だけが入り、
+    負費用辺の容量は D に影響しない。
     巨大容量でも1回でまとめて増流する場合はあるが、scaling は行わない。
     add_balance / get_edge は O(1)、add_edge は償却 O(1)、edges は O(m)。
 
@@ -44,10 +52,13 @@ class MinCostBFlow:
         flow: int
         cost: int
 
-    def __init__(self, n: int, dense: bool = False) -> None:
-        """n 頂点、全需給0で初期化。dense=True は密 Dijkstra を用いる。"""
+    def __init__(self, n: int, dense: bool = False, dag: bool = False) -> None:
+        """n 頂点、全需給0で初期化。dense=True は密 Dijkstra を用いる。
+        dag=True は負費用辺を反転せず、DAG 上の初期ポテンシャルで扱う。
+        """
         assert n >= 0
         self._n = n
+        self._dag = dag
         self._graph = MCFGraph(n + 2, dense=dense)
         self._balance = [0] * n
         self._edges: list[tuple[int, int, int, int, int]] = []
@@ -67,7 +78,7 @@ class MinCostBFlow:
         assert not self._solved
         assert 0 <= src < self._n and 0 <= dst < self._n
         assert 0 <= lower <= upper
-        if cost < 0:
+        if cost < 0 and not self._dag:
             initial = upper
             i = self._graph.add_edge(dst, src, upper - lower, -cost)
         else:
@@ -106,10 +117,19 @@ class MinCostBFlow:
         assert 0 <= i < len(self._edges)
         src, dst, lower, upper, cost = self._edges[i]
         x = self._graph.get_edge(i).flow
-        flow = upper - x if cost < 0 else lower + x
+        flow = upper - x if cost < 0 and not self._dag else lower + x
         return self.Edge(src, dst, lower, upper, flow, cost)
 
     def edges(self) -> list[Edge]:
         """成功後、元の辺を追加順に返す。補助辺は含めない。O(m)。"""
         assert self._feasible
         return [self.get_edge(i) for i in range(len(self._edges))]
+
+    def potential(self) -> list[int]:
+        """成功後、元の頂点の長さ n のポテンシャル p を返す。O(n)。
+
+        元の辺で flow < upper なら cost+p[src]-p[dst] >= 0、
+        flow > lower なら cost+p[src]-p[dst] <= 0 を満たす。正規化はしない。
+        """
+        assert self._feasible
+        return self._graph.potential()[:self._n]

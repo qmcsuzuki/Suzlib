@@ -1,7 +1,6 @@
 # competitive-verifier: TITLE DAG の上下限付き最小費用流
 
-from typing import NamedTuple
-from python.graph.flow.mincostflow.MinCostFlow import MCFGraph
+from python.graph.flow.mincostflow.MinCostBFlow import MinCostBFlow
 
 class DAGLowerBoundMinCostFlow:
     """DAG 上の上下限付き st 最小費用流
@@ -23,15 +22,11 @@ class DAGLowerBoundMinCostFlow:
 
     各頂点 v で、流入辺の下限の和から流出辺の下限の和を引いた値を b(v) とする。
     b(s) に指定量（または上限）F を加え、b(t) から F を引いた後、正の b(v) の和を流す。
+    内部では MinCostBFlow(dag=True) を使い、負費用辺を上限まで流す変換はしない。
+    増流回数は F + sum(max(b(v), 0)) 以下で、負費用辺の容量には依存しない。
     """
 
-    class Edge(NamedTuple):
-        src: int
-        dst: int
-        lower: int
-        upper: int
-        flow: int
-        cost: int
+    Edge = MinCostBFlow.Edge
 
     def __init__(self, n: int, s: int, t: int, dense: bool = False) -> None:
         """頂点数と始終点を指定する。dense は密 Dijkstra の選択。"""
@@ -99,34 +94,24 @@ class DAGLowerBoundMinCostFlow:
         if mode and rank[self._s] > rank[self._t]:
             limit = 0
         scale = limit + 1 if mode == 2 else 1
-        source, sink = n, n + 1
-        g = MCFGraph(n + 2, dense=self._dense)
+        g = MinCostBFlow(n, dense=self._dense, dag=True)
         # 元の辺を先に登録し、元の辺IDと内部の辺IDを一致させる。
-        balance = [0] * n
+        # 番号をトポロジカル順に振り直し、初期ポテンシャルを1パスで求める。
         for u, v, lower, upper, cost in self._edges:
-            g.add_edge(rank[u], rank[v], upper - lower, cost * scale)
-            balance[u] -= lower
-            balance[v] += lower
-        balance[self._s] += limit
-        balance[self._t] -= limit
-        demand = 0
-        for v, b in enumerate(balance):
-            if b > 0:
-                g.add_edge(source, rank[v], b, 0)
-                demand += b
-            elif b < 0:
-                g.add_edge(rank[v], sink, -b, 0)
+            g.add_edge(rank[u], rank[v], lower, upper, cost * scale)
+        g.add_balance(rank[self._s], limit)
+        g.add_balance(rank[self._t], -limit)
         dummy = -1
         if mode and limit:
             dummy_cost = -1 if mode == 2 else (
                 sum((hi - lo) * abs(c) for _, _, lo, hi, c in self._edges) + 1
             )
-            dummy = g.add_edge(rank[self._s], rank[self._t], limit, dummy_cost)
-        sent, _ = g.flow(source, sink, demand)
-        if sent != demand:
+            dummy = g.add_edge(rank[self._s], rank[self._t], 0, limit, dummy_cost)
+        feasible, _ = g.solve()
+        if not feasible:
             return -1, 0
         self._edge_flow = [
-            e[2] + g.get_edge(i).flow for i, e in enumerate(self._edges)
+            g.get_edge(i).flow for i in range(len(self._edges))
         ]
         self._feasible = True
         actual_flow = limit - (g.get_edge(dummy).flow if dummy >= 0 else 0)
