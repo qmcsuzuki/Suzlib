@@ -12,6 +12,8 @@ class MCFGraph:
     """ポテンシャル付き最短路法による最小費用流。
     正容量の負費用辺がある場合、正容量の辺全体が DAG であることを要する。
     辺追加は初回求解前まで。以後は残余グラフを引き継ぎ、始終点を変えて繰り返し増流できる。
+    各呼び出しの後、累積フローは「これまでの全呼び出しの (始点, 終点, 追加流量) を
+    合わせた需給」を満たすフローのうち費用最小であり、potential() がその証明となる。
     """
 
     class Edge(NamedTuple):
@@ -41,7 +43,11 @@ class MCFGraph:
         self._dual: list[int] | None = None
 
     def add_edge(self, src: int, dst: int, cap: int, cost: int) -> int:
-        """src から dst への容量 cap、単位費用 cost の辺を追加し、辺番号を返す。"""
+        """src から dst への容量 cap、単位費用 cost の辺を追加し、辺番号を返す。
+
+        cost は負も可。正容量の負費用辺がある場合、初回求解時に正容量の辺全体が
+        DAG であることを確認し、閉路があれば AssertionError。初回求解前のみ。
+        """
         assert self._dual is None
         assert 0 <= src < self._n
         assert 0 <= dst < self._n
@@ -100,7 +106,7 @@ class MCFGraph:
     ) -> tuple[int, int]:
         """追加流量も選んで費用を最小化し、(追加流量, 費用差) を返す。
         流量は 0 以上 flow_limit 以下（None は上限なし）。同費用なら流量最小。
-        get_edge / edges で最適解の各辺の流量を取得できる。
+        get_edge / edges は全呼び出しの累積フローを返す。
         """
         return self._flow(s, t, flow_limit, minimize_cost=True)
 
@@ -119,6 +125,8 @@ class MCFGraph:
 
     def _initial_dual(self, s: int, t: int) -> list[int]:
         # 仮想始点から全頂点への費用 0 の辺を含めた最短距離を求める。
+        # 「s, 他を番号順, t」がトポロジカル順なら O(n+m) の1パス。
+        # 順序に反する正容量辺を見つけたら Kahn 法でやり直す（これも O(n+m)）。
         n = self._n
         dual = [0] * n
         processed = [False] * n
@@ -127,12 +135,15 @@ class MCFGraph:
         order.append(t)
         for u in order:
             processed[u] = True
+            dual_u = dual[u]
             for e in self._g[u]:
                 if e.cap == 0:
                     continue
-                if processed[e.dst]:
+                v = e.dst
+                if processed[v]:
                     return self._initial_dual_kahn()
-                dual[e.dst] = min(dual[e.dst], dual[u] + e.cost)
+                if dual_u + e.cost < dual[v]:
+                    dual[v] = dual_u + e.cost
         return dual
 
     def _initial_dual_kahn(self) -> list[int]:
@@ -144,11 +155,13 @@ class MCFGraph:
                 indegree[e.dst] += 1
         order = [v for v in range(n) if indegree[v] == 0]
         for u in order:
+            dual_u = dual[u]
             for e in self._g[u]:
                 if e.cap == 0:
                     continue
                 v = e.dst
-                dual[v] = min(dual[v], dual[u] + e.cost)
+                if dual_u + e.cost < dual[v]:
+                    dual[v] = dual_u + e.cost
                 indegree[v] -= 1
                 if indegree[v] == 0:
                     order.append(v)
@@ -180,6 +193,9 @@ class MCFGraph:
 
         # ACL と同様、t 確定時に探索を打ち切り、確定頂点だけを更新する。
         # 未確定頂点を据え置いても、全残余辺の縮約コストは非負のまま。
+        # （距離を D=dist[t] で打ち切った min(dist, D) で更新するのと同じで、
+        # 辺の不等式 dist[w] <= dist[v] + rc は min を取っても保たれる。
+        # t の出辺は緩和していないが、t は D に据え置く扱いなので問題ない。）
         def refine_dual_sparse() -> bool:
             pq = []
             que_min = [s]
