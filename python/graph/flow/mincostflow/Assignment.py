@@ -33,77 +33,83 @@ def _assignment(
     right_potential = [0 if full else min(min(row) for row in cost)] * m
     total_cost = 0
 
+    if not full:
+        # 未マッチ左頂点のポテンシャルは常に共通値 free_potential。
+        # 列 j ごとに左頂点を費用昇順に並べ、未マッチの最小を指すポインタを持つ。
+        # 左頂点は一度マッチすると未マッチに戻らないので、ポインタは単調に進む。
+        free_potential = 0
+        order = [
+            sorted(range(n), key=col.__getitem__) for col in zip(*cost)
+        ]
+        ptr = [0] * m
+
     for k in range(flow):
-        dist: list[int | None] = [None] * m
-        prev_left = [-1] * m
         used_right = [False] * m
 
         if full:
             # 行追加型 Hungarian 法。既存のマッチングは先頭 k 行だけを使う。
             i = k
             row = cost[i]
-            left_potential[i] = max(right_potential[j] - row[j] for j in range(m))
-            free_left = [i]
+            potential_i = max(right_potential[j] - row[j] for j in range(m))
+            left_potential[i] = potential_i
+            dist = [row[j] + potential_i - right_potential[j] for j in range(m)]
+            prev_left = [i] * m
         else:
             # 任意流量では全ての未マッチ左頂点を始点とする。
-            free_left = [i for i in range(n) if left_match[i] == -1]
-
-        # 仮想 source から始点への辺は tight。
-        # 始点すべてから右頂点への辺を距離0から緩和する。
-        for i in free_left:
-            row = cost[i]
-            potential_i = left_potential[i]
+            # 各列について、未マッチ左頂点からの最小 reduced cost で初期化する。
+            dist = [0] * m
+            prev_left = [0] * m
             for j in range(m):
-                nd = row[j] + potential_i - right_potential[j]
-                if dist[j] is None or nd < dist[j]:
-                    dist[j] = nd
-                    prev_left[j] = i
+                order_j = order[j]
+                p = ptr[j]
+                while left_match[order_j[p]] != -1:
+                    p += 1
+                ptr[j] = p
+                i = order_j[p]
+                prev_left[j] = i
+                dist[j] = cost[i][j] + free_potential - right_potential[j]
 
         while True:
             v = -1
-            best: int | None = None
+            best = 0
             for j in range(m):
-                if used_right[j] or dist[j] is None:
+                if used_right[j]:
                     continue
-                if best is None or dist[j] < best:
+                if v == -1 or dist[j] < best:
                     best = dist[j]
                     v = j
 
-            assert v != -1
             used_right[v] = True
 
             if right_match[v] == -1:
                 target = v
-                shortest = dist[v]
-                assert shortest is not None
+                shortest = best
                 break
 
             # matched edge の逆辺は reduced cost 0。
             i = right_match[v]
             row = cost[i]
-            potential_i = left_potential[i]
-            dist_i = dist[v]
-            assert dist_i is not None
+            base = best + left_potential[i]
 
             for j in range(m):
                 if used_right[j]:
                     continue
-                nd = dist_i + row[j] + potential_i - right_potential[j]
-                if dist[j] is None or nd < dist[j]:
+                nd = base + row[j] - right_potential[j]
+                if nd < dist[j]:
                     dist[j] = nd
                     prev_left[j] = i
 
         # shortest path 上の辺を tight にし、全 residual edge の
         # reduced cost の非負性を保つ。
-        for i in free_left:
-            left_potential[i] -= shortest
+        if full:
+            left_potential[k] -= shortest
+        else:
+            free_potential -= shortest
 
         for j in range(m):
             if not used_right[j]:
                 continue
-            dist_j = dist[j]
-            assert dist_j is not None
-            shift = dist_j - shortest
+            shift = dist[j] - shortest
             right_potential[j] += shift
             i = right_match[j]
             if i != -1:
@@ -117,6 +123,9 @@ def _assignment(
             total_cost += cost[i][j]
             if old_j != -1:
                 total_cost -= cost[i][old_j]
+            elif not full:
+                # 始点の左頂点が新たにマッチする。
+                left_potential[i] = free_potential
             left_match[i] = j
             right_match[j] = i
             j = old_j
@@ -132,7 +141,6 @@ def _assignment(
     return costs, left_match
 
 
-
 def assignment(
     cost: list[list[int]],
     flow: int | None = None,
@@ -141,10 +149,13 @@ def assignment(
     戻り値は (最小費用, match), match[i] = i に対応する頂点（-1 は対応無し）
 
     - cost[i][j]: 左頂点 i と右頂点 j を対応させる費用
-    - flow=None では Hungarian 法で min(n, m) 個を対応させる
+    - flow=None または flow=min(n, m) では Hungarian 法で min(n, m) 個を対応させる
     - flow を指定した場合はちょうど flow 個を対応させる
+    - 計算量: O(min(n, m)^2 max(n, m))、flow 指定時は O(nm log n + flow^2 m)
     """
-    costs, match = _assignment(cost, flow, full=flow is None)
+    n = len(cost)
+    full = flow is None or flow == min(n, len(cost[0]) if n else 0)
+    costs, match = _assignment(cost, flow, full=full)
     return costs[-1], match
 
 
@@ -152,6 +163,9 @@ def assignment_costs(
     cost: list[list[int]],
     flow: int | None = None,
 ) -> list[int]:
-    """各流量 0,1,...,flow に対する最小割り当て費用の配列 costs を返す。負の費用と長方形行列に対応する。"""
+    """各流量 0,1,...,flow に対する最小割り当て費用の配列 costs を返す。負の費用と長方形行列に対応する。
+
+    計算量: O(nm log n + flow^2 m)
+    """
     costs, _ = _assignment(cost, flow)
     return costs
