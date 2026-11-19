@@ -39,6 +39,7 @@ class MCFGraph:
         self._edges: list[MCFGraph._Edge] = []
         self._used = False
         self._has_negative_edge = False
+        self._dual: list[int] | None = None
 
     def add_edge(self, src: int, dst: int, cap: int, cost: int) -> int:
         """src から dst への容量 cap、単位費用 cost の辺を追加し、辺番号を返す。"""
@@ -73,6 +74,14 @@ class MCFGraph:
     def edges(self) -> list[Edge]:
         """追加した全ての辺を、追加順に返す。"""
         return [self.get_edge(i) for i in range(len(self._edges))]
+
+    def potential(self) -> list[int]:
+        """求解後、全残余辺で cost+p[src]-p[dst]>=0 となるポテンシャルを返す。
+
+        返り値はコピー。flow / slope / min_cost_flow の実行後のみ呼べる。
+        """
+        assert self._dual is not None
+        return self._dual.copy()
 
     def flow(
         self,
@@ -169,6 +178,8 @@ class MCFGraph:
         self._used = True
         prev: list[MCFGraph._Edge | None] = [None] * n
 
+        # ACL と同様、t 確定時に探索を打ち切り、確定頂点だけを更新する。
+        # 未確定頂点を据え置いても、全残余辺の縮約コストは非負のまま。
         def refine_dual_sparse() -> bool:
             pq = []
             que_min = [s]
@@ -282,4 +293,5 @@ class MCFGraph:
                 points.append((flow, cost))
                 prev_cost_per_flow = c
 
+        self._dual = dual
         return flow, cost

@@ -32,6 +32,12 @@ def check(n, edges, s, t):
                 g = MCFGraph(n, dense)
                 for e in edges:
                     g.add_edge(*e)
+                try:
+                    g.potential()
+                except AssertionError:
+                    pass
+                else:
+                    raise AssertionError('potential before solve must fail')
                 result = getattr(g, method)(s, t, limit)
                 feasible = {f: c for f, c in expected.items() if limit is None or f <= limit}
                 if method == 'min_cost_flow':
@@ -57,6 +63,16 @@ def check(n, edges, s, t):
                     balance[e.dst] += e.flow
                     cost += e.flow * e.cost
                 assert cost == result[1]
+                # 到達不能点も含めて全ての残余辺で双対実行可能。
+                p = g.potential()
+                assert len(p) == n
+                for e in g.edges():
+                    if e.flow < e.cap:
+                        assert e.cost + p[e.src] - p[e.dst] >= 0
+                    if e.flow:
+                        assert -e.cost + p[e.dst] - p[e.src] >= 0
+                p[0] += 1
+                assert p != g.potential()
                 assert balance[s] == -result[0] and balance[t] == result[0]
                 assert all(balance[v] == 0 for v in range(n) if v not in (s, t))
                 for again in ('flow', 'slope', 'min_cost_flow'):
