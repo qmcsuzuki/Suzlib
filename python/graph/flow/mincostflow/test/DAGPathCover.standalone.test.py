@@ -258,6 +258,37 @@ for v in range(n-1):
     g.add_edge(v+1,v)
 assert g.solve() == (1,1)
 assert g.paths() == [list(range(n-1,-1,-1))]
+# 同費用なら本数最小。上限 K が巨大でも費用拡大は K に依存しない。
+g = DAGPathCover(2, vertex_disjoint=False, required=True, path_count=None,
+                 path_limit=10**18, start_cost=0, end_cost=0, vertex_gain=0, gain_once=True)
+g.add_edge(0, 1, 0)
+assert g.solve() == (1, 0)
+assert g.paths() == [[0, 1]]
+# 二部マッチング経路（点素・全必須・本数高々 K）でも、結合費用0なら結合して本数最小。
+for limit in (None, 2):
+    g = DAGPathCover(2, vertex_disjoint=True, required=True, path_count=None,
+                     path_limit=limit, start_cost=1, end_cost=0, vertex_gain=0, gain_once=True)
+    g.add_edge(0, 1, 1)
+    assert g.solve() == (1, 2)
+    assert g.paths() == [[0, 1]]
+# 早期終了: K=0 と点素で本数ちょうど K>n。閉路があれば ValueError を優先する。
+for count, limit, required, expected in [(0, None, True, (-1, 0)), (None, 0, True, (-1, 0)),
+                                         (0, None, False, (0, 0)), (None, 0, False, (0, 0)),
+                                         (4, None, True, (-1, 0)), (4, None, False, (-1, 0))]:
+    g = DAGPathCover(3, vertex_disjoint=True, required=required, path_count=count,
+                     path_limit=limit, start_cost=0, end_cost=0, vertex_gain=0, gain_once=True)
+    g.add_edge(0, 1)
+    g.add_edge(1, 2)
+    assert g.solve() == expected
+    if expected[0] == 0:
+        assert g.paths() == [] and g.edge_paths() == []
+    else:
+        rejects(g.paths)
+    g = DAGPathCover(3, vertex_disjoint=True, required=required, path_count=count,
+                     path_limit=limit, start_cost=0, end_cost=0, vertex_gain=0, gain_once=True)
+    g.add_edge(0, 1)
+    g.add_edge(1, 0)
+    rejects(g.solve, ValueError)
 print('DAGPathCover:', tests, 'brute-force comparisons and regressions passed')
 
 # 開始・終了上限は途中の共有とは独立。配列指定とコピーも検査する。
