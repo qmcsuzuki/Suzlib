@@ -3,7 +3,7 @@
 from itertools import product
 from random import Random
 
-from python.graph.flow.mincostflow.MinCostFlow import MCFGraph, DAGMCFGraph
+from python.graph.flow.mincostflow.MinCostFlow import MCFGraph
 from python.graph.SCC import find_SCC
 from python.graph.matching.BipartiteMatching import BipartiteMatching
 from python.graph.matching.BipartiteMatchingStructure import matching_structure, NEVER, SOMETIMES, ALWAYS
@@ -73,12 +73,12 @@ if __name__ == '__main__':
             edges.append((order[i],order[j],rng.randrange(3),rng.randrange(-5,6)))
         expected = brute_flow(n,edges,n-1,0)
         for dense in [False,True]:
-            graph = DAGMCFGraph(n,n-1,0,dense)
+            graph = MCFGraph(n,dense)
             for e in edges: graph.add_edge(*e)
-            check_slope(graph.slope(),expected)
-            graph = DAGMCFGraph(n,n-1,0,dense)
+            check_slope(graph.slope(n-1,0),expected)
+            graph = MCFGraph(n,dense)
             for e in edges: graph.add_edge(*e)
-            assert graph.min_cost_flow() == min(expected.items(), key=lambda item: (item[1], item[0]))
+            assert graph.min_cost_flow(n-1,0) == min(expected.items(), key=lambda item: (item[1], item[0]))
 
     # SCC を全頂点対の到達可能性と比較する。
     for n in range(8):

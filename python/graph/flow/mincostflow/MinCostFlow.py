@@ -9,7 +9,8 @@ from typing import NamedTuple
 
 
 class MCFGraph:
-    """ポテンシャル付き最短路法による最小費用流。辺コストは非負を仮定する。
+    """ポテンシャル付き最短路法による最小費用流。
+    正容量の負費用辺がある場合、正容量の辺全体が DAG であることを要する。
     flow / slope / min_cost_flow の呼び出しは、合わせて一度だけ可能。
     """
 
@@ -37,16 +38,15 @@ class MCFGraph:
         self._g: list[list[MCFGraph._Edge]] = [[] for _ in range(n)]
         self._edges: list[MCFGraph._Edge] = []
         self._used = False
+        self._has_negative_edge = False
 
     def add_edge(self, src: int, dst: int, cap: int, cost: int) -> int:
         """src から dst への容量 cap、単位費用 cost の辺を追加し、辺番号を返す。"""
         assert 0 <= src < self._n
         assert 0 <= dst < self._n
         assert 0 <= cap
-        assert 0 <= cost
-        return self._add_edge(src, dst, cap, cost)
-
-    def _add_edge(self, src: int, dst: int, cap: int, cost: int) -> int:
+        if cap > 0 and cost < 0:
+            self._has_negative_edge = True
         m = len(self._edges)
         e = MCFGraph._Edge(dst, cap, cost)
         re = MCFGraph._Edge(src, 0, -cost)
@@ -92,7 +92,6 @@ class MCFGraph:
         """流量も選んで費用を最小化し、(総流量, 総費用) を返す。
         流量は 0 以上 flow_limit 以下（None は上限なし）。同費用なら流量最小。
         get_edge / edges で最適解の各辺の流量を取得できる。
-        非負コストなので、このクラスでは常に (0, 0) となる。
         """
         return self._flow(s, t, flow_limit, minimize_cost=True)
 
@@ -109,13 +108,50 @@ class MCFGraph:
         self._flow(s, t, flow_limit, points=points)
         return points
 
+    def _initial_dual(self, s: int, t: int) -> list[int]:
+        # 仮想始点から全頂点への費用 0 の辺を含めた最短距離を求める。
+        n = self._n
+        dual = [0] * n
+        processed = [False] * n
+        order = [s]
+        order.extend(v for v in range(n) if v != s and v != t)
+        order.append(t)
+        for u in order:
+            processed[u] = True
+            for e in self._g[u]:
+                if e.cap == 0:
+                    continue
+                if processed[e.dst]:
+                    return self._initial_dual_kahn()
+                dual[e.dst] = min(dual[e.dst], dual[u] + e.cost)
+        return dual
+
+    def _initial_dual_kahn(self) -> list[int]:
+        n = self._n
+        dual = [0] * n
+        indegree = [0] * n
+        for e in self._edges:
+            if e.cap > 0:
+                indegree[e.dst] += 1
+        order = [v for v in range(n) if indegree[v] == 0]
+        for u in order:
+            for e in self._g[u]:
+                if e.cap == 0:
+                    continue
+                v = e.dst
+                dual[v] = min(dual[v], dual[u] + e.cost)
+                indegree[v] -= 1
+                if indegree[v] == 0:
+                    order.append(v)
+        assert len(order) == n, "negative-cost edges require an initial DAG"
+        return dual
+
     def _flow(
         self,
         s: int,
         t: int,
         flow_limit: int | None,
         *,
-        dual: list[int] | None = None,
         minimize_cost: bool = False,
         points: list[tuple[int, int]] | None = None,
     ) -> tuple[int, int]:
@@ -129,10 +165,8 @@ class MCFGraph:
             flow_limit = sum(e.cap for e in g[s])
         else:
             assert 0 <= flow_limit
+        dual = self._initial_dual(s, t) if self._has_negative_edge else [0] * n
         self._used = True
-
-        if dual is None:
-            dual = [0] * n
         prev: list[MCFGraph._Edge | None] = [None] * n
 
         def refine_dual_sparse() -> bool:
@@ -249,95 +283,3 @@ class MCFGraph:
                 prev_cost_per_flow = c
 
         return flow, cost
-
-
-class DAGMCFGraph:
-    """初期グラフが指定順の DAG のとき、負コスト辺を許す最小費用流。
-    トポロジカル順は「s, s と t 以外の頂点を頂点番号順, t」。
-    flow / slope / min_cost_flow の呼び出しは、合わせて一度だけ可能。
-    """
-
-    Edge = MCFGraph.Edge
-
-    def __init__(self, n: int, s: int, t: int, dense: bool = False) -> None:
-        """n 頂点、始点 s、終点 t のグラフを初期化する。
-        dense=True では O(N^2) の密 Dijkstra を用いる。
-        """
-        assert 0 <= s < n
-        assert 0 <= t < n
-        assert s != t
-        self._n = n
-        self._s = s
-        self._t = t
-        self._graph = MCFGraph(n, dense=dense)
-
-    def _rank(self, v: int) -> int:
-        if v == self._s:
-            return -1
-        if v == self._t:
-            return self._n
-        return v
-
-    def add_edge(self, src: int, dst: int, cap: int, cost: int) -> int:
-        """DAG の順方向へ容量 cap、単位費用 cost の辺を追加し、辺番号を返す。"""
-        assert not self._graph._used
-        assert 0 <= src < self._n
-        assert 0 <= dst < self._n
-        assert 0 <= cap
-        assert self._rank(src) < self._rank(dst)
-        return self._graph._add_edge(src, dst, cap, cost)
-
-    def get_edge(self, i: int) -> Edge:
-        """i 番目に追加した辺を元のコストで返す。"""
-        return self._graph.get_edge(i)
-
-    def edges(self) -> list[Edge]:
-        """追加した全ての辺を、元のコストで追加順に返す。"""
-        return self._graph.edges()
-
-    def _initial_dual(self) -> list[int]:
-        # 仮想 source から全頂点へ費用 0 の辺を張った最短距離。
-        potential = [0] * self._n
-        order = [self._s]
-        order.extend(v for v in range(self._n) if v != self._s and v != self._t)
-        order.append(self._t)
-        for src in order:
-            p = potential[src]
-            for e in self._graph._g[src]:
-                if e.cap > 0 and p + e.cost < potential[e.dst]:
-                    potential[e.dst] = p + e.cost
-        return potential
-
-    def flow(self, flow_limit: int | None = None) -> tuple[int, int]:
-        """flow_limit 以下で流せる最大量まで流し、その (流量, 最小費用) を元のコストで返す。"""
-        return self._flow(flow_limit)
-
-    def min_cost_flow(self, flow_limit: int | None = None) -> tuple[int, int]:
-        """流量も選んで費用を最小化し、元のコストで (総流量, 総費用) を返す。
-        流量は 0 以上 flow_limit 以下（None は上限なし）。同費用なら流量最小。
-        get_edge / edges で最適解の各辺の流量を取得できる。
-        """
-        return self._flow(flow_limit, minimize_cost=True)
-
-    def slope(
-        self,
-        flow_limit: int | None = None,
-    ) -> list[tuple[int, int]]:
-        """各流量に対する最小費用の折れ線の頂点を、元のコストで返す。
-        最後の点に対応する最大流量のフローを保持する。
-        """
-        points = [(0, 0)]
-        self._flow(flow_limit, points=points)
-        return points
-
-    def _flow(
-        self,
-        flow_limit: int | None,
-        minimize_cost: bool = False,
-        points: list[tuple[int, int]] | None = None,
-    ) -> tuple[int, int]:
-        assert not self._graph._used
-        return self._graph._flow(
-            self._s, self._t, flow_limit, dual=self._initial_dual(),
-            minimize_cost=minimize_cost, points=points,
-        )

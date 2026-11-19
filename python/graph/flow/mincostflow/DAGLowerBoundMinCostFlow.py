@@ -1,7 +1,7 @@
 # competitive-verifier: TITLE DAG の上下限付き最小費用流
 
 from typing import NamedTuple
-from python.graph.flow.mincostflow.MinCostFlow import DAGMCFGraph
+from python.graph.flow.mincostflow.MinCostFlow import MCFGraph
 
 class DAGLowerBoundMinCostFlow:
     """DAG 上の上下限付き st 最小費用流
@@ -100,7 +100,7 @@ class DAGLowerBoundMinCostFlow:
             limit = 0
         scale = limit + 1 if mode == 2 else 1
         source, sink = n, n + 1
-        g = DAGMCFGraph(n + 2, source, sink, dense=self._dense)
+        g = MCFGraph(n + 2, dense=self._dense)
         # 元の辺を先に登録し、元の辺IDと内部の辺IDを一致させる。
         balance = [0] * n
         for u, v, lower, upper, cost in self._edges:
@@ -122,7 +122,7 @@ class DAGLowerBoundMinCostFlow:
                 sum((hi - lo) * abs(c) for _, _, lo, hi, c in self._edges) + 1
             )
             dummy = g.add_edge(rank[self._s], rank[self._t], limit, dummy_cost)
-        sent, _ = g.flow(demand)
+        sent, _ = g.flow(source, sink, demand)
         if sent != demand:
             return -1, 0
         self._edge_flow = [

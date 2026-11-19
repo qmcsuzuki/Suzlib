@@ -1,6 +1,6 @@
 # competitive-verifier: TITLE DAG の最小費用パス被覆・パス選択
 
-from python.graph.flow.mincostflow.MinCostFlow import DAGMCFGraph
+from python.graph.flow.mincostflow.MinCostFlow import MCFGraph
 
 
 class DAGPathCover:
@@ -13,7 +13,7 @@ class DAGPathCover:
         # K本・頂点報酬は1回のみ（頂点共有可、被覆義務なし）
         DAGPathCover(n, vertex_disjoint=False, required=False, path_count=K, path_limit=None, start_cost=0, end_cost=0, vertex_gain=weights, gain_once=True)
 
-    条件によって帰着を切り替え、最適化には常に DAGMCFGraph を使う。
+    条件によって帰着を切り替え、最適化には常に MCFGraph を使う。
     - 必須頂点なし: 通常の MCF。上限本数では min_cost_flow を使う。
     - 点素・全頂点必須・全頂点で開始終了可能: 二部マッチングを MCF で解く。
       初期状態は全頂点が単独パス。辺 u→v の結合費用は c_uv-C_u-B_v。
@@ -166,7 +166,7 @@ class DAGPathCover:
         """必須頂点なし。下限除去・超始終点・本数用ダミー辺を省く。"""
         n = self._n
         s, t = 0, 2 * n + 1
-        g = DAGMCFGraph(t + 1, s, t, dense=self._dense)
+        g = MCFGraph(t + 1, dense=self._dense)
         rank = [0] * n
         for i, v in enumerate(order):
             rank[v] = 2 * i + 1
@@ -190,9 +190,9 @@ class DAGPathCover:
         edge_ids = [g.add_edge(rank[u] + 1, rank[v], k, c * scale)
                     for u, v, c in self._edges]
         if self._exact is None:
-            flow, cost = g.min_cost_flow(k)
+            flow, cost = g.min_cost_flow(s, t, k)
         else:
-            flow, cost = g.flow(k)
+            flow, cost = g.flow(s, t, k)
             if flow != k:
                 return -1, 0
         start_flow = [g.get_edge(i).flow if i >= 0 else 0 for i in starts]
@@ -206,7 +206,7 @@ class DAGPathCover:
         """点素全被覆、全頂点で開始終了可能。単頂点パスから結合する二部 MCF。"""
         n = self._n
         s, t = 2 * n, 2 * n + 1
-        g = DAGMCFGraph(t + 1, s, t, dense=self._dense)
+        g = MCFGraph(t + 1, dense=self._dense)
         scale = n + 1
         for v in range(n):
             g.add_edge(s, v, 1, 0)
@@ -220,7 +220,7 @@ class DAGPathCover:
             demand = n
         else:
             demand = n - k
-        flow, cost = g.flow(demand)
+        flow, cost = g.flow(s, t, demand)
         if flow != demand:
             return -1, 0
         edge_flow = [g.get_edge(i).flow for i in edge_ids]
@@ -240,7 +240,7 @@ class DAGPathCover:
         # 順序は source, s, 各頂点のin/out, t, sink。
         s, t = 0, 2 * n + 1
         source, sink = t + 1, t + 2
-        g = DAGMCFGraph(t + 3, source, sink, dense=self._dense)
+        g = MCFGraph(t + 3, dense=self._dense)
         rank = [0] * n
         for i, v in enumerate(order):
             rank[v] = 2 * i + 1
@@ -280,7 +280,7 @@ class DAGPathCover:
                 demand += b
             elif b < 0:
                 g.add_edge(v, sink, -b, 0)
-        flow, cost = g.flow(demand)
+        flow, cost = g.flow(source, sink, demand)
         if flow != demand:
             return -1, 0
         start_flow = [g.get_edge(i).flow if i >= 0 else 0 for i in starts]

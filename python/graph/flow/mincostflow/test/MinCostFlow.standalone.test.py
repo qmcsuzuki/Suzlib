@@ -3,7 +3,7 @@
 from itertools import product
 from random import Random
 
-from python.graph.flow.mincostflow.MinCostFlow import MCFGraph, DAGMCFGraph
+from python.graph.flow.mincostflow.MinCostFlow import MCFGraph
 
 
 def brute_flow(n, edges, s, t):
@@ -24,16 +24,15 @@ def brute_flow(n, edges, s, t):
     return costs
 
 
-def check(n, edges, s, t, dag=True):
+def check(n, edges, s, t):
     expected = brute_flow(n, edges, s, t)
     for dense in (False, True):
         for limit in (None, 0, 1, 2, max(expected), max(expected) + 1):
             for method in ('min_cost_flow', 'flow', 'slope'):
-                g = DAGMCFGraph(n, s, t, dense) if dag else MCFGraph(n, dense)
+                g = MCFGraph(n, dense)
                 for e in edges:
                     g.add_edge(*e)
-                args = (limit,) if dag else (s, t, limit)
-                result = getattr(g, method)(*args)
+                result = getattr(g, method)(s, t, limit)
                 feasible = {f: c for f, c in expected.items() if limit is None or f <= limit}
                 if method == 'min_cost_flow':
                     want = min(feasible.items(), key=lambda item: (item[1], item[0]))
@@ -62,7 +61,7 @@ def check(n, edges, s, t, dag=True):
                 assert all(balance[v] == 0 for v in range(n) if v not in (s, t))
                 for again in ('flow', 'slope', 'min_cost_flow'):
                     try:
-                        getattr(g, again)(*args)
+                        getattr(g, again)(s, t, limit)
                     except AssertionError:
                         pass
                     else:
@@ -86,6 +85,19 @@ if __name__ == '__main__':
     edges += [(i, j + 3, 1, -10 if i < 2 and j < 2 else 0)
               for i in range(3) for j in range(3)]
     check(8, edges, 6, 7)
+    # 番号順に逆らう正容量辺と、閉路を作る容量ゼロの辺。
+    check(4, [(0, 2, 1, -2), (2, 1, 1, -3), (1, 3, 1, 1), (1, 2, 0, 0)], 0, 3)
+    # 始点から到達できない閉路も負費用辺があれば検出する。
+    g = MCFGraph(4)
+    g.add_edge(0, 1, 1, -1)
+    g.add_edge(2, 3, 1, 1)
+    g.add_edge(3, 2, 1, 1)
+    try:
+        g.flow(0, 1)
+    except AssertionError:
+        pass
+    else:
+        raise AssertionError('negative-cost edges require an initial DAG')
     rng = Random(20261102)
     for _ in range(300):
         n = rng.randrange(2, 6)
@@ -98,4 +110,4 @@ if __name__ == '__main__':
         check(n, edges, s, t)
         edges = [(rng.randrange(n), rng.randrange(n), rng.randrange(3), rng.randrange(6))
                  for _ in range(rng.randrange(8))]
-        check(n, edges, 0, n - 1, False)
+        check(n, edges, 0, n - 1)
