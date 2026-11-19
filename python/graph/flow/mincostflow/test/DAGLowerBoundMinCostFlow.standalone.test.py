@@ -157,4 +157,15 @@ for method, expected in [("flow", (10**18, 10**48)), ("min_cost_flow", (1, 10**3
     g = DAGLowerBoundMinCostFlow(2, 0, 1)
     g.add_edge(0, 1, 1, 10**18, 10**30)
     assert getattr(g, method)() == expected
+# 巨大な上限でも、費用最小・同費用なら流量最小を保つ（倍率は上限に依存しない）。
+# 0→1→3 は費用0、0→2→3 は費用-1、0→3 は費用0。
+for limit in (None, 10**18):
+    g = DAGLowerBoundMinCostFlow(4, 0, 3)
+    g.add_edge(0, 1, 0, 5, -2)
+    g.add_edge(1, 3, 0, 5, 2)
+    g.add_edge(0, 2, 0, 5, -1)
+    g.add_edge(2, 3, 0, 5, 0)
+    g.add_edge(0, 3, 0, 10**18, 0)
+    assert g.min_cost_flow(limit) == (5, -5)
+    assert [e.flow for e in g.edges()] == [0, 0, 5, 5, 0]
 print("Variable flow:", variable_tests, "brute-force comparisons and regressions passed")
