@@ -104,7 +104,8 @@ class DAGLowerBoundMinCostFlow:
         dummy = -1
         if mode and limit:
             dummy_cost = -1 if mode == 2 else (
-                sum((hi - lo) * abs(c) for _, _, lo, hi, c in self._edges) + 1
+                # 実辺の単純な残余増加路より高くし、実流量を優先する。
+                sum(abs(c) for _, _, lo, hi, c in self._edges if lo < hi) + 1
             )
             dummy = g.add_edge(rank[self._s], rank[self._t], 0, limit, dummy_cost)
         feasible, _ = g.solve()
