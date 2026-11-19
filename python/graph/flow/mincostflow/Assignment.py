@@ -115,6 +115,84 @@ def _assignment(
     return costs, left_match
 
 
+
+def _hungarian(cost: list[list[int]]) -> tuple[int, list[int]]:
+    """行を1つずつ追加する Hungarian 法。最大個数の最小費用割り当てを求める。"""
+    n = len(cost)
+    m = len(cost[0]) if n else 0
+    assert all(len(row) == m for row in cost)
+    if min(n, m) == 0:
+        return 0, [-1] * n
+
+    # 行数 <= 列数として扱う。
+    transposed = n > m
+    if transposed:
+        cost = [list(row) for row in zip(*cost)]
+        n, m = m, n
+
+    left_potential = [0] * (n + 1)
+    right_potential = [0] * (m + 1)
+    right_match = [0] * (m + 1)
+    prev_right = [0] * (m + 1)
+
+    for i in range(1, n + 1):
+        right_match[0] = i
+        dist: list[int | None] = [None] * (m + 1)
+        used = [False] * (m + 1)
+        j0 = 0
+
+        while True:
+            used[j0] = True
+            i0 = right_match[j0]
+            row = cost[i0 - 1]
+            delta: int | None = None
+            next_j = -1
+
+            for j in range(1, m + 1):
+                if used[j]:
+                    continue
+                cur = row[j - 1] - left_potential[i0] - right_potential[j]
+                if dist[j] is None or cur < dist[j]:
+                    dist[j] = cur
+                    prev_right[j] = j0
+                if delta is None or dist[j] < delta:
+                    delta = dist[j]
+                    next_j = j
+
+            assert delta is not None
+            for j in range(m + 1):
+                if used[j]:
+                    left_potential[right_match[j]] += delta
+                    right_potential[j] -= delta
+                elif dist[j] is not None:
+                    dist[j] -= delta
+
+            j0 = next_j
+            if right_match[j0] == 0:
+                break
+
+        # 見つけた交互路を反転する。
+        while True:
+            j1 = prev_right[j0]
+            right_match[j0] = right_match[j1]
+            j0 = j1
+            if j0 == 0:
+                break
+
+    match = [-1] * n
+    for j in range(1, m + 1):
+        if right_match[j]:
+            match[right_match[j] - 1] = j - 1
+
+    if transposed:
+        original_match = [-1] * m
+        for i, j in enumerate(match):
+            original_match[j] = i
+        match = original_match
+
+    return -right_potential[0], match
+
+
 def assignment(
     cost: list[list[int]],
     flow: int | None = None,
@@ -123,10 +201,14 @@ def assignment(
     戻り値は (最小費用, match), match[i] = i に対応する頂点（-1 は対応無し）
 
     - cost[i][j]: 左頂点 i と右頂点 j を対応させる費用
-    - flow=None では min(n, m) 個、flow を指定した場合はちょうど flow 個を対応させる
+    - flow=None では Hungarian 法で min(n, m) 個を対応させる
+    - flow を指定した場合はちょうど flow 個を対応させる
     """
+    if flow is None:
+        return _hungarian(cost)
     costs, match = _assignment(cost, flow)
     return costs[-1], match
+
 
 def assignment_costs(
     cost: list[list[int]],
