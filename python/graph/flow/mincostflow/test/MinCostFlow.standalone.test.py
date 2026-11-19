@@ -75,16 +75,27 @@ def check(n, edges, s, t):
                 assert p != g.potential()
                 assert balance[s] == -result[0] and balance[t] == result[0]
                 assert all(balance[v] == 0 for v in range(n) if v not in (s, t))
-                for again in ('flow', 'slope', 'min_cost_flow'):
-                    try:
-                        getattr(g, again)(s, t, limit)
-                    except AssertionError:
-                        pass
-                    else:
-                        raise AssertionError('second solve must fail')
 
 
 if __name__ == '__main__':
+    for dense in (False, True):
+        g = MCFGraph(3, dense)
+        g.add_edge(0, 1, 2, 5)
+        g.add_edge(1, 2, 2, -1)
+        assert g.flow(0, 2, 1) == (1, 4)
+        assert g.slope(0, 2) == [(0, 0), (1, 4)]
+        assert g.min_cost_flow(2, 0, 1) == (1, -4)
+        assert g.flow(1, 0) == (1, -5)
+        assert [e.flow for e in g.edges()] == [0, 1]
+        p = g.potential()
+        assert p[2] - p[1] == -1 and p[1] - p[0] <= 5
+        try:
+            g.add_edge(0, 2, 1, 0)
+        except AssertionError:
+            pass
+        else:
+            raise AssertionError('edge addition after solve must fail')
+
     # 負・ゼロ・正の限界費用、同費用の最小流量、容量途中での打ち切り。
     check(2, [(0, 1, 3, -5), (0, 1, 2, 0), (0, 1, 1, 4)], 0, 1)
     check(2, [], 0, 1)

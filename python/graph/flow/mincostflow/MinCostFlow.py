@@ -11,7 +11,7 @@ from typing import NamedTuple
 class MCFGraph:
     """ポテンシャル付き最短路法による最小費用流。
     正容量の負費用辺がある場合、正容量の辺全体が DAG であることを要する。
-    flow / slope / min_cost_flow の呼び出しは、合わせて一度だけ可能。
+    辺追加は初回求解前まで。以後は残余グラフを引き継ぎ、始終点を変えて繰り返し増流できる。
     """
 
     class Edge(NamedTuple):
@@ -37,12 +37,12 @@ class MCFGraph:
         self._dense = dense
         self._g: list[list[MCFGraph._Edge]] = [[] for _ in range(n)]
         self._edges: list[MCFGraph._Edge] = []
-        self._used = False
         self._has_negative_edge = False
         self._dual: list[int] | None = None
 
     def add_edge(self, src: int, dst: int, cap: int, cost: int) -> int:
         """src から dst への容量 cap、単位費用 cost の辺を追加し、辺番号を返す。"""
+        assert self._dual is None
         assert 0 <= src < self._n
         assert 0 <= dst < self._n
         assert 0 <= cap
@@ -89,7 +89,7 @@ class MCFGraph:
         t: int,
         flow_limit: int | None = None,
     ) -> tuple[int, int]:
-        """flow_limit 以下で流せる最大量まで流し、その (流量, 最小費用) を返す。"""
+        """今回追加できる最大量を flow_limit 以下で流し、(追加流量, 費用差) を返す。"""
         return self._flow(s, t, flow_limit)
 
     def min_cost_flow(
@@ -98,7 +98,7 @@ class MCFGraph:
         t: int,
         flow_limit: int | None = None,
     ) -> tuple[int, int]:
-        """流量も選んで費用を最小化し、(総流量, 総費用) を返す。
+        """追加流量も選んで費用を最小化し、(追加流量, 費用差) を返す。
         流量は 0 以上 flow_limit 以下（None は上限なし）。同費用なら流量最小。
         get_edge / edges で最適解の各辺の流量を取得できる。
         """
@@ -110,7 +110,7 @@ class MCFGraph:
         t: int,
         flow_limit: int | None = None,
     ) -> list[tuple[int, int]]:
-        """各流量に対する最小費用の折れ線の頂点を返す。
+        """呼び出し直前を (0, 0) とし、追加流量と最小費用差の折れ線の頂点を返す。
         最後の点の流量は flow_limit 以下で流せる最大流量であり、そのフローを保持する。
         """
         points = [(0, 0)]
@@ -164,7 +164,6 @@ class MCFGraph:
         minimize_cost: bool = False,
         points: list[tuple[int, int]] | None = None,
     ) -> tuple[int, int]:
-        assert not self._used
         n = self._n
         g = self._g
         assert 0 <= s < n
@@ -174,8 +173,9 @@ class MCFGraph:
             flow_limit = sum(e.cap for e in g[s])
         else:
             assert 0 <= flow_limit
-        dual = self._initial_dual(s, t) if self._has_negative_edge else [0] * n
-        self._used = True
+        dual = self._dual
+        if dual is None:
+            dual = self._initial_dual(s, t) if self._has_negative_edge else [0] * n
         prev: list[MCFGraph._Edge | None] = [None] * n
 
         # ACL と同様、t 確定時に探索を打ち切り、確定頂点だけを更新する。
