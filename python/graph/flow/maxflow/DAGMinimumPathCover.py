@@ -1,36 +1,40 @@
-# competitive-verifier: TITLE 下限付き最小流による DAG の最小パス被覆・最大重み反鎖
+# competitive-verifier: TITLE 最大流による DAG の最小パス被覆・最大重み反鎖
 
-from python.graph.flow.maxflow.LowerBoundSTFlow import LowerBoundSTFlow
+from python.graph.flow.maxflow.MaxFlow import MFGraph
 from python.graph.topological_sort import topological_sort
 
 
 def _minimum_cover_flow(n, edges, lower, disjoint):
-    """各頂点の被覆回数の下限を満たす最小流量と求解済みのグラフを返す。"""
+    """各頂点の被覆回数の下限を満たす最小本数と、求解済みのグラフ・辺番号を返す。
+    初期解は各 v を lower[v] 本の単頂点パスで覆う解（本数 sum(lower)）。
+    v は「v で終わるパス」、n+v は「v から始まるパス」を表し、
+    s→v→n+u→t の 1 単位の流れが、v で終わるパスを辺 v→u で u から始まるパスへつなぐ。
+    n+v→v は下限を超える v の追加通過（点素なら合計 1 回まで）。
+    最大流 1 回で、本数は sum(lower) - 最大流量。
+    """
     adj = [[] for _ in range(n)]
     for u, v in edges:
         adj[u].append(v)
     if topological_sort(adj) is None:
         raise ValueError("graph must be a DAG")
     s, t = 2 * n, 2 * n + 1
-    # 各頂点を単独で覆う解より大きく取り、最小流で上限が効かないようにする。
-    upper = sum(lower) + 1
-    g = LowerBoundSTFlow(t + 1, s, t)
-    for v, demand in enumerate(lower):
-        g.add_edge(s, v, 0, upper)
-        g.add_edge(v, n + v, demand, 1 if disjoint else upper)
-        g.add_edge(n + v, t, 0, upper)
-    for u, v in edges:
-        g.add_edge(n + u, v, 0, upper)
-    if not g.solve():
-        raise RuntimeError("singleton paths must form a feasible cover")
-    return g.minimize(), g
+    total = sum(lower)
+    big = total + 1
+    g = MFGraph(2 * n + 2)
+    start = []
+    for v, w in enumerate(lower):
+        g.add_edge(s, v, w)
+        start.append(g.add_edge(n + v, t, w))
+        g.add_edge(n + v, v, (1 if disjoint else big) - w)
+    edge_ids = [g.add_edge(u, n + v, big) for u, v in edges]
+    return total - g.flow(s, t), g, start, edge_ids
 
 
 class DAGMinimumPathCover:
     """DAG の各頂点を指定回数以上覆う最小本数のパス被覆とパス列。
     weights=None は各頂点1回。disjoint=True で点素、False で頂点共有可。
     点素の場合は weights の各要素を0または1に制限する。単頂点パスも許す。
-    solve は下限付き最小流（最大流を高々2回）。復元は O(n+m+出力長)。
+    solve は 2n+2 頂点・3n+m 辺の最大流を 1 回。復元は O(n+m+出力長)。
     """
 
     def __init__(
@@ -62,7 +66,7 @@ class DAGMinimumPathCover:
         if self._used:
             raise RuntimeError("solve() can only be called once")
         self._used = True
-        count, self._flow = _minimum_cover_flow(
+        count, self._flow, self._start_ids, self._edge_ids = _minimum_cover_flow(
             self._n, self._edges, self._weights, self._disjoint)
         return count
 
@@ -74,13 +78,15 @@ class DAGMinimumPathCover:
         outgoing = [[] for _ in range(n)]
         remaining = []
         for i, (u, v) in enumerate(self._edges):
-            amount = self._flow.get_edge(3 * n + i).flow
+            amount = self._flow.get_edge(self._edge_ids[i]).flow
             remaining.append(amount)
             if amount:
                 outgoing[u].append(i)
         paths = []
         for start in range(n):
-            for _ in range(self._flow.get_edge(3 * start).flow):
+            # start から始まるパスは、他のパスへつながれずに残った n+start→t の容量。
+            e = self._flow.get_edge(self._start_ids[start])
+            for _ in range(e.cap - e.flow):
                 u = start
                 path = [] if edge_ids else [u]
                 while outgoing[u]:
@@ -112,23 +118,8 @@ class DAGMaximumAntichain(DAGMinimumPathCover):
         """solve 後、最大重みを達成する反鎖の頂点列を復元する。"""
         if self._flow is None:
             raise RuntimeError("call solve() before antichain()")
+        # 最小カットで s 側の v と t 側の n+v の組が反鎖をなす。u→n+v と n+v→v の
+        # 容量は十分大きいので、u が s 側なら u から到達可能な頂点 v の n+v も s 側になる。
         n = self._n
-        residual = [[] for _ in range(2 * n + 2)]
-        for u, v, lower, upper, flow in self._flow.edges():
-            if flow < upper:
-                residual[u].append(v)
-            if flow > lower:
-                residual[v].append(u)
-        # t から到達できる側へ入る頂点分割辺は下限に一致する。
-        # 元の DAG の辺と分割辺は順方向に残るため、これらの頂点は反鎖をなす。
-        t = 2 * n + 1
-        seen = [False] * len(residual)
-        seen[t] = True
-        stack = [t]
-        while stack:
-            u = stack.pop()
-            for v in residual[u]:
-                if not seen[v]:
-                    seen[v] = True
-                    stack.append(v)
-        return [v for v in range(n) if not seen[v] and seen[n + v]]
+        side = self._flow.min_cut(2 * n)
+        return [v for v in range(n) if side[v] and not side[n + v]]
