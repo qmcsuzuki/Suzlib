@@ -136,9 +136,8 @@ class MFGraph:
                 del vertices[cycle_start + 1 :]
                 del path[cycle_start:]
 
+            # 流量保存より decomposed + f <= flow_value が常に成り立つ。
             f = min(remain[e] for e in path)
-            if decomposed + f > flow_value:
-                f = flow_value - decomposed
             for e in path:
                 remain[e] -= f
             result.append((f, path))
