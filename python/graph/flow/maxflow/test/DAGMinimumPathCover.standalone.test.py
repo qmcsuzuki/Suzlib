@@ -73,6 +73,33 @@ assert len(paths) == 2
 assert {v for path in paths for v in path} == set(range(5))
 assert all(e in x for path in paths for e in zip(path, path[1:]))
 assert g.antichain() in ([0, 1], [3, 4])
+# 重みはパス被覆自身で扱う。共有可なら各頂点の必要被覆回数を指定できる。
+g = DAGMinimumPathCover(5, disjoint=False, weights=[2, 1, 0, 2, 1])
+for e in x:
+    g.add_edge(*e)
+assert g.solve() == 3
+paths = g.paths()
+assert all(sum(v in path for path in paths) >= w
+           for v, w in enumerate([2, 1, 0, 2, 1]))
+assert len(g.edge_paths()) == 3
+
+# 点素では必須/任意の指定が可能だが、同じ頂点を2回以上要求できない。
+g = DAGMinimumPathCover(3, disjoint=True, weights=[0, 1, 0])
+g.add_edge(0, 1)
+g.add_edge(1, 2)
+assert g.solve() == 1
+assert sum(1 in path for path in g.paths()) == 1
+g = DAGMinimumPathCover(2, weights=[0, 0])
+assert g.solve() == 0 and g.paths() == []
+rejects(lambda: DAGMinimumPathCover(2, weights=[2, 0]), ValueError)
+
+# Antichain 側は親クラスへ weights をそのまま渡す。
+g = DAGMaximumAntichain(5, weights=[2, 1, 0, 2, 1])
+for e in x:
+    g.add_edge(*e)
+assert g.solve() == 3
+assert g.antichain() in ([0, 1], [3, 4])
+
 check(3, [(2, 0), (2, 0), (0, 1)])
 check(4, [])
 for edges in ([(0, 0)], [(0, 1), (1, 0)]):
