@@ -73,5 +73,4 @@ class LowerBoundSTFlow:
 
     def edges(self) -> list[Edge]:
         """現在の解の元の辺だけを追加順に返す。O(E)。成功後のみ。"""
-        assert self._graph._feasible
-        return [self.get_edge(i) for i in range(self._edge_count)]
+        return self._graph.edges()[:self._edge_count]
