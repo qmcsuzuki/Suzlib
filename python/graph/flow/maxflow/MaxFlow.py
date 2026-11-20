@@ -173,13 +173,10 @@ class MFGraph:
         else:
             assert 0 <= flow_limit
 
-        current_edge = [0] * n
-        level = [n] * n
         result = 0
         while result < flow_limit:
             # 残余グラフのレベルを BFS で設定する。
-            for v in range(n):
-                level[v] = n
+            level = [n] * n
             level[s] = 0
             queue = [s]
             q_front = 0
@@ -202,8 +199,7 @@ class MFGraph:
             if not reached:
                 break
 
-            for v in range(n):
-                current_edge[v] = 0
+            current_edge = [0] * n
 
             # t からレベルグラフを逆向きにたどり、1 回の走査で
             # blocking flow を流す。増加後も使える suffix は保持する。
