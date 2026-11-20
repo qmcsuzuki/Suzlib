@@ -27,15 +27,22 @@ def _minimum_cover_flow(n, edges, lower, disjoint):
 
 
 class DAGMinimumPathCover:
-    """元の DAG の辺で全頂点を覆う最小本数とパス列。
-    disjoint=True で点素、False で頂点共有可。単頂点パスも許す。
+    """DAG の各頂点を指定回数以上覆う最小本数のパス被覆とパス列。
+    weights=None は各頂点1回。disjoint=True で点素、False で頂点共有可。
+    点素の場合は weights の各要素を0または1に制限する。単頂点パスも許す。
     solve は下限付き最小流（最大流を高々2回）。復元は O(n+m+出力長)。
     """
 
-    def __init__(self, n: int, *, disjoint: bool = True) -> None:
-        """n 頂点の DAG を初期化し、disjoint=True ならパス間の頂点共有を禁止する。"""
+    def __init__(
+        self, n: int, *, disjoint: bool = True, weights: list[int] | None = None
+    ) -> None:
+        """weights[v] 回以上頂点 v を被覆する。None は全頂点1回。"""
         assert n >= 0
-        self._weights = [1] * n
+        if weights is not None:
+            assert len(weights) == n and all(isinstance(w, int) and w >= 0 for w in weights)
+            if disjoint and any(w > 1 for w in weights):
+                raise ValueError("disjoint path cover cannot require more than one visit")
+        self._weights = [1] * n if weights is None else list(weights)
         self._n = n
         self._disjoint = disjoint
         self._edges = []
@@ -51,7 +58,7 @@ class DAGMinimumPathCover:
         return len(self._edges) - 1
 
     def solve(self) -> int:
-        """全頂点を覆うパスの最小本数を返す。呼び出しは1回限り。"""
+        """各頂点の必要被覆回数を満たす最小本数を返す。呼び出しは1回限り。"""
         if self._used:
             raise RuntimeError("solve() can only be called once")
         self._used = True
@@ -99,10 +106,7 @@ class DAGMaximumAntichain(DAGMinimumPathCover):
     """solve() で最大重みを求め、antichain() で反鎖、paths() で対応するパス被覆を復元する。"""
 
     def __init__(self, n: int, weights: list[int] | None = None) -> None:
-        super().__init__(n, disjoint=False)
-        if weights is not None:
-            assert len(weights) == n and all(isinstance(w, int) and w >= 0 for w in weights)
-            self._weights = list(weights)
+        super().__init__(n, disjoint=False, weights=weights)
 
     def antichain(self) -> list[int]:
         """solve 後、最大重みを達成する反鎖の頂点列を復元する。"""
