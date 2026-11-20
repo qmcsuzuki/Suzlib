@@ -62,15 +62,17 @@ def check(n, edges, vc, sc, ec, limit):
     if n:
         rejects(lambda: g.add_edge(0, 0))
     paths, epaths = g.paths(), g.edge_paths()
-    assert len(paths) == len(epaths) == expected
+    assert len(paths) == len(epaths)
+    assert sum(f for f, _ in paths) == expected
     use = [0] * len(capacity)
     direction = [0] * len(edges)
-    for vs, es in zip(paths, epaths):
+    for (f, vs), (f2, es) in zip(paths, epaths):
+        assert f == f2 > 0
         assert len(vs) == len(es)+1 and len(vs) == len(set(vs))
-        use[n+vs[0]] += 1
-        use[2*n+vs[-1]] += 1
+        use[n+vs[0]] += f
+        use[2*n+vs[-1]] += f
         for v in vs:
-            use[v] += 1
+            use[v] += f
         for u, v, i in zip(vs, vs[1:], es):
             a, b, _, undirected = edges[i]
             sign = 1 if (u, v) == (a, b) else -1
@@ -78,12 +80,13 @@ def check(n, edges, vc, sc, ec, limit):
             if undirected:
                 assert direction[i] in (0, sign)
                 direction[i] = sign
-            use[3*n+i] += 1
+            use[3*n+i] += f
     assert all(a <= b for a, b in zip(use, capacity))
     assert g.paths() == paths and g.edge_paths() == epaths
     if paths:
-        paths[0].clear()
-        assert g.paths()[0]
+        paths[0][1].clear()
+        epaths[0][1].clear()
+        assert g.paths()[0][1] and g.edge_paths()[0][1] is not epaths[0][1]
 
 
 rng = Random(724)
@@ -105,14 +108,15 @@ for limit in (None, 0, 1, 2, 10):
     for u, v in [(0, 1), (1, 3), (0, 2), (2, 3), (0, 3), (0, 3)]:
         g.add_undirected_edge(u, v)
     assert g.solve() == (4 if limit is None else min(4, limit))
-    assert all(p[0] == 0 and p[-1] == 3 for p in g.paths())
+    assert all(p[0] == 0 and p[-1] == 3 for _, p in g.paths())
 g = VertexCapacitatedPaths.st(2, 0, 1)
 assert g.solve() == 0 and g.paths() == []
 
-# 巨大な重複パスは復元を要求するまで展開しない。
+# 巨大な重複パスは復元を要求するまで計算せず、復元しても展開しない。
 g = VertexCapacitatedPaths.st(2, 0, 1)
 g.add_edge(0, 1, 10**12)
 assert g.solve() == 10**12 and not g._parts
+assert g.paths() == [(10**12, [0, 1])] and g.edge_paths() == [(10**12, [0])]
 
 # 逆向き流を含む実行可能フローを注入し、明示的な相殺を検証。
 original_flow = MFGraph.flow
@@ -133,7 +137,7 @@ try:
     assert g.solve() == 1
     assert g._graph.get_edge(4).flow == 1
     assert g._graph.get_edge(5).flow == 0
-    assert g.paths() == [[0, 1]] and g.edge_paths() == [[0]]
+    assert g.paths() == [(1, [0, 1])] and g.edge_paths() == [(1, [0])]
 finally:
     MFGraph.flow = original_flow
 print('VertexCapacitatedPaths: OK (250 random exhaustive comparisons)')

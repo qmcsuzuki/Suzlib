@@ -13,7 +13,8 @@ class VertexCapacitatedPaths:
         g = VertexCapacitatedPaths.st(n, S, T, path_limit=K)
         g.add_undirected_edge(u, v)  # 有向辺なら add_edge
         count = g.solve()
-        paths = g.paths()
+        for f, vertices in g.paths():  # 同じパスを f 本ずつ
+            ...
 
     複数終点の例（S から A, B へ各1本、S 以外は共有不可）:
         vc, sc, ec = [1]*n, [0]*n, [0]*n
@@ -129,12 +130,14 @@ class VertexCapacitatedPaths:
             self._parts.append((f, vertices, original_ids))
         self._restored = True
 
-    def paths(self) -> list[list[int]]:
-        """解の頂点列。各パスは単純。独立なリストを返し、内部状態を変更しない。"""
+    def paths(self) -> list[tuple[int, list[int]]]:
+        """解を (本数, 頂点列) のリストで返す。本数の総和は solve() の返り値。
+        各パスは単純。出力長は流量に依存しない。独立なリストを返し、内部状態を変更しない。
+        """
         self._restore()
-        return [vs.copy() for f, vs, _ in self._parts for _ in range(f)]
+        return [(f, vs.copy()) for f, vs, _ in self._parts]
 
-    def edge_paths(self) -> list[list[int]]:
-        """paths と同順の元の辺 ID 列。無向辺の向きは対応する頂点列から分かる。"""
+    def edge_paths(self) -> list[tuple[int, list[int]]]:
+        """paths と同順の (本数, 元の辺 ID 列)。無向辺の向きは対応する頂点列から分かる。"""
         self._restore()
-        return [es.copy() for f, _, es in self._parts for _ in range(f)]
+        return [(f, es.copy()) for f, _, es in self._parts]
