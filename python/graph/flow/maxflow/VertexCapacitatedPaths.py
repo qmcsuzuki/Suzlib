@@ -85,19 +85,25 @@ class VertexCapacitatedPaths:
         source, sink = 2*n, 2*n+1
         g = MFGraph(2*n+2)
         vertex_ids = [g.add_edge(2*v, 2*v+1, vc[v]) for v in range(n)]
+        # head[辺番号]: 辺の終点に対応する元の頂点（終点が sink なら -1）
+        head = list(range(n))
         for v in range(n):
             if sc[v]:
                 g.add_edge(source, 2*v, sc[v])
+                head.append(v)
             if ec[v]:
                 g.add_edge(2*v+1, sink, ec[v])
-        mapping = [-1] * (n + sum(c > 0 for c in sc) + sum(c > 0 for c in ec))
+                head.append(-1)
+        mapping = [-1] * len(head)
         pairs = []
         for i, (u, v, c, undirected) in enumerate(self._edges):
             a = g.add_edge(2*u+1, 2*v, c)
             mapping.append(i)
+            head.append(v)
             if undirected:
                 b = g.add_edge(2*v+1, 2*u, c)
                 mapping.append(i)
+                head.append(u)
                 pairs.append((u, v, a, b))
         self._count = g.flow(source, sink, self._limit)
         # u_out -> v_in -> v_out -> u_in -> u_out の循環を除く。
@@ -112,6 +118,7 @@ class VertexCapacitatedPaths:
                     g.change_edge(vertex_ids[w], e.cap, e.flow-delta)
         self._graph = g
         self._mapping = mapping
+        self._head = head
         return self._count
 
     def _restore(self):
@@ -119,14 +126,14 @@ class VertexCapacitatedPaths:
             raise RuntimeError("call solve() before paths()")
         if self._restored:
             return
-        g = self._graph
-        for f, ids in g.path_decomposition(2*self._n, 2*self._n+1):
-            vertices = [g.get_edge(ids[0]).dst // 2]
+        mapping, head = self._mapping, self._head
+        for f, ids in self._graph.path_decomposition(2*self._n, 2*self._n+1):
+            vertices = [head[ids[0]]]
             original_ids = []
             for i in ids:
-                if self._mapping[i] >= 0:
-                    original_ids.append(self._mapping[i])
-                    vertices.append(g.get_edge(i).dst // 2)
+                if mapping[i] >= 0:
+                    original_ids.append(mapping[i])
+                    vertices.append(head[i])
             self._parts.append((f, vertices, original_ids))
         self._restored = True
 
