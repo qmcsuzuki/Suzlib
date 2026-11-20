@@ -4,6 +4,8 @@ from itertools import combinations
 from random import Random
 
 from python.graph.flow.maxflow.DAGMinimumPathCover import DAGMaximumAntichain, DAGMinimumPathCover
+from python.graph.matching.ClosureMaximumAntichain import ClosureMaximumAntichain
+from python.graph.matching.DAGDisjointPathCover import DAGDisjointPathCover
 
 
 def rejects(fn, error=RuntimeError):
@@ -37,30 +39,34 @@ def check(n, edges):
         if any(valid(paths) for paths in combinations(candidates, k)):
             expected = k
             break
-    g = DAGMinimumPathCover(n)
-    for i, (u, v) in enumerate(edges):
-        assert g.add_edge(u, v) == i
-    rejects(g.paths)
-    rejects(g.edge_paths)
-    result = g.solve()
-    assert result == expected, (n, edges, result, expected)
-    rejects(g.solve)
-    if n:
-        rejects(lambda: g.add_edge(0, 0))
-    paths, edge_paths = g.paths(), g.edge_paths()
-    assert len(paths) == len(edge_paths) == result
-    assert valid(paths)
-    for path, ids in zip(paths, edge_paths):
-        assert path and len(ids) == len(path) - 1
-        assert [edges[i] for i in ids] == list(zip(path, path[1:]))
-    assert g.paths() == paths and g.edge_paths() == edge_paths
-    if paths:
-        paths[0].clear()
-        assert g.paths()[0]
+    # flow 版と matching 版の点素被覆を同じ入力で比較する。
+    for cls in (DAGMinimumPathCover, DAGDisjointPathCover):
+        g = cls(n)
+        for i, (u, v) in enumerate(edges):
+            assert g.add_edge(u, v) == i
+        rejects(g.paths)
+        rejects(g.edge_paths)
+        result = g.solve()
+        assert result == expected, (cls.__name__, n, edges, result, expected)
+        rejects(g.solve)
+        if n:
+            rejects(lambda: g.add_edge(0, 0))
+        paths, edge_paths = g.paths(), g.edge_paths()
+        assert len(paths) == len(edge_paths) == result
+        assert valid(paths)
+        for path, ids in zip(paths, edge_paths):
+            assert path and len(ids) == len(path) - 1
+            assert [edges[i] for i in ids] == list(zip(path, path[1:]))
+        assert g.paths() == paths and g.edge_paths() == edge_paths
+        if paths:
+            paths[0].clear()
+            assert g.paths()[0]
 
 
 def check_weighted(n, edges, weights, disjoint):
-    """weights 付き被覆の本数・復元と、同じ weights の最大重み反鎖を全探索と比較する。"""
+    """weights 付き被覆の本数・復元と、同じ weights の最大重み反鎖を全探索と比較する。
+    推移閉包を与えた ClosureMaximumAntichain の最大反鎖も併せて比較する。
+    """
     candidates = []
     stack = [[v] for v in range(n)]
     while stack:
@@ -102,15 +108,30 @@ def check_weighted(n, edges, weights, disjoint):
         for v in path:
             used[v] += 1
     assert all(c >= w for c, w in zip(used, weights))
-    if disjoint:
-        assert all(c <= 1 for c in used)
-        return
 
     reach = [[False] * n for _ in range(n)]
     for path in candidates:
         for a, b in combinations(path, 2):
             reach[a][b] = True
     comparable = lambda S: any(reach[a][b] or reach[b][a] for a, b in combinations(S, 2))
+    size = max(k for k in range(n + 1)
+               if any(not comparable(S) for S in combinations(range(n), k)))
+    h = ClosureMaximumAntichain(n)
+    for a in range(n):
+        for b in range(n):
+            if reach[a][b]:
+                h.add_edge(a, b)
+    rejects(h.antichain)
+    assert h.solve() == size
+    rejects(h.solve)
+    if n:
+        rejects(lambda: h.add_edge(0, 0))
+    antichain = h.antichain()
+    assert len(antichain) == len(set(antichain)) == size and not comparable(antichain)
+    if disjoint:
+        assert all(c <= 1 for c in used)
+        return
+
     expected = max(sum(weights[v] for v in S) for k in range(n + 1)
                    for S in combinations(range(n), k) if not comparable(S))
     g = DAGMaximumAntichain(n, weights)
@@ -167,11 +188,12 @@ assert g.antichain() in ([0, 1], [3, 4])
 check(3, [(2, 0), (2, 0), (0, 1)])
 check(4, [])
 for edges in ([(0, 0)], [(0, 1), (1, 0)]):
-    g = DAGMinimumPathCover(2)
-    for e in edges:
-        g.add_edge(*e)
-    rejects(g.solve, ValueError)
-    rejects(g.paths)
+    for cls in (DAGMinimumPathCover, DAGDisjointPathCover):
+        g = cls(2)
+        for e in edges:
+            g.add_edge(*e)
+        rejects(g.solve, ValueError)
+        rejects(g.paths)
 
 rng = Random(71)
 for _ in range(400):
@@ -199,9 +221,10 @@ for _ in range(1500):
 
 # 非再帰の復元と基本形の大きめの入力。
 n = 5000
-g = DAGMinimumPathCover(n)
-for v in range(n - 1):
-    g.add_edge(v, v + 1)
-assert g.solve() == 1
-assert g.paths() == [list(range(n))]
+for cls in (DAGMinimumPathCover, DAGDisjointPathCover):
+    g = cls(n)
+    for v in range(n - 1):
+        g.add_edge(v, v + 1)
+    assert g.solve() == 1
+    assert g.paths() == [list(range(n))]
 print('DAGMinimumPathCover tests passed')
