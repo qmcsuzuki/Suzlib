@@ -3,7 +3,7 @@
 from python.graph.matching.BipartiteMatching import BipartiteMatching
 
 
-class DAGMaximumAntichain:
+class ClosureMaximumAntichain:
     """重みなし最大反鎖を O((n+m)√n) 時間で求める。
     add_edge した辺が推移閉包をなすことが前提
     solve は最大サイズを返す。

@@ -3,12 +3,12 @@
 from python.graph.matching.BipartiteMatching import BipartiteMatching
 
 
-class DAGMinimumPathCover:
+class DAGDisjointPathCover:
     """DAG の全頂点をちょうど1回ずつ被覆するパスの最小本数を O((n+m) sqrt(n)) 時間で求める
     内部でトポロジカルソートするので頂点順は任意
 
     使用例:
-        g = DAGMinimumPathCover(n)
+        g = DAGDisjointPathCover(n)
         for u, v in edges:
             g.add_edge(u, v)
         count = g.solve()  # 最小本数
