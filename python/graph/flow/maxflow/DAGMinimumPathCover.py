@@ -1,4 +1,4 @@
-# competitive-verifier: TITLE 下限付き最小流による DAG の最小パス被覆
+# competitive-verifier: TITLE 下限付き最小流による DAG の最小パス被覆・最大重み反鎖
 
 from python.graph.flow.maxflow.LowerBoundSTFlow import LowerBoundSTFlow
 from python.graph.topological_sort import topological_sort
