@@ -1,7 +1,5 @@
 # competitive-verifier: TITLE 多値の Min Cut Optimization（燃やす埋める）
 
-from __future__ import annotations
-
 from typing import Callable, Literal
 
 from python.graph.flow.maxflow.MinCutOptimization import MinCutOptimization
