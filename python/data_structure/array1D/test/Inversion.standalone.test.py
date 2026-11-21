@@ -2,12 +2,7 @@
 
 from random import shuffle
 
-from python.data_structure.array1D.Inversion import (
-    inversion,
-    inversion_brute,
-    inversion_distance,
-    inversion_general,
-)
+from python.data_structure.array1D.Inversion import inversion, inversion_brute, inversion_distance, inversion_general
 
 
 if __name__ == "__main__":

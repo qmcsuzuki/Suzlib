@@ -3,11 +3,7 @@
 from itertools import product
 from random import Random
 
-from python.math.number_theory.IntegerProgramming2Variables import (
-    integer_problem_2variables,
-    knapsack_2variable,
-    knapsack_dual_2variable,
-)
+from python.math.number_theory.IntegerProgramming2Variables import integer_problem_2variables, knapsack_2variable, knapsack_dual_2variable
 
 
 def brute_ilp(a, b, s, t, u, L, R):
