@@ -4,11 +4,9 @@ from itertools import product
 from random import Random
 
 from python.graph.matching.BipartiteMatching import BipartiteMatching
-from python.graph.matching.BipartiteMatchingStructure import (
-    ALWAYS, NEVER, SOMETIMES, DulmageMendelsohn, GeneralDulmageMendelsohn,
-    general_matching_structure,
-)
+from python.graph.matching.BipartiteMatchingStructure import ALWAYS, NEVER, SOMETIMES, DulmageMendelsohn
 from python.graph.matching.GeneralBipartiteMatching import GeneralBipartiteMatching
+from python.graph.matching.GeneralBipartiteMatchingStructure import GeneralDulmageMendelsohn, general_matching_structure
 
 
 def rejects(fn, error=ValueError):
