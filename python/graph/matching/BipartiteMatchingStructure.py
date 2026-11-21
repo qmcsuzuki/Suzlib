@@ -4,7 +4,8 @@
 DM分解、マッチングに使う辺・頂点
 """
 
-from python.graph.matching.BipartiteMatching import BipartiteMatching, GeneralBipartiteMatching
+from python.graph.matching.BipartiteMatching import BipartiteMatching
+from python.graph.matching.GeneralBipartiteMatching import GeneralBipartiteMatching
 from python.graph.SCC import find_SCC
 
 
