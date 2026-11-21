@@ -98,6 +98,14 @@ class GeneralBipartiteMatching:
         self._solved = True
         return self.size
 
+    def lr_matching(self) -> BipartiteMatching:
+        """solve 後の内部の左右型マッチングを返す。辺番号は入力時と同じ。
+        左 i は元の頂点 fromL[i]、右 j は元の頂点 fromR[j] に対応する（color 0 が左）。
+        """
+        self.solve()
+        assert self._matching is not None
+        return self._matching
+
     def matching_edges(self) -> list[tuple[int, int]]:
         """最大マッチングを (色0の頂点, 色1の頂点) の組で返す。"""
         self.solve()
