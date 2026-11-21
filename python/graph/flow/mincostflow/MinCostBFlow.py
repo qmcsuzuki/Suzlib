@@ -11,7 +11,9 @@ class MinCostBFlow:
     正の balance は供給、負は需要。容量・需給・費用は整数。
     各辺は 0 <= lower <= flow <= upper、upper は有限。負費用・負閉路・
     自己ループ・多重辺を許す。全頂点の balance が0なら最小費用循環流。
-    add_balance / add_edge は solve 前のみ。solve は成否によらず1回限定で、
+    add_balance_range で需給を範囲 [lo, hi]（"-inf" / "inf" 可）と単位費用 cost で
+    指定できる（範囲は和をとり、費用の異なる範囲を重ねると需給の区分線形凸費用になる）。
+    add_balance / add_balance_range / add_edge は solve 前のみ。solve は成否によらず1回限定で、
     成功時 (True, 最小費用)、実行不能時 (False, 0) を返す。
     get_edge / edges は成功後のみ。元の辺を追加順に、元の向き・費用で返す。
 
@@ -33,6 +35,14 @@ class MinCostBFlow:
     dag=False では負費用辺の upper が D に入る。dag=True では下限だけが入り、
     負費用辺の容量は D に影響しない。
     巨大容量でも1回でまとめて増流する場合はあるが、scaling は行わない。
+
+    範囲は補助頂点 z からの辺 z→v（容量 hi-lo、費用 cost）で表す。無制限側は頂点ごとの値
+    M_v = 2*(v に入る辺と出る辺の上限の和) + |v の固定の需給| + (v の範囲の有限な端点の絶対値の和)
+    で置き換える（最適解を変えない十分大きい値）。同じ頂点で、hi="inf" の範囲の費用が
+    別の lo="-inf" の範囲の費用より小さいと費用が下に非有界なので、solve で AssertionError。
+    dag=False で cost < 0 の範囲は上限まで流した状態を基準にするため、その幅が D に入る。
+    dag=True では cost < 0 の範囲（幅が正）も負費用辺として数え、upper > lower の元の辺
+    全体が DAG であることを要する（z は出る辺しか持たないので新たな閉路は作らない）。
     add_balance / get_edge は O(1)、add_edge は償却 O(1)、edges は O(m)。
 
     使用例:
@@ -42,6 +52,14 @@ class MinCostBFlow:
         g.add_edge(0, 1, lower=1, upper=5, cost=-3)
         assert g.solve() == (True, -6)
         assert g.get_edge(0).flow == 2
+
+        # 頂点 0 は 3 単位まで費用 1、それを超えると費用 5 で供給できる。
+        g = MinCostBFlow(2)
+        g.add_balance_range(0, 0, 3, cost=1)
+        g.add_balance_range(0, 0, "inf", cost=5)
+        g.add_balance(1, -4)
+        g.add_edge(0, 1, lower=0, upper=10, cost=0)
+        assert g.solve() == (True, 8) and g.balance(0) == 4
     """
 
     class Edge(NamedTuple):
@@ -61,6 +79,8 @@ class MinCostBFlow:
         self._dag = dag
         self._graph = MCFGraph(n + 2, dense=dense)
         self._balance = [0] * n
+        self._ranges: list[tuple[int, int | str, int | str, int]] = []
+        self._balances: list[int] = []
         self._edges: list[tuple[int, int, int, int, int]] = []
         self._initial_cost = 0
         self._solved = False
@@ -71,6 +91,17 @@ class MinCostBFlow:
         assert not self._solved
         assert 0 <= v < self._n
         self._balance[v] += amount
+
+    def add_balance_range(self, v: int, lo: int | str, hi: int | str, cost: int = 0) -> None:
+        """頂点 v の需給に、範囲 [lo, hi] から選ぶ量 x と費用 cost * x を加える。solve 前のみ。
+        lo は整数か "-inf"、hi は整数か "inf"。呼び出しごとに独立な量として足し合わせる。
+        """
+        assert not self._solved
+        assert 0 <= v < self._n
+        assert lo == "-inf" or isinstance(lo, int)
+        assert hi == "inf" or isinstance(hi, int)
+        assert lo == "-inf" or hi == "inf" or lo <= hi
+        self._ranges.append((v, lo, hi, cost))
 
     def add_edge(self, src: int, dst: int, lower: int, upper: int,
                  cost: int) -> int:
@@ -94,12 +125,57 @@ class MinCostBFlow:
         """最小費用解を構築し (実行可能か, 費用) を返す。実行不能は (False, 0)。"""
         assert not self._solved
         self._solved = True
-        if sum(self._balance) != 0:
-            return False, 0
+        n = self._n
         g = self._graph
-        source, sink = self._n, self._n + 1
+        need = self._balance.copy()
+        initial_cost = self._initial_cost
+        if self._ranges:
+            # 無制限側を頂点ごとの十分大きい値 M_v で置き換える。
+            bound = [abs(b) for b in self._balance]
+            for src, dst, _, upper, _ in self._edges:
+                bound[src] += 2 * upper
+                bound[dst] += 2 * upper
+            # hi="inf" の範囲の費用の最小値 < lo="-inf" の範囲の費用の最大値なら非有界。
+            # 費用が真に小さいので 2 つは別の範囲（両側無制限の 1 つの範囲は対象外）。
+            min_up = [None] * n
+            max_down = [None] * n
+            for v, lo, hi, cost in self._ranges:
+                if lo == "-inf":
+                    if max_down[v] is None or cost > max_down[v]:
+                        max_down[v] = cost
+                else:
+                    bound[v] += abs(lo)
+                if hi == "inf":
+                    if min_up[v] is None or cost < min_up[v]:
+                        min_up[v] = cost
+                else:
+                    bound[v] += abs(hi)
+            for v in range(n):
+                assert min_up[v] is None or max_down[v] is None or min_up[v] >= max_down[v], \
+                    "unbounded: an 'inf' range is cheaper than another '-inf' range at the same vertex"
+            z = g.add_vertex()
+            need += [0, 0, 0]
+            for v, lo, hi, cost in self._ranges:
+                lo = -bound[v] if lo == "-inf" else lo
+                hi = bound[v] if hi == "inf" else hi
+                # 範囲の下限 lo は v に固定で課し、残り x - lo を辺 z→v で流す。
+                need[v] += lo
+                initial_cost += lo * cost
+                if lo == hi:
+                    continue
+                if cost < 0 and not self._dag:
+                    # add_edge と同様、負費用は上限まで流した状態を基準にして反転する。
+                    g.add_edge(v, z, hi - lo, -cost)
+                    need[v] += hi - lo
+                    initial_cost += (hi - lo) * cost
+                else:
+                    g.add_edge(z, v, hi - lo, cost)
+            need[z] = -sum(need)
+        elif sum(need) != 0:
+            return False, 0
+        source, sink = n, n + 1
         required = 0
-        for v, b in enumerate(self._balance):
+        for v, b in enumerate(need):
             if b > 0:
                 g.add_edge(source, v, b, 0)
                 required += b
@@ -109,7 +185,12 @@ class MinCostBFlow:
         if sent != required:
             return False, 0
         self._feasible = True
-        return True, self._initial_cost + cost
+        balances = [0] * n
+        for e in self.edges():
+            balances[e.src] += e.flow
+            balances[e.dst] -= e.flow
+        self._balances = balances
+        return True, initial_cost + cost
 
     def get_edge(self, i: int) -> Edge:
         """成功後、元の辺の始終点・上下限・最適流量・費用を返す。O(1)。"""
@@ -133,3 +214,9 @@ class MinCostBFlow:
         """
         assert self._feasible
         return self._graph.potential()[:self._n]
+
+    def balance(self, v: int) -> int:
+        """成功後、最適解での頂点 v の需給（流出量 - 流入量）を返す。O(1)。"""
+        assert self._feasible
+        assert 0 <= v < self._n
+        return self._balances[v]
