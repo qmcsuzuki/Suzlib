@@ -9,13 +9,13 @@ class MinCostTension:
     """整数電位に対し、差 x = p[v]-p[u] の上下限制約下で費用の総和を最小化する。
 
     入力は整数。solve は一度だけ呼び、成功後は potentials で最適電位を取得できる。
-    dag=True は上下限・費用を展開した双対辺が DAG のときに指定する。
+    dag はキーワード引数で必ず指定する。dag=True は上下限・費用を展開した双対辺が DAG のときに指定する。
     上限とヒンジは u→v、下限は v→u の辺を作る。線形項は辺を作らない。
     構築は双対辺数に線形。求解は MinCostBFlow 一回と、成功時の
     電位取得・上下限検査 O(n + 制約辺数)。空間は O(n + 双対辺数)。
     """
 
-    def __init__(self, n: int, dag: bool = False) -> None:
+    def __init__(self, n: int, *, dag: bool) -> None:
         self._flow = MinCostBFlow(n, dag=dag)
         self._balance = [0] * n
         self._bounds: list[tuple[int, int, int]] = []

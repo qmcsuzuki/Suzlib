@@ -17,7 +17,7 @@ class MinCostBFlow:
     成功時 (True, 最小費用)、実行不能時 (False, 0) を返す。
     get_edge / edges は成功後のみ。元の辺を追加順に、元の向き・費用で返す。
 
-    dag=False（既定）では、非負費用辺は下限、負費用辺は上限まで流した状態を
+    dag はキーワード引数で必ず指定する。dag=False では、非負費用辺は下限、負費用辺は上限まで流した状態を
     基準にする。負費用辺は逆向き・費用 -cost の辺に置き換え、残りの需給を
     補助始点・終点間の MCFGraph で満たす。初期残余費用は全て非負。
     変換後の流量 x から、非負費用辺は lower+x、負費用辺は upper-x と復元。
@@ -46,7 +46,7 @@ class MinCostBFlow:
     add_balance / get_edge は O(1)、add_edge は償却 O(1)、edges は O(m)。
 
     使用例:
-        g = MinCostBFlow(2)
+        g = MinCostBFlow(2, dag=False)
         g.add_balance(0, 2)
         g.add_balance(1, -2)
         g.add_edge(0, 1, lower=1, upper=5, cost=-3)
@@ -54,7 +54,7 @@ class MinCostBFlow:
         assert g.get_edge(0).flow == 2
 
         # 頂点 0 は 3 単位まで費用 1、それを超えると費用 5 で供給できる。
-        g = MinCostBFlow(2)
+        g = MinCostBFlow(2, dag=False)
         g.add_balance_range(0, 0, 3, cost=1)
         g.add_balance_range(0, 0, "inf", cost=5)
         g.add_balance(1, -4)
@@ -70,7 +70,7 @@ class MinCostBFlow:
         flow: int
         cost: int
 
-    def __init__(self, n: int, dense: bool = False, dag: bool = False) -> None:
+    def __init__(self, n: int, dense: bool = False, *, dag: bool) -> None:
         """n 頂点、全需給0で初期化。dense=True は密 Dijkstra を用いる。
         dag=True は負費用辺を反転せず、DAG 上の初期ポテンシャルで扱う。
         """

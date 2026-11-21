@@ -303,25 +303,25 @@ for _ in range(400):
 assert tested >= 300 and arbitrage >= 10, (tested, arbitrage)
 
 # 範囲の誤指定は拒否する。
-g = MinCostBFlow(2)
+g = MinCostBFlow(2, dag=False)
 rejects(lambda: g.add_balance_range(0, 3, 2))
 rejects(lambda: g.add_balance_range(0, "inf", 2))
 rejects(lambda: g.add_balance_range(0, 0, "-inf"))
 # 非有界の判定: 費用が等しい組と、両側無制限の範囲 1 つは許す。同じ頂点に多数の範囲があっても線形時間。
-g = MinCostBFlow(2)
+g = MinCostBFlow(2, dag=False)
 g.add_balance_range(0, 0, "inf", 2)
 g.add_balance_range(0, "-inf", 0, 2)
 g.add_balance(1, -3)
 g.add_edge(0, 1, 0, 5, 1)
 assert g.solve() == (True, 9) and g.balance(0) == 3
-g = MinCostBFlow(1)
+g = MinCostBFlow(1, dag=False)
 g.add_balance_range(0, "-inf", "inf", -1)
 assert g.solve() == (True, 0)
-g = MinCostBFlow(1)
+g = MinCostBFlow(1, dag=False)
 for _ in range(10**5):
     g.add_balance_range(0, "-inf", "inf", 0)
 assert g.solve() == (True, 0)
-g = MinCostBFlow(1)
+g = MinCostBFlow(1, dag=False)
 g.add_balance_range(0, 0, "inf", 1)
 g.add_balance_range(0, "-inf", 0, 2)
 rejects(g.solve)
