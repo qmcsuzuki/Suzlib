@@ -2,14 +2,7 @@
 
 from itertools import product
 
-from python.math.number_theory.ModularLatticeHull import (
-    lattice_prefix_min,
-    lattice_prefix_min_hull,
-    lattice_lower_convex_hull,
-    under_line_upper_hull,
-    in_triangle,
-    out_of_triangle,
-)
+from python.math.number_theory.ModularLatticeHull import lattice_prefix_min, lattice_prefix_min_hull, lattice_lower_convex_hull, under_line_upper_hull, in_triangle, out_of_triangle
 
 
 def brute_hull(points, lower=True):

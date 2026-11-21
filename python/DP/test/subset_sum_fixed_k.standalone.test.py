@@ -2,9 +2,7 @@
 from collections import Counter
 from itertools import combinations, combinations_with_replacement
 from random import Random
-from python.DP.subset_sum_fixed_k import (
-    count_subset_sum, exists_subset_sum, find_subset_sum, _convolve_integer_binary, _convolve_frequency,
-)
+from python.DP.subset_sum_fixed_k import count_subset_sum, exists_subset_sum, find_subset_sum, _convolve_integer_binary, _convolve_frequency
 
 MOD = 998244353
 

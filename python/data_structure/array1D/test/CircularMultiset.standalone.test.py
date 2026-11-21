@@ -2,11 +2,7 @@
 
 import random
 
-from python.data_structure.array1D.CircularMultiset import (
-    CircularMultisetDynamicM,
-    CircularMultisetLargeM,
-    CircularMultisetSmallM,
-)
+from python.data_structure.array1D.CircularMultiset import CircularMultisetDynamicM, CircularMultisetLargeM, CircularMultisetSmallM
 
 
 def test(s, a, M):
