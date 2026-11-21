@@ -8,7 +8,7 @@ from python.graph.flow.mincostflow.MinCostTension import MinCostTension
 
 rng = Random(1729)
 for _ in range(100):
-    g = MinCostTension(3)
+    g = MinCostTension(3, dag=False)
     for v in (1, 2):
         g.add_bounds(0, v, -3, 3)
     a, b, c = [rng.randint(-3, 3) for _ in range(3)]
@@ -37,7 +37,7 @@ for dag in (False, True):
     assert q - p == -2
 
 for contradictory, linear in [(False, True), (True, False), (True, True)]:
-    g = MinCostTension(4)
+    g = MinCostTension(4, dag=False)
     if contradictory:
         g.add_bounds(0, 1, 2, 1)
     if linear:
