@@ -56,6 +56,15 @@ def check(rng, nl, nr):
     for i, (u, v) in enumerate(general_edges):
         assert g.add_edge(u, v) == i
     assert g.solve() == best
+    assert g.edge_count() == len(general_edges)
+    assert g.edges() == [(i, u, v) for i, (u, v) in enumerate(general_edges)]
+
+    # lr_matching() の左右と from_left / from_right / color の対応。
+    assert sorted(g.from_left + g.from_right) == list(range(n))
+    assert all(g.color[v] == 0 for v in g.from_left) and all(g.color[v] == 1 for v in g.from_right)
+    lr = g.lr_matching()
+    assert [(i, g.from_left[a], g.from_right[b]) for i, a, b in lr.edges()] == [
+        (i, u, v) if g.color[u] == 0 else (i, v, u) for i, (u, v) in enumerate(general_edges)]
 
     pairs = {frozenset(e) for e in general_edges}
     matched = g.matching_edges()
@@ -89,7 +98,8 @@ def check(rng, nl, nr):
     # solve 後の add_edge は彩色から作り直す。
     if nl and nr:
         u, v = rng.randrange(nl), rng.randrange(nr)
-        g.add_edge(right[v], left[u])
+        assert g.add_edge(right[v], left[u]) == len(general_edges)
+        assert g.edge_count() == len(general_edges) + 1
         assert g.solve() == rebuild(nl, nr, edges + [(u, v)])
 
 

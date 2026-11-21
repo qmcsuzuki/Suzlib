@@ -23,9 +23,9 @@ def general_matching_structure(
     edge_status, left_status, right_status = matching_structure(matching.lr_matching())
 
     vertex_status = [NEVER] * matching.n
-    for left, v in enumerate(matching.fromL):
+    for left, v in enumerate(matching.from_left):
         vertex_status[v] = left_status[left]
-    for right, v in enumerate(matching.fromR):
+    for right, v in enumerate(matching.from_right):
         vertex_status[v] = right_status[right]
 
     return edge_status, vertex_status
@@ -50,7 +50,7 @@ class GeneralDulmageMendelsohn:
     def __init__(self, matching: GeneralBipartiteMatching) -> None:
         """自動二部彩色し、元の頂点番号で DM 分解を返す。"""
         dm = DulmageMendelsohn(matching.lr_matching())
-        original = matching.fromL + matching.fromR
+        original = matching.from_left + matching.from_right
 
         self.n = matching.n
         self.color = matching.color.copy()
