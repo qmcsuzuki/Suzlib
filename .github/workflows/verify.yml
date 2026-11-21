@@ -3,7 +3,15 @@ on:
   push:
     branches:
       - "main"
+  # 週 1 回は前回結果を使わず全件を検証する（ジャッジ側のテストデータ更新やツールの版の変化を拾う）。
+  schedule:
+    - cron: "23 19 * * 6"
   workflow_dispatch:
+    inputs:
+      ignore_prev_result:
+        description: "前回結果を使わず全件を検証する"
+        type: boolean
+        default: false
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
@@ -74,6 +82,18 @@ jobs:
       - name: Download verify_files.json
         uses: competitive-verifier/actions/download-verify-artifact@v2
 
+      # 前回結果と中身のハッシュを比べ、テストファイルと依存先が変わったものだけを検証する。
+      # キーに config.toml / このワークフローのハッシュを含め、これらを変えると全件を検証する。
+      - name: Restore previous result
+        if: ${{ github.event_name != 'schedule' && !inputs.ignore_prev_result }}
+        id: restore-prev-result
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ github.workspace }}/merged-result.json
+          key: verify-result-${{ hashFiles('config.toml', '.github/workflows/verify.yml') }}-${{ github.sha }}
+          restore-keys: |
+            verify-result-${{ hashFiles('config.toml', '.github/workflows/verify.yml') }}-
+
       - name: Set up competitive-verifier
         uses: competitive-verifier/actions/setup@v2
         with:
@@ -91,6 +111,8 @@ jobs:
           split-size: ${{ env.SPLIT_SIZE }}
           split-index: ${{ matrix.index }}
           timeout: 1800
+          prev-result: ${{ steps.restore-prev-result.outputs.cache-matched-key && 'merged-result.json' || '' }}
+          hash: true
 
       - name: Upload result artifact
         uses: actions/upload-artifact@v7
@@ -135,12 +157,25 @@ jobs:
           python-version: "3.11"
           cache-pip: true
 
+      - name: Merge results
+        uses: competitive-verifier/actions/merge-result@v2
+        with:
+          result-files: ${{ steps.all-artifacts.outputs.artifacts-root }}/Result-*/result.json
+          output-path: ${{ github.workspace }}/merged-result.json
+
       - name: Docs
         uses: competitive-verifier/actions/docs@v2
         with:
-          verify-result: ${{ steps.all-artifacts.outputs.artifacts-root }}/Result-*/result.json
+          verify-result: ${{ github.workspace }}/merged-result.json
           destination: _jekyll
           write-summary: true
+
+      # 失敗した検証も記録され、次回は変更がなくても再検証される。
+      - name: Save result
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ github.workspace }}/merged-result.json
+          key: verify-result-${{ hashFiles('config.toml', '.github/workflows/verify.yml') }}-${{ github.sha }}
 
       - name: Add quick references
         run: |
@@ -162,7 +197,7 @@ jobs:
       - name: Check
         uses: competitive-verifier/actions/check@v2
         with:
-          verify-result: .artifacts/Result-*/result.json
+          verify-result: ${{ github.workspace }}/merged-result.json
   deploy:
     if: (success() || failure()) && github.ref == 'refs/heads/main'
     needs: docs-and-check
