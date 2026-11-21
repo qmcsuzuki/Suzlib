@@ -44,7 +44,11 @@ def check_repeated(n, edges, rng):
     """始終点・上限・メソッドを変えて連続で呼び、累積フローの最適性を確かめる。"""
     best = brute_bflow(n, edges)
     for dense in (False, True):
-        g = MCFGraph(n, dense)
+        # 一部の頂点は add_vertex で追加する。
+        k = rng.randrange(n + 1)
+        g = MCFGraph(k, dense)
+        for v in range(k, n):
+            assert g.add_vertex() == v
         for e in edges:
             g.add_edge(*e)
         balance = [0] * n
@@ -80,6 +84,12 @@ def check_repeated(n, edges, rng):
                     assert e.cost + p[e.src] - p[e.dst] >= 0
                 if e.flow:
                     assert -e.cost + p[e.dst] - p[e.src] >= 0
+        try:
+            g.add_vertex()
+        except AssertionError:
+            pass
+        else:
+            raise AssertionError('add_vertex after solve must be rejected')
 
 
 def check(n, edges, s, t):

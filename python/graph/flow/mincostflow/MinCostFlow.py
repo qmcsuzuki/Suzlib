@@ -42,6 +42,13 @@ class MCFGraph:
         self._has_negative_edge = False
         self._dual: list[int] | None = None
 
+    def add_vertex(self) -> int:
+        """孤立頂点を追加して頂点番号を返す。初回求解前のみ。償却 O(1)。"""
+        assert self._dual is None
+        self._g.append([])
+        self._n += 1
+        return self._n - 1
+
     def add_edge(self, src: int, dst: int, cap: int, cost: int) -> int:
         """src から dst への容量 cap、単位費用 cost の辺を追加し、辺番号を返す。
 
