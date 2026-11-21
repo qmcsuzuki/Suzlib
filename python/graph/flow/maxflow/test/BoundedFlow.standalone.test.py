@@ -113,6 +113,82 @@ for _ in range(500):
         balance[s], balance[t] = expected, -expected
         check(g, edges, balance)
 
+# 需給の範囲指定。全流量の列挙を範囲で絞り込み、実行可能性・需給と辺の最大化/最小化を比較する。
+def check_range(g, edges, lo, hi, n):
+    result = g.edges()
+    actual = [0] * n
+    for (u, v, a, b), e in zip(edges, result):
+        assert (e.src, e.dst, e.lower, e.upper) == (u, v, a, b) and a <= e.flow <= b
+        actual[u] += e.flow
+        actual[v] -= e.flow
+    assert actual == [g.balance(v) for v in range(n)]
+    assert all(l <= x <= h for l, x, h in zip(lo, actual, hi))
+
+
+INF = 10**9
+for _ in range(1500):
+    n = rng.randrange(1, 5)
+    edges = []
+    for j in range(rng.randrange(7)):
+        a = rng.randrange(3)
+        edges.append((rng.randrange(n), rng.randrange(n), a, a + rng.randrange(3)))
+    g = BFlow(n)
+    for i, e in enumerate(edges):
+        assert g.add_edge(*e) == i
+    lo, hi = [0] * n, [0] * n
+    for v in range(n):
+        # 整数範囲・片側無制限・両側無制限・add_balance との和を混ぜる。
+        for _ in range(rng.randrange(3)):
+            kind = rng.randrange(4)
+            if kind == 0:
+                x = rng.randrange(-3, 4)
+                g.add_balance(v, x)
+                lo[v] += x
+                hi[v] += x
+            else:
+                a = "-inf" if kind == 3 or rng.randrange(4) == 0 else rng.randrange(-4, 3)
+                b = "inf" if kind == 3 or rng.randrange(4) == 0 else (a if a != "-inf" else -2) + rng.randrange(4)
+                g.add_balance_range(v, a, b)
+                lo[v] = -INF if a == "-inf" or lo[v] == -INF else lo[v] + a
+                hi[v] = INF if b == "inf" or hi[v] == INF else hi[v] + b
+    feasible = [(f, b) for f, b in enumerate_flows(n, edges)
+                if all(l <= x <= h for l, x, h in zip(lo, b, hi))]
+    rejects(lambda: g.balance(0))
+    assert g.solve() == bool(feasible), (n, edges, lo, hi)
+    if not feasible:
+        rejects(lambda: g.balance(0))
+        rejects(lambda: g.maximize_balance(0))
+        continue
+    check_range(g, edges, lo, hi, n)
+    ops = [("bmax", v) for v in range(n)] + [("bmin", v) for v in range(n)]
+    ops += [("emax", i) for i in range(len(edges))] + [("emin", i) for i in range(len(edges))]
+    ops *= 2
+    rng.shuffle(ops)
+    for op, x in ops:
+        if op == "bmax":
+            assert g.maximize_balance(x) == max(b[x] for f, b in feasible) == g.balance(x)
+        elif op == "bmin":
+            assert g.minimize_balance(x) == min(b[x] for f, b in feasible) == g.balance(x)
+        elif op == "emax":
+            assert g.maximize_edge(x) == max(f[x] for f, b in feasible)
+        else:
+            assert g.minimize_edge(x) == min(f[x] for f, b in feasible)
+        check_range(g, edges, lo, hi, n)
+
+# 範囲の誤指定は拒否する。
+g = BFlow(2)
+rejects(lambda: g.add_balance_range(0, 3, 2))
+rejects(lambda: g.add_balance_range(0, "inf", 2))
+rejects(lambda: g.add_balance_range(0, 0, "-inf"))
+# 無制限側は接続辺の上限の和で置き換えるので、巨大容量でも正確な値を返す。
+g = BFlow(2)
+g.add_balance_range(0, "-inf", "inf")
+g.add_balance_range(1, "-inf", "inf")
+g.add_edge(0, 1, 0, 10**30)
+assert g.solve()
+assert g.maximize_balance(0) == 10**30 and g.balance(1) == -10**30
+assert g.minimize_balance(0) == 0 and g.minimize_balance(1) == -10**30
+
 # 空グラフ、固定辺、巨大容量、非負の s-t 流量が存在しない場合。
 g = BFlow(0)
 assert g.solve() and g.edges() == []
