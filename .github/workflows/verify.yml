@@ -84,13 +84,14 @@ jobs:
 
       # 前回結果と中身のハッシュを比べ、テストファイルと依存先が変わったものだけを検証する。
       # キーに config.toml / このワークフローのハッシュを含め、これらを変えると全件を検証する。
+      # キーは実行ごとに一意（run_id, run_attempt）で、restore-keys の前方一致で直近の結果を取り出す。
       - name: Restore previous result
         if: ${{ github.event_name != 'schedule' && !inputs.ignore_prev_result }}
         id: restore-prev-result
         uses: actions/cache/restore@v4
         with:
           path: ${{ github.workspace }}/merged-result.json
-          key: verify-result-${{ hashFiles('config.toml', '.github/workflows/verify.yml') }}-${{ github.sha }}
+          key: verify-result-${{ hashFiles('config.toml', '.github/workflows/verify.yml') }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
             verify-result-${{ hashFiles('config.toml', '.github/workflows/verify.yml') }}-
 
@@ -171,11 +172,13 @@ jobs:
           write-summary: true
 
       # 失敗した検証も記録され、次回は変更がなくても再検証される。
+      # キャッシュは同じキーで上書きできないので、同じ SHA の全件検証や再実行の結果も残るよう
+      # キーを実行ごとに一意にする。
       - name: Save result
         uses: actions/cache/save@v4
         with:
           path: ${{ github.workspace }}/merged-result.json
-          key: verify-result-${{ hashFiles('config.toml', '.github/workflows/verify.yml') }}-${{ github.sha }}
+          key: verify-result-${{ hashFiles('config.toml', '.github/workflows/verify.yml') }}-${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: Add quick references
         run: |
