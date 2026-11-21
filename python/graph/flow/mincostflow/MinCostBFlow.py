@@ -135,19 +135,23 @@ class MinCostBFlow:
             for src, dst, _, upper, _ in self._edges:
                 bound[src] += 2 * upper
                 bound[dst] += 2 * upper
-            ups = [[] for _ in range(n)]
-            downs = [[] for _ in range(n)]
-            for k, (v, lo, hi, cost) in enumerate(self._ranges):
+            # hi="inf" の範囲の費用の最小値 < lo="-inf" の範囲の費用の最大値なら非有界。
+            # 費用が真に小さいので 2 つは別の範囲（両側無制限の 1 つの範囲は対象外）。
+            min_up = [None] * n
+            max_down = [None] * n
+            for v, lo, hi, cost in self._ranges:
                 if lo == "-inf":
-                    downs[v].append((cost, k))
+                    if max_down[v] is None or cost > max_down[v]:
+                        max_down[v] = cost
                 else:
                     bound[v] += abs(lo)
                 if hi == "inf":
-                    ups[v].append((cost, k))
+                    if min_up[v] is None or cost < min_up[v]:
+                        min_up[v] = cost
                 else:
                     bound[v] += abs(hi)
             for v in range(n):
-                assert not any(cu < cd and ku != kd for cu, ku in ups[v] for cd, kd in downs[v]), \
+                assert min_up[v] is None or max_down[v] is None or min_up[v] >= max_down[v], \
                     "unbounded: an 'inf' range is cheaper than another '-inf' range at the same vertex"
             z = g.add_vertex()
             need += [0, 0, 0]
