@@ -164,9 +164,9 @@
       }
 
       const code = extractCode(doc) || "";
-      const path = new URL(abs).pathname;
+      const pageUrl = abs.split(/[?#]/, 1)[0];
       if (code) {
-        ordered.push(`# ===== BEGIN: ${path} =====\n${code}# ===== END: ${path} =====\n`);
+        ordered.push(`# ===== BEGIN: ${pageUrl} =====\n${code}# ===== END: ${pageUrl} =====\n`);
       }
     }
 
