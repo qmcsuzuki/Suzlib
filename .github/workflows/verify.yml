@@ -156,7 +156,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          fetch-depth: 2147483647
+          fetch-depth: 0
   
       - name: Download verify_files.json and all artifacts
         id: all-artifacts
