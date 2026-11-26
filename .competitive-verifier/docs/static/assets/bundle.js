@@ -337,7 +337,9 @@
     const copy = document.querySelector("button.code-copy-btn");
     if (!bundle || !copy || copy.dataset.suzCopyFix === "1") return;
 
-    // 標準の Copy ボタンを移動する前に、対応するコード領域を保持する。
+    // head-custom.html を上書きしているため標準の code.js は読み込まれない。
+    // Copy ボタン（テンプレート由来）の移動・コピー処理はすべてここで行う。
+    // 移動前に、対応するコード領域を保持する。
     const codeArea = copy.closest(".code");
     if (!codeArea) return;
     copy.dataset.suzCopyFix = "1";
@@ -361,10 +363,7 @@
       ta.remove();
     }
 
-    copy.addEventListener("click", (e) => {
-      e.preventDefault();
-      // 標準ハンドラは移動後の closest('.code') を参照できないため実行しない。
-      e.stopImmediatePropagation();
+    copy.addEventListener("click", () => {
       const code = codeArea.querySelector("pre:not(.disable) code");
       const text = code?.textContent || "";
       if (!text) return;
@@ -374,7 +373,7 @@
       } else {
         fallbackCopy(text);
       }
-    }, true);
+    });
   }
 
   function boot() {
