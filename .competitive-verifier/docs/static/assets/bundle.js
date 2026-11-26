@@ -332,48 +332,27 @@
   });
   }
 
-  function moveExistingCopyNextToBundle() {
-  const bundle = document.querySelector("[data-suzlib-bundle='1']");
-  if (!bundle) return;
+  function setupCopyButton() {
+    const bundle = document.querySelector("[data-suzlib-bundle='1']");
+    const copy = document.querySelector("button.code-copy-btn");
+    if (!bundle || !copy || copy.dataset.suzCopyFix === "1") return;
 
-  // 既存 Copy ボタンを拾う（ページ末尾のやつ）
-  const copy = Array.from(document.querySelectorAll("button,a,input[type='button'],input[type='submit']"))
-    .find(el => ((el.tagName === "INPUT") ? el.value : el.textContent).trim() === "Copy");
-  if (!copy) return;
+    // 標準の Copy ボタンを移動する前に、対応するコード領域を保持する。
+    const codeArea = copy.closest(".code");
+    if (!codeArea) return;
+    copy.dataset.suzCopyFix = "1";
+    bundle.insertAdjacentElement("afterend", copy);
 
-  // すでに隣なら何もしない
-  if (copy.previousElementSibling === bundle || bundle.previousElementSibling === copy) return;
+    Object.assign(copy.style, {
+      padding: bundle.style.padding,
+      border: bundle.style.border,
+      borderRadius: bundle.style.borderRadius,
+      background: bundle.style.background,
+      cursor: bundle.style.cursor,
+      margin: "0 0 0 8px",
+    });
 
-  // Bundle の直後へ移動（DOMを移すだけ。スタイルはいじらない）
-  bundle.insertAdjacentElement("afterend", copy);
-}
-
-function enableCopyButtonMinimal() {
-  const btn = [...document.querySelectorAll("button")]
-    .find(b => b.textContent.trim() === "Copy");
-  if (!btn) return;
-  if (btn.dataset.suzCopyFix === "1") return;
-  btn.dataset.suzCopyFix = "1";
-
-  btn.addEventListener("click", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    const pre = document.querySelector("pre");
-    const text = pre ? (pre.textContent || "") : "";
-    if (!text) return;
-
-    // Clipboard API（ダメなら fallback）
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(text).catch(() => {
-        const ta = document.createElement("textarea");
-        ta.value = text;
-        document.body.appendChild(ta);
-        ta.select();
-        document.execCommand("copy");
-        ta.remove();
-      });
-    } else {
+    function fallbackCopy(text) {
       const ta = document.createElement("textarea");
       ta.value = text;
       document.body.appendChild(ta);
@@ -381,44 +360,32 @@ function enableCopyButtonMinimal() {
       document.execCommand("copy");
       ta.remove();
     }
-  }, true);
-}
 
-function styleCopyLikeBundleAndAddGap() {
-  const bundle = document.querySelector("[data-suzlib-bundle='1']");
-  if (!bundle) return;
+    copy.addEventListener("click", (e) => {
+      e.preventDefault();
+      // 標準ハンドラは移動後の closest('.code') を参照できないため実行しない。
+      e.stopImmediatePropagation();
+      const code = codeArea.querySelector("pre:not(.disable) code");
+      const text = code?.textContent || "";
+      if (!text) return;
 
-  const copy = [...document.querySelectorAll("button")]
-    .find(b => b.textContent.trim() === "Copy");
-  if (!copy) return;
+      if (navigator.clipboard?.writeText) {
+        navigator.clipboard.writeText(text).catch(() => fallbackCopy(text));
+      } else {
+        fallbackCopy(text);
+      }
+    }, true);
+  }
 
-  // 既に適用済みなら終了
-  if (copy.dataset.suzBtnStyled === "1") return;
-  copy.dataset.suzBtnStyled = "1";
-
-  // Bundle の見た目を Copy に合わせる（必要最小限）
-  copy.style.margin = bundle.style.margin;               // ただし次で上書きする
-  copy.style.padding = bundle.style.padding;
-  copy.style.border = bundle.style.border;
-  copy.style.borderRadius = bundle.style.borderRadius;
-  copy.style.background = bundle.style.background;
-  copy.style.cursor = bundle.style.cursor;
-
-  // 2つのボタン間にスペース
-  copy.style.marginLeft = "8px";     // gap
-  copy.style.marginTop = "0";
-  copy.style.marginBottom = "0";
-}
-
-  
-function boot() {
+  function boot() {
     injectBundleButton();
     highlightPageCode();
-    moveExistingCopyNextToBundle(); 
-    enableCopyButtonMinimal(); 
-    styleCopyLikeBundleAndAddGap();
-    // テーマ側が後からDOMをいじる場合に備えて1回だけリトライ
-    setTimeout(injectBundleButton, 300);
+    setupCopyButton();
+    // テーマ側の遅延した DOM 生成に備えて一度だけ再試行する。
+    setTimeout(() => {
+      injectBundleButton();
+      setupCopyButton();
+    }, 300);
   }
 
   if (document.readyState === "loading") {
