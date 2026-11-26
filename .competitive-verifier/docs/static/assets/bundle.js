@@ -246,28 +246,19 @@
     btn.type = "button";
     btn.textContent = "Bundle";
     btn.setAttribute("data-suzlib-bundle", "1");
-    btn.style.margin = "0";
-    btn.style.padding = "6px 10px";
-    btn.style.border = "1px solid #888";
-    btn.style.borderRadius = "6px";
-    btn.style.background = "#f7f7f7";
-    btn.style.cursor = "pointer";
+    btn.className = "suz-btn";
 
     const toolbar = document.createElement("div");
-    toolbar.style.cssText = "display:flex; flex-wrap:wrap; align-items:center; gap:8px 24px; margin:8px 0";
+    toolbar.className = "suz-toolbar";
     const secondary = document.createElement("div");
-    secondary.style.cssText = "display:flex; align-items:center; margin-left:auto";
+    secondary.className = "suz-toolbar-secondary";
     secondary.appendChild(btn);
     (h || pre).insertAdjacentElement(h ? "afterend" : "beforebegin", toolbar);
 
     const bundleCopy = document.createElement("button");
     bundleCopy.type = "button";
     bundleCopy.textContent = "Bundle and Copy";
-    bundleCopy.style.cssText = btn.style.cssText;
-    bundleCopy.style.background = "#1756a9";
-    bundleCopy.style.borderColor = "#1756a9";
-    bundleCopy.style.color = "#fff";
-    bundleCopy.style.fontWeight = "600";
+    bundleCopy.className = "suz-btn suz-btn-primary";
     toolbar.append(bundleCopy, secondary);
 
     bundleCopy.addEventListener("click", async () => {
@@ -312,24 +303,24 @@
   }
 
   function highlightPageCode() {
-  if (!window.hljs || typeof window.hljs.highlightElement !== "function") return;
+    if (!window.hljs || typeof window.hljs.highlightElement !== "function") return;
 
-  // 既存のコード（ページの Code セクション等）
-  document.querySelectorAll("pre code").forEach((code) => {
-    if (code.dataset.suzHlDone === "1") return;
+    // 既存のコード（ページの Code セクション等）
+    document.querySelectorAll("pre code").forEach((code) => {
+      if (code.dataset.suzHlDone === "1") return;
 
-    // 言語が付いていない場合、python をデフォルトにしておく（好みで変更可）
-    if (!code.className || !/language-/.test(code.className)) {
-      code.classList.add("language-python");
-    }
+      // 言語が付いていない場合、python をデフォルトにしておく（好みで変更可）
+      if (!code.className || !/language-/.test(code.className)) {
+        code.classList.add("language-python");
+      }
 
-    try {
-      window.hljs.highlightElement(code);
-      code.dataset.suzHlDone = "1";
-    } catch {
-      // 無視
-    }
-  });
+      try {
+        window.hljs.highlightElement(code);
+        code.dataset.suzHlDone = "1";
+      } catch {
+        // 無視
+      }
+    });
   }
 
   function setupCopyButton() {
@@ -343,14 +334,7 @@
     copy.dataset.suzCopyFix = "1";
     bundle.insertAdjacentElement("afterend", copy);
 
-    Object.assign(copy.style, {
-      padding: bundle.style.padding,
-      border: bundle.style.border,
-      borderRadius: bundle.style.borderRadius,
-      background: bundle.style.background,
-      cursor: bundle.style.cursor,
-      margin: "0 0 0 8px",
-    });
+    copy.classList.add("suz-btn", "suz-copy-btn");
 
     function fallbackCopy(text) {
       const ta = document.createElement("textarea");
