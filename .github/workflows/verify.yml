@@ -30,33 +30,40 @@ jobs:
     outputs:
       split-size: ${{ steps.split.outputs.size }}
       split-indices: ${{ steps.split.outputs.indices }}
+      prev-result: ${{ steps.split.outputs.prev-result }}
     steps:
       - uses: actions/checkout@v5
 
-      # 前回結果があれば差分検証なので少ない分割、なければ全件検証なので多い分割にする。
-      # 分割数は並列度だけを変え、検証対象は変えない（verify 側で前回結果を改めて取り出す）。
-      - name: Look up previous result
+      # 前回結果は一度だけ取得し、全 verify ジョブで同じ結果を使う。
+      # キーに設定とワークフローのハッシュを含め、変更時は全件を検証する。
+      - name: Restore previous result
         if: ${{ github.event_name != 'schedule' && !inputs.ignore_prev_result }}
-        id: lookup-prev-result
         uses: actions/cache/restore@v4
         with:
           path: ${{ github.workspace }}/merged-result.json
           key: verify-result-${{ hashFiles('config.toml', '.github/workflows/verify.yml') }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
             verify-result-${{ hashFiles('config.toml', '.github/workflows/verify.yml') }}-
-          lookup-only: true
 
       - name: Decide split size
         id: split
         shell: bash
         run: |
-          if [ -n "$MATCHED_KEY" ]; then size=4; else size=20; fi
+          if [ -f merged-result.json ]; then size=4; prev=merged-result.json; else size=20; prev=; fi
           indices=$(python3 -c 'import json, sys; print(json.dumps([f"{i:02d}" for i in range(int(sys.argv[1]))]))' "$size")
           echo "size=$size" >> "$GITHUB_OUTPUT"
           echo "indices=$indices" >> "$GITHUB_OUTPUT"
-          echo "split size: $size (previous result: ${MATCHED_KEY:-none})"
-        env:
-          MATCHED_KEY: ${{ steps.lookup-prev-result.outputs.cache-matched-key }}
+          echo "prev-result=$prev" >> "$GITHUB_OUTPUT"
+          echo "split size: $size (previous result: ${prev:-none})"
+
+      - name: Upload previous result
+        if: ${{ steps.split.outputs.prev-result != '' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: Previous-result
+          path: merged-result.json
+          if-no-files-found: error
+          retention-days: 1
 
       - name: Set up competitive-verifier
         uses: competitive-verifier/actions/setup@v2
@@ -107,18 +114,12 @@ jobs:
       - name: Download verify_files.json
         uses: competitive-verifier/actions/download-verify-artifact@v2
 
-      # 前回結果と中身のハッシュを比べ、テストファイルと依存先が変わったものだけを検証する。
-      # キーに config.toml / このワークフローのハッシュを含め、これらを変えると全件を検証する。
-      # キーは実行ごとに一意（run_id, run_attempt）で、restore-keys の前方一致で直近の結果を取り出す。
-      - name: Restore previous result
-        if: ${{ github.event_name != 'schedule' && !inputs.ignore_prev_result }}
-        id: restore-prev-result
-        uses: actions/cache/restore@v4
+      - name: Download previous result
+        if: ${{ needs.setup.outputs.prev-result != '' }}
+        uses: actions/download-artifact@v8
         with:
-          path: ${{ github.workspace }}/merged-result.json
-          key: verify-result-${{ hashFiles('config.toml', '.github/workflows/verify.yml') }}-${{ github.run_id }}-${{ github.run_attempt }}
-          restore-keys: |
-            verify-result-${{ hashFiles('config.toml', '.github/workflows/verify.yml') }}-
+          name: Previous-result
+          path: ${{ github.workspace }}
 
       - name: Set up competitive-verifier
         uses: competitive-verifier/actions/setup@v2
@@ -137,7 +138,7 @@ jobs:
           split-size: ${{ env.SPLIT_SIZE }}
           split-index: ${{ matrix.index }}
           timeout: 1800
-          prev-result: ${{ steps.restore-prev-result.outputs.cache-matched-key && 'merged-result.json' || '' }}
+          prev-result: ${{ needs.setup.outputs.prev-result }}
           hash: true
 
       - name: Upload result artifact
