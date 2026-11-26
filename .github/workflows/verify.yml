@@ -99,8 +99,6 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     needs: [setup]
-    env:
-      SPLIT_SIZE: ${{ needs.setup.outputs.split-size }}
     strategy:
       matrix:
         index: ${{ fromJSON(needs.setup.outputs.split-indices) }}
@@ -131,7 +129,7 @@ jobs:
         uses: competitive-verifier/actions/verify@v2
         with:
           destination: ${{runner.temp}}/result.json
-          split-size: ${{ env.SPLIT_SIZE }}
+          split-size: ${{ needs.setup.outputs.split-size }}
           split-index: ${{ matrix.index }}
           timeout: 1800
           prev-result: ${{ needs.setup.outputs.prev-result }}
