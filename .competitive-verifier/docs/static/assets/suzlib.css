@@ -102,3 +102,38 @@
 .quick-reference-doc {
   white-space: pre-wrap;
 }
+
+/* Bundle / Copy ボタン */
+.suz-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 24px;
+  margin: 8px 0;
+}
+
+.suz-toolbar-secondary {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+}
+
+.suz-btn {
+  margin: 0;
+  padding: 6px 10px;
+  border: 1px solid #888;
+  border-radius: 6px;
+  background: #f7f7f7;
+  cursor: pointer;
+}
+
+.suz-btn-primary {
+  background: #1756a9;
+  border-color: #1756a9;
+  color: #fff;
+  font-weight: 600;
+}
+
+.suz-copy-btn {
+  margin-left: 8px;
+}
