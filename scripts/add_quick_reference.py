@@ -160,33 +160,11 @@ def make_quick_reference(items: list[dict]) -> str:
     lines.append("")
     return "\n".join(lines)
 
-def doc_page_candidates(src_path: Path) -> list[Path]:
-    """competitive-verifier の代表的な出力名から候補を作る。"""
-    rel = src_path.relative_to(SRC_ROOT)
-    base = DOC_ROOT / SRC_ROOT.name / rel
-    candidates = [
-        base.with_name(base.name + ".md"),
-        base.with_name(base.name + ".html"),
-        base.with_suffix(".md"),
-        base.with_suffix(".html"),
-        base,
-    ]
-    return candidates
-
-
 def find_doc_page(src_path: Path) -> Path | None:
-    """元 Python ファイルに対応する生成済み個別ページを探す。"""
-    for path in doc_page_candidates(src_path):
-        if path.exists():
-            return path
-
-    rel = src_path.as_posix()
-    candidates = sorted(DOC_ROOT.rglob(src_path.name + "*"))
-    for path in candidates:
-        s = path.as_posix()
-        if rel in s or src_path.stem in path.name:
-            return path
-    return None
+    """competitive-verifier が生成する個別ページを探す。"""
+    base = DOC_ROOT / SRC_ROOT.name / src_path.relative_to(SRC_ROOT)
+    page = base.with_suffix(base.suffix + ".md")
+    return page if page.is_file() else None
 
 
 def inject_quick_reference(page_path: Path, quick_ref: str) -> None:
