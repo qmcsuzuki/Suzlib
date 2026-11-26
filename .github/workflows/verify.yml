@@ -222,7 +222,7 @@ jobs:
         with:
           verify-result: ${{ github.workspace }}/merged-result.json
   deploy:
-    if: (success() || failure()) && github.ref == 'refs/heads/main'
+    if: ${{ !cancelled() && github.ref == 'refs/heads/main' && needs.docs-and-check.outputs.upload-pages == 'true' }}
     needs: docs-and-check
     environment:
       name: github-pages
