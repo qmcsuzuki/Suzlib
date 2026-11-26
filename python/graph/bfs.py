@@ -1,4 +1,4 @@
-﻿# competitive-verifier: TITLE 幅優先探索 (BFS)
+# competitive-verifier: TITLE 幅優先探索 (BFS)
 
 def bfs(g,start):
     """始点から幅優先探索し、訪問順と未到達を -1 とする距離配列を返す。"""
