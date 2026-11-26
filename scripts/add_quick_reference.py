@@ -123,7 +123,7 @@ def parse_python_file(path: Path) -> list[dict]:
 def append_doc(lines: list[str], doc: str, indent: str) -> None:
     """docstring を箇条書きにせず、その項目の説明文として表示する。"""
     text = html.escape(doc).replace("\n", "&#10;")
-    lines.append(f'{indent}<div style="white-space: pre-wrap">{text}</div>')
+    lines.append(f'{indent}<div class="quick-reference-doc">{text}</div>')
 
 
 def make_quick_reference(items: list[dict]) -> str:

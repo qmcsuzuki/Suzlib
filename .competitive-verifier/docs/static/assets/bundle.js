@@ -2,13 +2,6 @@
 (() => {
   "use strict";
 
-  const IMP = "important";
-  const ZMAX = "2147483647";
-
-  function setImp(el, prop, value) {
-    el.style.setProperty(prop, value, IMP);
-  }
-
   function norm(s) {
     return (s || "").replace(/\s+/g, " ").trim();
   }
@@ -176,44 +169,17 @@
 
   function makeModal(codeText) {
     const overlay = document.createElement("div");
-    setImp(overlay, "position", "fixed");
-    setImp(overlay, "left", "0");
-    setImp(overlay, "top", "0");
-    setImp(overlay, "width", "100vw");
-    setImp(overlay, "height", "100vh");
-    setImp(overlay, "margin", "0");
-    setImp(overlay, "padding", "1.5vh 1.5vw");
-    setImp(overlay, "box-sizing", "border-box");
-    setImp(overlay, "background", "rgba(0,0,0,.35)");
-    setImp(overlay, "z-index", ZMAX);
-    setImp(overlay, "display", "flex");
-    setImp(overlay, "justify-content", "center");
-    setImp(overlay, "align-items", "stretch");
+    overlay.className = "suz-bundle-overlay";
 
     const box = document.createElement("div");
-    setImp(box, "width", "min(98vw, 2400px)");   // 横幅を増やす
-    setImp(box, "height", "100%");
-    setImp(box, "background", "#fff");
-    setImp(box, "border-radius", "10px");
-    setImp(box, "box-shadow", "0 10px 30px rgba(0,0,0,.2)");
-    setImp(box, "display", "flex");
-    setImp(box, "flex-direction", "column");
-    setImp(box, "overflow", "hidden");
+    box.className = "suz-bundle-dialog";
 
     const header = document.createElement("div");
-    setImp(header, "display", "flex");
-    setImp(header, "gap", "8px");
-    setImp(header, "align-items", "center");
-    setImp(header, "padding", "10px 12px");
-    setImp(header, "background", "#fff");
-    setImp(header, "border-bottom", "1px solid #e5e5e5");
-    setImp(header, "position", "sticky");
-    setImp(header, "top", "0");
+    header.className = "suz-bundle-header";
 
     const title = document.createElement("div");
+    title.className = "suz-bundle-title";
     title.textContent = "Bundled code";
-    setImp(title, "font-weight", "600");
-    setImp(title, "margin-right", "auto");
 
     const btnCopy = document.createElement("button");
     btnCopy.type = "button";
@@ -231,19 +197,11 @@
     header.append(title, btnCopy, btnClose);
 
     const pre = document.createElement("pre");
-    setImp(pre, "margin", "0");
-    setImp(pre, "padding", "12px");
-    setImp(pre, "flex", "1 1 auto");
-    setImp(pre, "overflow", "auto");
-    setImp(pre, "background", "#fafafa");
+    pre.className = "suz-bundle-pre";
 
     const code = document.createElement("code");
-    code.className = "language-python";
+    code.className = "language-python suz-bundle-code";
     code.textContent = codeText;
-
-    // 横スクロールを避ける（長い行は折る）
-    setImp(code, "white-space", "pre-wrap");
-    setImp(code, "overflow-wrap", "anywhere");
 
     pre.appendChild(code);
     box.append(header, pre);
