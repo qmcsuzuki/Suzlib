@@ -41,3 +41,64 @@
 }
 .verification-marks [data-mark="–"] { color: #888; }
 .verification-overall { grid-column: span 2; }
+
+/* Bundle modal */
+.suz-bundle-overlay {
+  position: fixed !important;
+  left: 0 !important;
+  top: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  margin: 0 !important;
+  padding: 1.5vh 1.5vw !important;
+  box-sizing: border-box !important;
+  background: rgba(0,0,0,.35) !important;
+  z-index: 2147483647 !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: stretch !important;
+}
+
+.suz-bundle-dialog {
+  width: min(98vw, 2400px) !important;
+  height: 100% !important;
+  background: #fff !important;
+  border-radius: 10px !important;
+  box-shadow: 0 10px 30px rgba(0,0,0,.2) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+}
+
+.suz-bundle-header {
+  display: flex !important;
+  gap: 8px !important;
+  align-items: center !important;
+  padding: 10px 12px !important;
+  background: #fff !important;
+  border-bottom: 1px solid #e5e5e5 !important;
+  position: sticky !important;
+  top: 0 !important;
+}
+
+.suz-bundle-title {
+  font-weight: 600 !important;
+  margin-right: auto !important;
+}
+
+.suz-bundle-pre {
+  margin: 0 !important;
+  padding: 12px !important;
+  flex: 1 1 auto !important;
+  overflow: auto !important;
+  background: #fafafa !important;
+}
+
+.suz-bundle-code {
+  white-space: pre-wrap !important;
+  overflow-wrap: anywhere !important;
+}
+
+.quick-reference-doc {
+  white-space: pre-wrap;
+}
