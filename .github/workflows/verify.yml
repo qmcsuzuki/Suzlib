@@ -88,16 +88,12 @@ jobs:
         with:
           file: verify_files.json
 
-      - name: Check bundled
-        id: test-bundled
-        run: |
-          echo "count=$(find .competitive-verifier/bundled/ -type f | wc -l)" >> $GITHUB_OUTPUT
       - name: Upload bundled
         uses: actions/upload-artifact@v7
-        if: steps.test-bundled.outputs.count > 0
         with:
           name: Bundled-${{ runner.os }}
           path: .competitive-verifier/bundled
+          if-no-files-found: ignore
           retention-days: 1
 
   verify:
