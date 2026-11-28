@@ -1,4 +1,4 @@
-# competitive-verifier: TITLE DAG の最小本数点素パス被覆
+# competitive-verifier: TITLE DAG の最小パス被覆（点素に特化）
 
 from python.graph.matching.BipartiteMatching import BipartiteMatching
 
