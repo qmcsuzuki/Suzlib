@@ -6,11 +6,7 @@ from python.graph.topological_sort import topological_sort
 
 def _minimum_cover_flow(n, edges, lower, disjoint):
     """各頂点の被覆回数の下限を満たす最小本数と、求解済みのグラフ・辺番号を返す。
-    初期解は各 v を lower[v] 本の単頂点パスで覆う解（本数 sum(lower)）。
-    v は「v で終わるパス」、n+v は「v から始まるパス」を表し、
-    s→v→n+u→t の 1 単位の流れが、v で終わるパスを辺 v→u で u から始まるパスへつなぐ。
-    n+v→v は下限を超える v の追加通過（点素なら合計 1 回まで）。
-    最大流 1 回で、本数は sum(lower) - 最大流量。
+    初期解（各 v を lower[v] 本の単頂点パスで覆う解）から流を押し戻すアルゴリズム
     """
     adj = [[] for _ in range(n)]
     for u, v in edges:
@@ -35,6 +31,8 @@ class DAGMinimumPathCover:
     weights=None は各頂点1回。disjoint=True で点素、False で頂点共有可。
     点素の場合は weights の各要素を0または1に制限する。単頂点パスも許す。
     solve は 2n+2 頂点・3n+m 辺の最大流を 1 回。復元は O(n+m+出力長)。
+
+    注！！！ 推移閉包となる辺が与えられる場合は、マッチング版の方が高速 ！！！
     """
 
     def __init__(
