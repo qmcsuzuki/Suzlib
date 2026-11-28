@@ -186,8 +186,8 @@
     btnCopy.textContent = "Copy";
     btnCopy.addEventListener("click", async () => {
       await navigator.clipboard.writeText(codeText);
+      // コピー済みであることが分かるよう、表示は元に戻さない。
       btnCopy.textContent = "Copied";
-      setTimeout(() => (btnCopy.textContent = "Copy"), 900);
     });
 
     const btnClose = document.createElement("button");
@@ -273,11 +273,9 @@
         } else {
           await navigator.clipboard.writeText(await bundled);
         }
+        // コピー済みであることが分かるよう、表示は元に戻さない。再度押せばコピーし直す。
         bundleCopy.textContent = "Copied!";
-        setTimeout(() => {
-          bundleCopy.textContent = "Bundle and Copy";
-          bundleCopy.disabled = false;
-        }, 1000);
+        bundleCopy.disabled = false;
       } catch (e) {
         bundleCopy.textContent = "Bundle and Copy";
         bundleCopy.disabled = false;
